@@ -316,23 +316,24 @@
 			   A trigger that starts execution, multiple input bindings that supply supporting data automatically, and multiple output bindings that deliver results without requiring any explicit client or SDK code.
 			   The developer focuses solely on business logic while Azure manages all underlying connections and operations.
 
-	1. Azure Function Authorization Levels.
-	The Authorization level in Azure Functions controls who can access your function and how. It determines what kind of credentials (if any) are required when someone tries to invoke your function via HTTP. There are basically 3 levels:
-		a. Anonymous: To access this no key will be required and Anyone can call the function — great for public APIs, demos, or testing
-		b. Function: It require a Function Key and Only callers with the correct key can access — good for internal apps or limited sharing
-		c. Admin: It require master key and Highest level — used for full control, including deployment and management
+=> **Azure Function Authorization Levels**: The Authorization level in Azure Functions controls who can access your function and how. 
+											It determines what kind of credentials (if any) are required when someone tries to invoke your function via HTTP. There are basically 3 levels:
+												a. Anonymous: To access this no key will be required and Anyone can call the function — great for public APIs, demos, or testing
+												b. Function: It require a Function Key and Only callers with the correct key can access — good for internal apps or limited sharing
+												c. Admin: It require master key and Highest level — used for full control, including deployment and management
 		
-	2. What are the different type of API key in HTTP Trigger?
-	API keys are used to authorize HTTP requests coming from browser, Postman, curl, Frontend Apps and External services. There are 3 different API key available in HTTP Trigger:
-		a. default Function key: This is for single function only. This has least privilege option for invoking just this function. It is used when your function’s AuthorizationLevel is Function and you want to call this function. It is good for Integrations that call only one function endpoint.
-		b. default Host key: It is used when all the function is in the same Function App. It will be used when you need one key that can call multiple functions in the same app (e.g., shared backend service or APIM calling many functions). It is still an invoke key not an admin key.
-		c. Master(host) key : Admin-level for the whole Function App. It grants access to invoke endpoints and certain management endpoints. It is used when You specifically need Admin authorization, or certain management APIs. This is most powerful key so, always avoid using it in normal client calls; never embed in apps.
-	If your function’s Authorization level = Anonymous → No key needed (you can leave it as-is).
-	If Authorization level = Function → Choose default (function key) (recommended, least privilege).
-	If Authorization level = Admin → You must choose master (host key).
+=> **What are the different type of API key in HTTP Trigger**: API keys are used to authorize HTTP requests coming from browser, Postman, curl, Frontend Apps and External services. There are 3 different API key available in HTTP Trigger:
+		a. default Function key: This is for single function only. This has least privilege option for invoking just this function. 
+		   						 It is used when your function’s AuthorizationLevel is Function and you want to call this function. It is good for Integrations that call only one function endpoint.
+		b. default Host key: It is used when all the function is in the same Function App. It will be used when you need one key that can call multiple functions in the same app 
+							 (e.g., shared backend service or APIM calling many functions). It is still an invoke key not an admin key.
+		c. Master(host) key : Admin-level for the whole Function App. It grants access to invoke endpoints and certain management endpoints. 
+							  It is used when You specifically need Admin authorization, or certain management APIs. This is most powerful key so, always avoid using it in normal client calls; never embed in apps.
+		If your function’s Authorization level = Anonymous → No key needed (you can leave it as-is).
+		If Authorization level = Function → Choose default (function key) (recommended, least privilege).
+		If Authorization level = Admin → You must choose master (host key).
 	
-	3. Explain Azure Time Trigger CRON Format?
-	Azure Time Trigger CRON Format is: {second} {minute} {hour} {day} {month} {day-of-week}. Example:
+=> **Explain Azure Time Trigger CRON Format**: Azure Time Trigger CRON Format is: {second} {minute} {hour} {day} {month} {day-of-week}. Example:
 		a. 0 */5 * * * * means run the function every 5 minutes, at second 0
 			i. 0: At second 0
 			ii. */5: Every 5 Min
@@ -349,354 +350,360 @@
 		h. Every Weekend at 11 AM: 0 0 11 * * 6,0
 		i. Saturday, Sunday, and Monday at 2:00 PM: 0 0 14 * * 6,0,1
 		
-	4. Explain function.json
-	Each function (inside a Function App) has a function.json. function.json contains a bindings array. One of the bindings is the trigger (e.g., httpTrigger, timerTrigger, queueTrigger). The trigger binding defines when the function runs and the parameter name your code receives (e.g., name: "Timer" → param($Timer)).
-	A function.json does not always contain “three bindings” (trigger, input, output). 
-	It contains exactly one trigger binding. 
-	It can have zero or more additional input bindings.
-	It can have zero or more output bindings.
-	Many functions only have one binding (the trigger).
-	Example: 
-		a. QueueTrigger1
-			
-			{
-			  "bindings": [
-			    {
-			      "name": "QueueItem",
-			      "type": "queueTrigger",
-			      "direction": "in",
-			      "queueName": "ps-queue-items",
-			      "connection": "AzureWebJobsStorage"
-			    }
-			  ]
-			}
-			
-		b. TimerTrigger1
-			
-			{
-			  "bindings": [
-			    {
-			      "name": "Timer",
-			      "type": "timerTrigger",
-			      "direction": "in",
-			      "schedule": "0 */5 * * * *"
-			    }
-			  ]
-			}
-			
-		c. HttpTrigger1
-			
-			{
-			  "bindings": [
-			    {
-			      "authLevel": "anonymous",
-			      "type": "httpTrigger",
-			      "direction": "in",
-			      "name": "Request",
-			      "methods": [
-			        "get",
-			        "post"
-			      ]
-			    },
-			    {
-			      "type": "http",
-			      "direction": "out",
-			      "name": "Response"
-			    }
-			  ]
-			}
-	direction: "in"(Inpit binding): Azure provide data to your function. You read this data in your code and you don't create and push it yourself. Every trigger is always direction: "in" because it starts the function.
+=> **Explain function.json**: Each function (inside a Function App) has a function.json. function.json contains a bindings array. One of the bindings is the trigger (e.g., httpTrigger, timerTrigger, queueTrigger). 
+							  The trigger binding defines when the function runs and the parameter name your code receives (e.g., name: "Timer" → param($Timer)).
+							  A function.json does not always contain “three bindings” (trigger, input, output). 
+							  It contains exactly one trigger binding. 
+							  It can have zero or more additional input bindings.
+							  It can have zero or more output bindings.
+							  Many functions only have one binding (the trigger).
+							  Example: 
+									a. QueueTrigger1
+										
+										{
+										  "bindings": [
+										    {
+										      "name": "QueueItem",
+										      "type": "queueTrigger",
+										      "direction": "in",
+										      "queueName": "ps-queue-items",
+										      "connection": "AzureWebJobsStorage"
+										    }
+										  ]
+										}
+										
+									b. TimerTrigger1
+										
+										{
+										  "bindings": [
+										    {
+										      "name": "Timer",
+										      "type": "timerTrigger",
+										      "direction": "in",
+										      "schedule": "0 */5 * * * *"
+										    }
+										  ]
+										}
+										
+									c. HttpTrigger1
+										
+										{
+										  "bindings": [
+										    {
+										      "authLevel": "anonymous",
+										      "type": "httpTrigger",
+										      "direction": "in",
+										      "name": "Request",
+										      "methods": [
+										        "get",
+										        "post"
+										      ]
+										    },
+										    {
+										      "type": "http",
+										      "direction": "out",
+										      "name": "Response"
+										    }
+										  ]
+										}
+								direction: "in"(Inpit binding): Azure provide data to your function. You read this data in your code and you don't create and push it yourself. 
+															    Every trigger is always direction: "in" because it starts the function.
+								
+								direction: "out"(Output binding): Your function send data out and Azure handles writing it to the destination. You don't use SDKs; Azure does it for you.
+								
+=> **Explain Resource JSON → properties.config.bindings**: The bindings you see in Resource JSON → properties.config.bindings are NOT something different. 
+							They are simply Azure’s Resource management/ARM representation of the same bindings defined in function.json. 
+							So, there is only one binding definition stored with the function(function.json) and reflected into Resource JSON for management & UI.
+							{
+							    "id": "/subscriptions/540b7602-d4c7-41d9-ae81-9b1cfaa2f21d/resourceGroups/ADMAppDevAPACDelivery-2364176-RG/providers/Microsoft.Web/sites/VinayTestFunction/functions/TimerTrigger1",
+							    "name": "VinayTestFunction/TimerTrigger1",
+							    "type": "Microsoft.Web/sites/functions",
+							    "location": "Central US",
+							    "properties": {
+							        "name": "TimerTrigger1",
+							        "function_app_id": null,
+							        "script_root_path_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/",
+							        "script_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/run.ps1",
+							        "config_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/function.json",
+							        "test_data_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/data/Functions/sampledata/TimerTrigger1.dat",
+							        "secrets_file_href": null,
+							        "href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/functions/TimerTrigger1",
+							        "config": {
+							            "bindings": [
+							                {
+							                    "name": "Timer",
+							                    "type": "timerTrigger",
+							                    "direction": "in",
+							                    "schedule": "0 */5 * * * *"
+							                }
+							            ]
+							        },
+							        "files": null,
+							        "test_data": "",
+							        "invoke_url_template": null,
+							        "language": "powershell",
+							        "isDisabled": false
+							    }
+							}
 	
-	direction: "out"(Output binding): Your function send data out and Azure handles writing it to the destination. You don't use SDKs; Azure does it for you.
+=> **Explain properties.isDisabled in Resource JSON**: properties.isDisabled have two values:
+						a. false: function will run
+						b. true: function will never execute
+					This you can achieve through Portal Disable/Enable(top toolbar) option also
+						a. Enable: "isDisabled": false
+						b. Disable: "isDisabled": true
 	
-	5. Explain Resource JSON → properties.config.bindings
-	The bindings you see in Resource JSON → properties.config.bindings are NOT something different. They are simply Azure’s Resource management/ARM representation of the same bindings defined in function.json. So, there is only one binding definition stored with the function(function.json) and reflected into Resource JSON for management & UI.
-	{
-	    "id": "/subscriptions/540b7602-d4c7-41d9-ae81-9b1cfaa2f21d/resourceGroups/ADMAppDevAPACDelivery-2364176-RG/providers/Microsoft.Web/sites/VinayTestFunction/functions/TimerTrigger1",
-	    "name": "VinayTestFunction/TimerTrigger1",
-	    "type": "Microsoft.Web/sites/functions",
-	    "location": "Central US",
-	    "properties": {
-	        "name": "TimerTrigger1",
-	        "function_app_id": null,
-	        "script_root_path_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/",
-	        "script_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/run.ps1",
-	        "config_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/function.json",
-	        "test_data_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/data/Functions/sampledata/TimerTrigger1.dat",
-	        "secrets_file_href": null,
-	        "href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/functions/TimerTrigger1",
-	        "config": {
-	            "bindings": [
-	                {
-	                    "name": "Timer",
-	                    "type": "timerTrigger",
-	                    "direction": "in",
-	                    "schedule": "0 */5 * * * *"
-	                }
-	            ]
-	        },
-	        "files": null,
-	        "test_data": "",
-	        "invoke_url_template": null,
-	        "language": "powershell",
-	        "isDisabled": false
-	    }
-	}
+=> **What is a Blob Trigger**: A Blob Trigger is an Azure Function trigger that executes automatically when a blob (file) is created or updated in Azure Blob Storage. 
+				Blob trigger execute when a new file is uploaded to a container and an existing file is overwritten. It doesn't run when file is downloaded, file is deleted or file metadata is read. 
+				Common use-case is CSV/Excel processing, Image or video processing, Invoice and report injection, System-to-system file integration. 
+				Let's consider one important example: 
+				Blob Trigger in an ETL Pipeline: Flow: File Upload → Blob Trigger Function → Database
+				Step-1) Blob container name: input-file , Uploaded file: employees.csv. File upload trigger the Azure function. No manual API call needed
+				Step-2) Transform (Processing inside Function): Inside the Blob Trigger function, four operation will be performed i.e. Read file content, Parse CSV rows, Convert data types and validate values. 
+						This operation basically include like Dat format correction if any, Removing invalid rows, Trimming Strings, Checking mandatory fields and others also depends on fields and requirements. 
+				Step-3) Load (Insert into Database): After transformation, data is saved into a database like Azure SQL / Cosmos DB / PostgreSQL
+						Example Function for ETL pipeline:
+						
+						package com.example.functions;
+						import com.microsoft.azure.functions.*;
+						import com.microsoft.azure.functions.annotation.*;
+						import org.apache.commons.csv.CSVFormat;
+						import org.apache.commons.csv.CSVParser;
+						import org.apache.commons.csv.CSVRecord;
+						import java.io.*;
+						import java.nio.charset.StandardCharsets;
+						import java.sql.*;
+						import java.time.LocalDate;
+						import java.time.format.DateTimeFormatter;
+						import java.util.*;
+						/**
+						 * Blob Trigger ETL: CSV -> Transform -> Upsert to Azure SQL
+						 *
+						 * Expected CSV headers (case-insensitive):
+						 *   EmpId, Name, JoinDate, Salary
+						 *
+						 * Notes:
+						 * - JoinDate format expected: dd-MM-yyyy (e.g., 24-01-2026)
+						 * - Salary numeric
+						 *
+						 * App Settings required (local.settings.json / Azure Portal -> Configuration):
+						 *   DB_URL       = jdbc:sqlserver://<server>.database.windows.net:1433;database=<db>;encrypt=true;trustServerCertificate=false;loginTimeout=30;
+						 *   DB_USER      = <sql-user>@<server>          (if using SQL auth)
+						 *   DB_PASSWORD  = <password>                   (if using SQL auth)
+						 *
+						 * Storage connection (already provided by Functions runtime):
+						 *   AzureWebJobsStorage
+						 */
+						public class EmployeeIngestFunction {
+						    private static final DateTimeFormatter INPUT_DATE = DateTimeFormatter.ofPattern("dd-MM-uuuu");
+						    @FunctionName("EmployeeIngest")
+						    public void run(
+						            @BlobTrigger(
+						                name = "file",
+						                dataType = "binary",
+						                path = "input-files/{name}",              // <-- change to your container if needed
+						                connection = "AzureWebJobsStorage"
+						            ) byte[] content,
+						            @BindingName("name") String fileName,
+						            final ExecutionContext context) {
+						        final Logger log = context.getLogger();
+						        log.info("Blob Trigger fired for file: " + fileName + " (bytes: " + (content == null ? 0 : content.length) + ")");
+						        if (content == null || content.length == 0) {
+						            log.warning("Empty file; skipping.");
+						            return;
+						        }
+						        // 1) Extract & Transform
+						        List<EmployeeRow> validRows = new ArrayList<>();
+						        List<String> badRows = new ArrayList<>();
+						        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
+						             CSVParser parser = CSVFormat.DEFAULT
+						                     .withFirstRecordAsHeader()
+						                     .withIgnoreHeaderCase()
+						                     .withTrim()
+						                     .withIgnoreEmptyLines()
+						                     .parse(reader)) {
+						            Map<String, Integer> headerMap = parser.getHeaderMap();
+						            // Basic header validation
+						            for (String required : Arrays.asList("EmpId", "Name", "JoinDate", "Salary")) {
+						                if (!containsHeader(headerMap, required)) {
+						                    throw new IllegalArgumentException("Missing required column: " + required);
+						                }
+						            }
+						            for (CSVRecord rec : parser) {
+						                try {
+						                    String empIdStr = rec.get(getHeaderKey(headerMap, "EmpId"));
+						                    String name = rec.get(getHeaderKey(headerMap, "Name"));
+						                    String joinDateStr = rec.get(getHeaderKey(headerMap, "JoinDate"));
+						                    String salaryStr = rec.get(getHeaderKey(headerMap, "Salary"));
+						                    if (isBlank(empIdStr) || isBlank(name) || isBlank(joinDateStr) || isBlank(salaryStr)) {
+						                        throw new IllegalArgumentException("One or more mandatory fields are blank.");
+						                    }
+						                    int empId = Integer.parseInt(empIdStr.trim());
+						                    LocalDate joinDate = LocalDate.parse(joinDateStr.trim(), INPUT_DATE);
+						                    // allow "50000" or "50000.00"
+						                    double salary = Double.parseDouble(salaryStr.trim().replaceAll(",", ""));
+						                    EmployeeRow row = new EmployeeRow(empId, name.trim(), joinDate, salary);
+						                    validRows.add(row);
+						                } catch (Exception rowEx) {
+						                    badRows.add("Line " + rec.getRecordNumber() + ": " + rowEx.getMessage());
+						                }
+						            }
+						        } catch (Exception e) {
+						            log.severe("Failed to parse/transform CSV: " + e.getMessage());
+						            throw new RuntimeException(e);
+						        }
+						        if (!badRows.isEmpty()) {
+						            log.warning("Invalid rows encountered (" + badRows.size() + "):");
+						            badRows.forEach(r -> log.warning("  " + r));
+						            // In production, consider writing these to a dead-letter container/queue.
+						        }
+						        if (validRows.isEmpty()) {
+						            log.info("No valid rows to load; exiting.");
+						            return;
+						        }
+						        // 2) Load -> Azure SQL (batch upsert with MERGE)
+						        String dbUrl = getEnv("DB_URL");
+						        String dbUser = System.getenv("DB_USER");
+						        String dbPassword = System.getenv("DB_PASSWORD");
+						        if (isBlank(dbUrl)) {
+						            log.severe("DB_URL is not set. Configure it in App Settings.");
+						            throw new IllegalStateException("DB_URL not configured");
+						        }
+						        // --- Option A: SQL Authentication ---------------------------------------------------------
+						        if (!isBlank(dbUser) && !isBlank(dbPassword)) {
+						            try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
+						                upsertEmployees(conn, validRows, log);
+						            } catch (SQLException e) {
+						                log.severe("SQL error: " + e.getMessage());
+						                throw new RuntimeException(e);
+						            }
+						        } else {
+						            // --- Option B: Managed Identity / AAD token -------------------------------------------
+						            // Requires:
+						            //  1) Function App with System-Assigned or User-Assigned Managed Identity
+						            //  2) Identity granted db_datareader/db_datawriter (or custom) on the Azure SQL database
+						            //  3) JDBC URL WITHOUT user/password
+						            // Uncomment the block below and add azure-identity dependency if you want token-based auth.
+						            /*
+						            try {
+						                com.azure.identity.DefaultAzureCredential credential = new com.azure.identity.DefaultAzureCredentialBuilder().build();
+						                // Scope for Azure SQL is "https://database.windows.net//.default"
+						                String scope = "https://database.windows.net//.default";
+						                String accessToken = credential.getToken(new com.azure.core.credential.TokenRequestContext().addScopes(scope)).block().getToken();
+						                Properties props = new Properties();
+						                props.setProperty("accessToken", accessToken);
+						                try (Connection conn = DriverManager.getConnection(dbUrl, props)) {
+						                    upsertEmployees(conn, validRows, log);
+						                }
+						            } catch (Exception e) {
+						                log.severe("AAD token-based SQL connection failed: " + e.getMessage());
+						                throw new RuntimeException(e);
+						            }
+						            */
+						            throw new IllegalStateException("No DB_USER/DB_PASSWORD provided and token-based block is disabled.");
+						        }
+						        log.info("ETL completed. Valid rows loaded: " + validRows.size() + "; Bad rows: " + badRows.size());
+						    }
+						    private static void upsertEmployees(Connection conn, List<EmployeeRow> rows, Logger log) throws SQLException {
+						        // Ensure table exists (optional safeguard). For production, pre-provision schema.
+						        ensureTable(conn, log);
+						        // Use MERGE for upsert (insert if not exists, else update)
+						        String mergeSql =
+						                "MERGE dbo.Employees AS target " +
+						                "USING (VALUES (?, ?, ?, ?)) AS src (EmpId, Name, JoinDate, Salary) " +
+						                "ON (target.EmpId = src.EmpId) " +
+						                "WHEN MATCHED THEN UPDATE SET Name = src.Name, JoinDate = src.JoinDate, Salary = src.Salary " +
+						                "WHEN NOT MATCHED THEN INSERT (EmpId, Name, JoinDate, Salary) VALUES (src.EmpId, src.Name, src.JoinDate, src.Salary);";
+						        conn.setAutoCommit(false);
+						        int batchSize = 0;
+						        try (PreparedStatement ps = conn.prepareStatement(mergeSql)) {
+						            for (EmployeeRow r : rows) {
+						                ps.setInt(1, r.empId);
+						                ps.setString(2, r.name);
+						                ps.setDate(3, Date.valueOf(r.joinDate));
+						                ps.setBigDecimal(4, java.math.BigDecimal.valueOf(r.salary));
+						                ps.addBatch();
+						                batchSize++;
+						                if (batchSize % 500 == 0) {
+						                    ps.executeBatch();
+						                }
+						            }
+						            ps.executeBatch();
+						            conn.commit();
+						        } catch (SQLException e) {
+						            conn.rollback();
+						            throw e;
+						        } finally {
+						            conn.setAutoCommit(true);
+						        }
+						    }
+						    private static void ensureTable(Connection conn, Logger log) {
+						        String ddl =
+						            "IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Employees]') AND type in (N'U')) " +
+						            "BEGIN " +
+						            "  CREATE TABLE [dbo].[Employees] (" +
+						            "    EmpId INT NOT NULL PRIMARY KEY, " +
+						            "    Name NVARCHAR(200) NOT NULL, " +
+						            "    JoinDate DATE NOT NULL, " +
+						            "    Salary DECIMAL(18,2) NOT NULL" +
+						            "  ); " +
+						            "END";
+						        try (Statement st = conn.createStatement()) {
+						            st.execute(ddl);
+						        } catch (SQLException e) {
+						            // In production, you might not want DDL here; pre-create schema instead.
+						            log.warning("ensureTable() failed or table exists: " + e.getMessage());
+						        }
+						    }
+						    // --- Helpers --------------------------------------------------------------------------------
+						    private static boolean containsHeader(Map<String, Integer> headerMap, String key) {
+						        return getHeaderKey(headerMap, key) != null;
+						    }
+						    private static String getHeaderKey(Map<String, Integer> headerMap, String key) {
+						        for (String k : headerMap.keySet()) {
+						            if (k.equalsIgnoreCase(key)) return k;
+						        }
+						        return null;
+						    }
+						    private static boolean isBlank(String s) {
+						        return s == null || s.trim().isEmpty();
+						    }
+						    // DTO for transformed data
+						    private static class EmployeeRow {
+						        final int empId;
+						        final String name;
+						        final LocalDate joinDate;
+						        final double salary;
+						        EmployeeRow(int empId, String name, LocalDate joinDate, double salary) {
+						            this.empId = empId;
+						            this.name = name;
+						            this.joinDate = joinDate;
+						            this.salary = salary;
+						        }
+						    }
+						}
 	
-	6. Explain properties.isDisabled in Resource JSON.
-	properties.isDisabled have two values:
-		a. false: function will run
-		b. true: function will never execute
-	This you can achieve through Portal Disable/Enable(top toolbar) option also
-		a. Enable: "isDisabled": false
-		b. Disable: "isDisabled": true
+=> **What is a Cosmos DB Trigger**: A Cosmos DB Trigger listens to the Cosmos DB Change Feed. The Change Feed: Tracks new and updated documents, Preserves order, Is reliable and durable. 
+				Your function reacts to those document changes. Operation trigger when new document is inserted and existing document is updated only.
+				A Cosmos DB Trigger works only with Azure Cosmos DB because: It is built on Cosmos DB Change Feed, Change Feed exists only in Cosmos DB,Other databases do not expose this mechanism in the same way . 
+				If you are not using Cosmos DB, this trigger is NOT applicable.
 	
-	7. What is a Blob Trigger?
-	A Blob Trigger is an Azure Function trigger that executes automatically when a blob (file) is created or updated in Azure Blob Storage. Blob trigger execute when a new file is uploaded to a container and an existing file is overwritten. It doesn't run when file is downloaded, file is deleted or file metadata is read. Common use-case is CSV/Excel processing, Image or video processing, Invoice and report injection, System-to-system file integration. 
-	Let's consider one important example: 
-	Blob Trigger in an ETL Pipeline: Flow: File Upload → Blob Trigger Function → Database
-	Step-1) Blob container name: input-file , Uploaded file: employees.csv
-		File upload trigger the Azure function. No manual API call needed
-	Step-2) Transform (Processing inside Function): Inside the Blob Trigger function, four operation will be performed i.e. Read file content, Parse CSV rows, Convert data types and validate values. This operation basically include like Dat format correction if any, Removing invalid rows, Trimming Strings, Checking mandatory fields and others also depends on fields and requirements. 
-	Step-3) Load (Insert into Database): After transformation, data is saved into a database like Azure SQL / Cosmos DB / PostgreSQL
-	Example Function for ETL pipeline:
-	
-	package com.example.functions;
-	import com.microsoft.azure.functions.*;
-	import com.microsoft.azure.functions.annotation.*;
-	import org.apache.commons.csv.CSVFormat;
-	import org.apache.commons.csv.CSVParser;
-	import org.apache.commons.csv.CSVRecord;
-	import java.io.*;
-	import java.nio.charset.StandardCharsets;
-	import java.sql.*;
-	import java.time.LocalDate;
-	import java.time.format.DateTimeFormatter;
-	import java.util.*;
-	/**
-	 * Blob Trigger ETL: CSV -> Transform -> Upsert to Azure SQL
-	 *
-	 * Expected CSV headers (case-insensitive):
-	 *   EmpId, Name, JoinDate, Salary
-	 *
-	 * Notes:
-	 * - JoinDate format expected: dd-MM-yyyy (e.g., 24-01-2026)
-	 * - Salary numeric
-	 *
-	 * App Settings required (local.settings.json / Azure Portal -> Configuration):
-	 *   DB_URL       = jdbc:sqlserver://<server>.database.windows.net:1433;database=<db>;encrypt=true;trustServerCertificate=false;loginTimeout=30;
-	 *   DB_USER      = <sql-user>@<server>          (if using SQL auth)
-	 *   DB_PASSWORD  = <password>                   (if using SQL auth)
-	 *
-	 * Storage connection (already provided by Functions runtime):
-	 *   AzureWebJobsStorage
-	 */
-	public class EmployeeIngestFunction {
-	    private static final DateTimeFormatter INPUT_DATE = DateTimeFormatter.ofPattern("dd-MM-uuuu");
-	    @FunctionName("EmployeeIngest")
-	    public void run(
-	            @BlobTrigger(
-	                name = "file",
-	                dataType = "binary",
-	                path = "input-files/{name}",              // <-- change to your container if needed
-	                connection = "AzureWebJobsStorage"
-	            ) byte[] content,
-	            @BindingName("name") String fileName,
-	            final ExecutionContext context) {
-	        final Logger log = context.getLogger();
-	        log.info("Blob Trigger fired for file: " + fileName + " (bytes: " + (content == null ? 0 : content.length) + ")");
-	        if (content == null || content.length == 0) {
-	            log.warning("Empty file; skipping.");
-	            return;
-	        }
-	        // 1) Extract & Transform
-	        List<EmployeeRow> validRows = new ArrayList<>();
-	        List<String> badRows = new ArrayList<>();
-	        try (Reader reader = new InputStreamReader(new ByteArrayInputStream(content), StandardCharsets.UTF_8);
-	             CSVParser parser = CSVFormat.DEFAULT
-	                     .withFirstRecordAsHeader()
-	                     .withIgnoreHeaderCase()
-	                     .withTrim()
-	                     .withIgnoreEmptyLines()
-	                     .parse(reader)) {
-	            Map<String, Integer> headerMap = parser.getHeaderMap();
-	            // Basic header validation
-	            for (String required : Arrays.asList("EmpId", "Name", "JoinDate", "Salary")) {
-	                if (!containsHeader(headerMap, required)) {
-	                    throw new IllegalArgumentException("Missing required column: " + required);
-	                }
-	            }
-	            for (CSVRecord rec : parser) {
-	                try {
-	                    String empIdStr = rec.get(getHeaderKey(headerMap, "EmpId"));
-	                    String name = rec.get(getHeaderKey(headerMap, "Name"));
-	                    String joinDateStr = rec.get(getHeaderKey(headerMap, "JoinDate"));
-	                    String salaryStr = rec.get(getHeaderKey(headerMap, "Salary"));
-	                    if (isBlank(empIdStr) || isBlank(name) || isBlank(joinDateStr) || isBlank(salaryStr)) {
-	                        throw new IllegalArgumentException("One or more mandatory fields are blank.");
-	                    }
-	                    int empId = Integer.parseInt(empIdStr.trim());
-	                    LocalDate joinDate = LocalDate.parse(joinDateStr.trim(), INPUT_DATE);
-	                    // allow "50000" or "50000.00"
-	                    double salary = Double.parseDouble(salaryStr.trim().replaceAll(",", ""));
-	                    EmployeeRow row = new EmployeeRow(empId, name.trim(), joinDate, salary);
-	                    validRows.add(row);
-	                } catch (Exception rowEx) {
-	                    badRows.add("Line " + rec.getRecordNumber() + ": " + rowEx.getMessage());
-	                }
-	            }
-	        } catch (Exception e) {
-	            log.severe("Failed to parse/transform CSV: " + e.getMessage());
-	            throw new RuntimeException(e);
-	        }
-	        if (!badRows.isEmpty()) {
-	            log.warning("Invalid rows encountered (" + badRows.size() + "):");
-	            badRows.forEach(r -> log.warning("  " + r));
-	            // In production, consider writing these to a dead-letter container/queue.
-	        }
-	        if (validRows.isEmpty()) {
-	            log.info("No valid rows to load; exiting.");
-	            return;
-	        }
-	        // 2) Load -> Azure SQL (batch upsert with MERGE)
-	        String dbUrl = getEnv("DB_URL");
-	        String dbUser = System.getenv("DB_USER");
-	        String dbPassword = System.getenv("DB_PASSWORD");
-	        if (isBlank(dbUrl)) {
-	            log.severe("DB_URL is not set. Configure it in App Settings.");
-	            throw new IllegalStateException("DB_URL not configured");
-	        }
-	        // --- Option A: SQL Authentication ---------------------------------------------------------
-	        if (!isBlank(dbUser) && !isBlank(dbPassword)) {
-	            try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
-	                upsertEmployees(conn, validRows, log);
-	            } catch (SQLException e) {
-	                log.severe("SQL error: " + e.getMessage());
-	                throw new RuntimeException(e);
-	            }
-	        } else {
-	            // --- Option B: Managed Identity / AAD token -------------------------------------------
-	            // Requires:
-	            //  1) Function App with System-Assigned or User-Assigned Managed Identity
-	            //  2) Identity granted db_datareader/db_datawriter (or custom) on the Azure SQL database
-	            //  3) JDBC URL WITHOUT user/password
-	            // Uncomment the block below and add azure-identity dependency if you want token-based auth.
-	            /*
-	            try {
-	                com.azure.identity.DefaultAzureCredential credential = new com.azure.identity.DefaultAzureCredentialBuilder().build();
-	                // Scope for Azure SQL is "https://database.windows.net//.default"
-	                String scope = "https://database.windows.net//.default";
-	                String accessToken = credential.getToken(new com.azure.core.credential.TokenRequestContext().addScopes(scope)).block().getToken();
-	                Properties props = new Properties();
-	                props.setProperty("accessToken", accessToken);
-	                try (Connection conn = DriverManager.getConnection(dbUrl, props)) {
-	                    upsertEmployees(conn, validRows, log);
-	                }
-	            } catch (Exception e) {
-	                log.severe("AAD token-based SQL connection failed: " + e.getMessage());
-	                throw new RuntimeException(e);
-	            }
-	            */
-	            throw new IllegalStateException("No DB_USER/DB_PASSWORD provided and token-based block is disabled.");
-	        }
-	        log.info("ETL completed. Valid rows loaded: " + validRows.size() + "; Bad rows: " + badRows.size());
-	    }
-	    private static void upsertEmployees(Connection conn, List<EmployeeRow> rows, Logger log) throws SQLException {
-	        // Ensure table exists (optional safeguard). For production, pre-provision schema.
-	        ensureTable(conn, log);
-	        // Use MERGE for upsert (insert if not exists, else update)
-	        String mergeSql =
-	                "MERGE dbo.Employees AS target " +
-	                "USING (VALUES (?, ?, ?, ?)) AS src (EmpId, Name, JoinDate, Salary) " +
-	                "ON (target.EmpId = src.EmpId) " +
-	                "WHEN MATCHED THEN UPDATE SET Name = src.Name, JoinDate = src.JoinDate, Salary = src.Salary " +
-	                "WHEN NOT MATCHED THEN INSERT (EmpId, Name, JoinDate, Salary) VALUES (src.EmpId, src.Name, src.JoinDate, src.Salary);";
-	        conn.setAutoCommit(false);
-	        int batchSize = 0;
-	        try (PreparedStatement ps = conn.prepareStatement(mergeSql)) {
-	            for (EmployeeRow r : rows) {
-	                ps.setInt(1, r.empId);
-	                ps.setString(2, r.name);
-	                ps.setDate(3, Date.valueOf(r.joinDate));
-	                ps.setBigDecimal(4, java.math.BigDecimal.valueOf(r.salary));
-	                ps.addBatch();
-	                batchSize++;
-	                if (batchSize % 500 == 0) {
-	                    ps.executeBatch();
-	                }
-	            }
-	            ps.executeBatch();
-	            conn.commit();
-	        } catch (SQLException e) {
-	            conn.rollback();
-	            throw e;
-	        } finally {
-	            conn.setAutoCommit(true);
-	        }
-	    }
-	    private static void ensureTable(Connection conn, Logger log) {
-	        String ddl =
-	            "IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Employees]') AND type in (N'U')) " +
-	            "BEGIN " +
-	            "  CREATE TABLE [dbo].[Employees] (" +
-	            "    EmpId INT NOT NULL PRIMARY KEY, " +
-	            "    Name NVARCHAR(200) NOT NULL, " +
-	            "    JoinDate DATE NOT NULL, " +
-	            "    Salary DECIMAL(18,2) NOT NULL" +
-	            "  ); " +
-	            "END";
-	        try (Statement st = conn.createStatement()) {
-	            st.execute(ddl);
-	        } catch (SQLException e) {
-	            // In production, you might not want DDL here; pre-create schema instead.
-	            log.warning("ensureTable() failed or table exists: " + e.getMessage());
-	        }
-	    }
-	    // --- Helpers --------------------------------------------------------------------------------
-	    private static boolean containsHeader(Map<String, Integer> headerMap, String key) {
-	        return getHeaderKey(headerMap, key) != null;
-	    }
-	    private static String getHeaderKey(Map<String, Integer> headerMap, String key) {
-	        for (String k : headerMap.keySet()) {
-	            if (k.equalsIgnoreCase(key)) return k;
-	        }
-	        return null;
-	    }
-	    private static boolean isBlank(String s) {
-	        return s == null || s.trim().isEmpty();
-	    }
-	    // DTO for transformed data
-	    private static class EmployeeRow {
-	        final int empId;
-	        final String name;
-	        final LocalDate joinDate;
-	        final double salary;
-	        EmployeeRow(int empId, String name, LocalDate joinDate, double salary) {
-	            this.empId = empId;
-	            this.name = name;
-	            this.joinDate = joinDate;
-	            this.salary = salary;
-	        }
-	    }
-	}
-	
-	8. What is a Cosmos DB Trigger?
-	A Cosmos DB Trigger listens to the Cosmos DB Change Feed. The Change Feed: Tracks new and updated documents, Preserves order, Is reliable and durable. Your function reacts to those document changes. Operation trigger when new document is inserted and existing document is updated only.
-	A Cosmos DB Trigger works only with Azure Cosmos DB because: It is built on Cosmos DB Change Feed, Change Feed exists only in Cosmos DB,Other databases do not expose this mechanism in the same way . If you are not using Cosmos DB, this trigger is NOT applicable.
-	
-	9. Kafka Trigger vs Kafka Output
-		a. Kafka Trigger: It means Function act as a Kafka Consumer. A function that will be run whenever a message is added to a specified Kafka topic. Use Kafka Trigger when Kafka already has data/events and your function needs to react to those events. 
-			i. Usecase: Consume events from Microservices, Process streaming data, validate on enrich messages, store kafka events into DB, Trigger alerts/logging.
+=> **Kafka Trigger vs Kafka Output**: 
+		a. Kafka Trigger: It means Function act as a Kafka Consumer. A function that will be run whenever a message is added to a specified Kafka topic. 
+						  Use Kafka Trigger when Kafka already has data/events and your function needs to react to those events. 
+						  Usecase: Consume events from Microservices, Process streaming data, validate on enrich messages, store kafka events into DB, Trigger alerts/logging.
 		b. Kafka Output: It means Function act as a Kafka Producer. Function executes first (triggered by HTTP, Blob, Cosmos DB, etc.). Flow: 
-		Some trigger (HTTP / Blob / Timer / Kafka)---> Azure Functions Runs---> Function sends message to Kafka topic
-		Usecase: Your function needs to publish events, Kafka is part of your event pipeline.
+						  Some trigger (HTTP / Blob / Timer / Kafka)---> Azure Functions Runs---> Function sends message to Kafka topic
+						  Usecase: Your function needs to publish events, Kafka is part of your event pipeline.
 		
-	10. MySql Input Binding vs MySql Output Binding vs MySql Trigger in Azure Function?
+=> **MySql Input Binding vs MySql Output Binding vs MySql Trigger in Azure Function**:
 		a. MySql Input Binding: A function that will be run on an HTTP trigger and returns the results of a provided MySQL query.
 		b. MySql Output Binding: MySqlOutputBinding_description
 		c. MySql Trigger: A function will be invoked when there are changes detected on a MySQL table on which the trigger is configured.
-	11. SQL Input Binding vs SQL Output Binding vs SQL Trigger in Azure Function?
+
+=> **SQL Input Binding vs SQL Output Binding vs SQL Trigger in Azure Function**
 		a. SQL Input Binding: A function that will be run on an HTTP trigger and returns the results of a provided SQL query.
 		b. SQL Output Binding: A function that will be run on an HTTP trigger and takes a list of rows and upserts them into the user table (i.e. If a row doesn't already exist, it is added. If it does, it is updated).
 		c. SQL Trigger: A function that will be invoked when there are changes detected on a SQL table on which the trigger is configured.
 		
+
