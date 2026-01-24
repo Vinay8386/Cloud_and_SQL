@@ -322,3 +322,35 @@ This message informs downstream systems that the image has been processed succes
 			7. In summary, this function demonstrates the complete Azure Functions model:
 a trigger that starts execution, multiple input bindings that supply supporting data automatically, and multiple output bindings that deliver results without requiring any explicit client or SDK code.
 The developer focuses solely on business logic while Azure manages all underlying connections and operations.
+
+	{
+	    "id": "/subscriptions/540b7602-d4c7-41d9-ae81-9b1cfaa2f21d/resourceGroups/ADMAppDevAPACDelivery-2364176-RG/providers/Microsoft.Web/sites/VinayTestFunction/functions/TimerTrigger1",
+	    "name": "VinayTestFunction/TimerTrigger1",
+	    "type": "Microsoft.Web/sites/functions",
+	    "location": "Central US",
+	    "properties": {
+	        "name": "TimerTrigger1",
+	        "function_app_id": null,
+	        "script_root_path_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/",
+	        "script_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/run.ps1",
+	        "config_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/function.json",
+	        "test_data_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/data/Functions/sampledata/TimerTrigger1.dat",
+	        "secrets_file_href": null,
+	        "href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/functions/TimerTrigger1",
+	        "config": {
+	            "bindings": [
+	                {
+	                    "name": "Timer",
+	                    "type": "timerTrigger",
+	                    "direction": "in",
+	                    "schedule": "0 */5 * * * *"
+	                }
+	            ]
+	        },
+	        "files": null,
+	        "test_data": "",
+	        "invoke_url_template": null,
+	        "language": "powershell",
+	        "isDisabled": false
+	    }
+	}
