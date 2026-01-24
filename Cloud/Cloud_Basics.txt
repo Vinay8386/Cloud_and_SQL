@@ -1,0 +1,121 @@
+	1. 
+		a. Compute Services = Brains (processing power)
+			i. These provide the processing power needed to run applications and workloads in the cloud.
+			ii. Example:
+				1) Virtual Machines (VMs): Like Azure Virtual Machines or AWS EC2.
+				2) Containers: Azure Kubernetes Service (AKS), AWS ECS/EKS.
+				3) Serverless Computing: Azure Functions, AWS Lambda (runs code without managing servers).
+			iii. Use Case: Hosting websites, running enterprise apps, data processing.
+		
+		b. Networking Services = Nervous system (connectivity)
+			i. These enable connectivity between resources, users, and the internet.
+			ii. Purpose: Manage communication, security, and traffic flow in the cloud.
+			iii. Example:
+				1) Virtual Networks (VNet): Azure Virtual Network, AWS VPC.
+				2) Load Balancers: Distribute traffic across servers.
+				3) VPN Gateways: Secure connections between on-premises and cloud.
+				4) Firewalls & Security Groups: Control access and protect resources.
+			iv. Use Case: Connecting VMs, securing apps, enabling hybrid cloud setups.
+		
+		c. Storage Services = Memory (data persistence)
+			i. These provide scalable and durable data storage in the cloud.
+			ii. Purpose: Store files, databases, backups, and big data.
+			iii. Example:
+				1) Blob/Object Storage: Azure Blob Storage, AWS S3 (for unstructured data).
+				2) File Storage: Azure Files, AWS EFS (shared file systems).
+				3) Disk Storage: Attached to VMs for OS and app data.
+				4) Database Services: Azure SQL Database, AWS RDS.
+			iv. Use Case: Hosting media files, backups, analytics data.
+		
+	
+	2. Shared Responsibility Model: The Shared Responsibility Model is a key concept in cloud computing that explains who is responsible for what—between the cloud provider (like Azure, AWS) and you (the customer). 
+	In this both cloud provider and customer share responsibilities for keeping system secure.
+		a. Cloud Provider Responsibilities:
+			i. Physical Security: Data centers, hardware, power, cooling.
+			ii. Infrastructure Security: Networking, storage, compute resources.
+			iii. Hypervisor & Core Services: The underlying platform that runs your VMs and services.
+		
+		b. Customer Responsibilities:
+			i. Data Security: Encrypt your data, manage backups.
+			ii. Identity & Access Management: Control who can access your resources.
+			iii. Application Security: Secure your apps, patch vulnerabilities.
+			iv. Configuration: Set up firewalls, security groups, and compliance settings.
+		
+		c. Varies By Service Model:
+			i. IaaS (Infrastructure as a Service): You manage OS, apps, data; provider manages hardware.
+			ii. PaaS (Platform as a Service): You manage apps and data; provider manages OS and infrastructure. They also maintain the operating systems, middleware, development tools, and business intelligence services that make up a cloud solution. In a PaaS scenario, you don't have to worry about the licensing or patching for operating systems and databases. PaaS is well suited to provide a complete development environment without the headache of maintaining all the development infrastructure. Think of PaaS like using a domain joined machine: IT maintains the device with regular updates, patches, and refreshes.
+			iii. SaaS (Software as a Service): Software as a service (SaaS) is the most complete cloud service model from a product perspective. With SaaS, you’re essentially renting or using a fully developed application. Email, financial software, messaging applications, and connectivity software are all common examples of a SaaS implementation. In a SaaS environment you’re responsible for the data that you put into the system, the devices that you allow to connect to the system, and the users that have access. Nearly everything else falls to the cloud provider. Some common scenarios for SaaS are: Email and messaging, Business productivity applications, Finance and expense tracking.
+			
+
+	3. What is a Cloud Model?
+	A cloud model defines how cloud services are delivered (service model- IaaS, PaaS, SaaS) and where they are deployed (deployment model). The three main Cloud model/ deployment model are:
+		a. Public Cloud: Your website runs on Azure servers shared with other customers
+		b. Private Cloud: Your company sets up its own cloud environment for internal apps
+		c. Hybrid Cloud: Your website runs on Azure, but sensitive data stays in your company’s private servers
+	
+	4. Multi-Cloud: 
+	A fourth, and increasingly likely scenario is a multi-cloud scenario. In a multi-cloud scenario, you use multiple public cloud providers. Maybe you use different features from different cloud providers. Or maybe you started your cloud journey with one provider and are in the process of migrating to a different provider. Regardless, in a multi-cloud environment you deal with two (or more) public cloud providers and manage resources and security in both environments.
+	
+	5. Consumption Based Model: 
+	When comparing IT infrastructure models, there are two types of expenses to consider. Capital expenditure (CapEx) and operational expenditure (OpEx). CapEx is typically a one-time, up-front expenditure to purchase or secure tangible resources. In contrast, OpEx is spending money on services or products over time.
+	Cloud computing falls under OpEx because cloud computing operates on a consumption-based model. With cloud computing, you don’t pay for the physical infrastructure, the electricity, the security, or anything else associated with maintaining a datacenter. Instead, you pay for the IT resources you use. If you don’t use any IT resources this month, you don’t pay for any IT resources.
+	With a traditional datacenter, you try to estimate the future resource needs. If you overestimate, you spend more on your datacenter than you need to and potentially waste money. If you underestimate, your datacenter will quickly reach capacity and your applications and services may suffer from decreased performance. Fixing an under-provisioned datacenter can take a long time. You may need to order, receive, and install more hardware. You'll also need to add power, cooling, and networking for the extra hardware.
+	In a cloud-based model, you don’t have to worry about getting the resource needs just right. If you find that you need more virtual machines, you add more. If the demand drops and you don’t need as many virtual machines, you remove machines as needed. Either way, you’re only paying for the virtual machines that you use, not the “extra capacity” that the cloud provider has on hand.
+	Instead of maintaining CPUs and storage in your datacenter, you rent them for the time that you need them. The cloud provider takes care of maintaining the underlying infrastructure for you. The cloud enables you to quickly solve your toughest business challenges and bring cutting-edge solutions to your users.
+	
+	
+	6. High Availability: 
+	When you’re deploying an application, a service, or any IT resources, it’s important the resources are available when needed. High availability focuses on ensuring maximum availability, regardless of disruptions or events that may occur.
+	When you’re architecting your solution, you’ll need to account for service availability guarantees. Azure is a highly available cloud environment with uptime guarantees depending on the service. These guarantees are part of the service-level agreements (SLAs).
+	SLA (Service Level Agreement) percentages represent the guaranteed uptime of a cloud service. The higher the percentage, the less downtime is allowed.
+	SLA	Allowed Downtime per Year	Per Month
+	
+	99%	~3.65 days	~7.2 hours
+	99.9%	~8.76 hours	~43.8 minutes
+	99.95%	~4.38 hours	~21.9 minutes
+	99.99%	~52.6 minutes	~4.38 minutes
+	Higher SLA usually means higher cost because providers invest more in redundancy and failover.
+	To achieve 99.99%, you often need multi-region deployments, load balancing, and failover systems.
+	
+	7. Benefits of security and governance in the cloud
+	On the security side, you can find a cloud solution that matches your security needs. If you want maximum control of security, infrastructure as a service provides you with physical resources but lets you manage the operating systems and installed software, including patches and maintenance. If you want patches and maintenance taken care of automatically, platform as a service or software as a service deployments may be the best cloud strategies for you. And because the cloud is intended as an over-the-internet delivery of IT resources, cloud providers are typically well suited to handle things like distributed denial of service (DDoS) attacks, making your network more robust and secure.
+	
+	8. Describe the benefits of manageability in the cloud
+	There are two types of manageability for cloud computing
+		a. Management of the cloud: Management of the cloud speaks to managing your cloud resources. In the cloud, you can 
+			i. Automatically scale resource deployment based on need.
+			ii. Deploy resources based on a preconfigured template, removing the need for manual configuration.
+			iii. Monitor the health of resources and automatically replace failing resources.
+			iv. Receive automatic alerts based on configured metrics, so you’re aware of performance in real time.
+		b. Management in the cloud: Management in the cloud speaks to how you’re able to manage your cloud environment and resources. You can manage these through a web portal or using CLI or using APIs or using PowerShell
+	
+	9. What is cloud VM?
+	A Virtual Machine (VM) in the cloud is essentially a virtualized computer running on a cloud provider’s infrastructure. It behaves like a physical computer but is hosted in a data center and accessed over the internet.
+	It runs an Operating System (OS) and applications just like a physical machine.
+	In the cloud, VMs are created on top of hypervisors(A hypervisor is software that allows multiple virtual machines (VMs) to run on a single physical server. It acts like a manager that divides the physical resources (CPU, RAM, storage) among different VMs) that manage multiple VMs on physical servers.
+	How it work in the cloud:
+		a. Cloud providers (Azure, AWS, etc.) have huge physical servers in their data centers.
+		b. Instead of giving you a whole physical server, they use a hypervisor to create virtual servers (VMs) on top of that hardware.
+		c. Each VM behaves like its own computer, but they share the same physical machine.
+	
+	10. What are Sidecar Containers?
+	A sidecar container is an additional container that runs alongside your main application container in the same App Service instance. It’s used to add extra functionality without modifying your main app.
+	Why Use Sidecars:  Instead of putting everything inside one container (which makes it big and complex), you can keep your main app lightweight and add extra features as sidecars. For Example: Monitoring (e.g., Prometheus agent), Logging (e.g., Fluentd), Configuration service, Networking helper. The sidecar pattern is widely used in microservices and container orchestration (like Kubernetes). Kubernetes supports sidecars natively (e.g., for logging, monitoring, service mesh like Istio). AWS ECS/EKS and Google Cloud GKE also allow multiple containers in a single pod/task, which is essentially the same concept. Azure App Service just provides a built-in feature for adding sidecars to custom container apps without needing Kubernetes.
+	
+	11. What is a Virtual Network (VNet)?
+	Think of a VNet as a big private network in Azure, similar to a private LAN in your office. It’s a container for IP addresses where you can place your resources (VMs, databases, etc.). Example: You create a VNet with an address space like 10.0.0.0/16. This means all resources inside this VNet will have IPs in that range.
+	
+	12. What is Subnet?
+	A Subnet is a smaller segment inside Vnet. You divide the VNet into subnets to organize resources and apply rules. Example: Inside 10.0.0.0/16 VNet, you create 
+		a. Subnet1: 10.0.1.0/24 for Web Apps
+		b. Subnet2: 10.0.2.0/24 for Database
+	Each subnet can have its own Network Security Groups (NSGs) and policies.
+	
+	13. Oauth 2.O Flow vs OpenID Connect Flow.
+		○ OAuth 2.0: User → Application → Authorization Server → Access Token (used for resource access).
+		○ OIDC: Same flow, but adds an ID Token (used for authentication, so the app knows who the user is).
+	
+		
+	
+	
+	
