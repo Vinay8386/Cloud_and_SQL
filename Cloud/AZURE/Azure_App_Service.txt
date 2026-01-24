@@ -1,0 +1,440 @@
+	1. Azure DevOps Services(One service suite)
+	Azure DevOps Services is considered one cloud service offering, but inside it, there is a combination of multiple integrated services that together cover the entire DevOps lifecycle. It consists of five core services:
+		a. Azure Board: Planning and tracking work
+		b. Azure Repos: Source code management
+		c. Azure Pipelines: CI/CD automation
+		d. Azure Test Plans: Testing and quality assurance
+		e. Azure Artifacts: Package Management
+	It is called one service because all these capabilities under one plateform(Azure Devops Portal) are tightly integrated, so you can move from planning-->coding-->building-->testing-->deploying seamlessly.
+	
+	
+	2. What are Deployment Slots?
+	In Azure App Service, a deployment slot is like a separate environment within the same App Service. Common Slots: Production (live app) and Staging (test environment-new version you want to deploy). You can deploy your new version to staging first, test it, and then it with production. When you swap staging and production slots The staging app becomes live (production) and The old production app moves to staging. Azure also warms up the new slot (starts all worker instances) before swapping, so users don’t see delays.
+	Warm up = Azure starts the worker instances (the servers running your app) for the staging slot before making it live. This includes:
+		a. Loading your application code.
+		b. Initializing dependencies (like database connections).
+		c. Running any startup scripts.
+		d. Ensuring the app responds to health checks.
+	So when the swap happens:
+		a. The new version is already running and healthy.
+		b. Users don’t experience delays or downtime because the app doesn’t need to start from scratch.
+		
+	3. What are the recommended steps for deploying custom container images to Azure App Service using deployment slots, and why should you avoid using the default "latest" tag?
+	Steps for deploying custom container images to Azure App Service using deployment slots:
+		a. When you build your container image (e.g., using Docker), you need to tag it. Why tag?
+			i. Tag identify which version of image you are deploying. Example tags: myapp:commit1234 or myapp:20260107
+			ii. Avoid using latest because it's hard to know which code version you are running and debugging become difficult if something breaks.
+		b. After tagging, push the image to a container registry(Azure Container Registry(ACR) or Docker Hub). This make the image available for Azure App Service to pull later.
+		c. Update the deployment slot with the new image tag
+			i. In Azure App Service, your staging slot is configured to use a specific image tag.
+			ii. When you update this tag (e.g., from myapp:commit1234 to myapp:commit5678):
+				1) Azure restart the slot.
+				2) It pulls the new image from the registry.
+			iii. After testing in staging, you swap staging with production → zero downtime.
+	This is more complex than code deployment because:
+		a. Code deployment: You just push code to Azure and it builds/deploys.
+		b. Container deployment: You must:
+			i. Build the image
+			ii. Tag it properly
+			iii. Push it to a registry
+			iv. Update the slot to point to the correct tag.
+	
+	When you deploy a new image, the old image remains in the container registry unless you explicitly delete it. The recommended way to delete those is implement image retention policies: Delete old, unused image automatically after a certain time and keep only the latest few version for rollback purposes. 
+	Azure Container Registry supports repository cleanup policies. You can configure rules to delete old tags/images based on age or count. Alternatively, use Azure DevOps pipeline tasks to clean up after deployment.
+	
+	4. Authorization Behavior
+	In the Azure portal, you can configure App Service with many behaviors when an incoming request isn't authenticated.
+		a. Allow unauthenticated requests: Normally, if authentication is enabled, App Service blocks unauthenticated users before they reach your app. If you allow unauthenticated requests, App Service does NOT block them. Instead:
+			i. It forwards the request to your app.
+			ii. Your app decides what to do (show public content, redirect to login, etc.).
+		Why is this useful?
+			i. Flexibility:
+				1) You can let anonymous users access some parts of your app (like a homepage).
+				2) You can present multiple sign-in options (Google, Facebook, Azure AD) inside your app.
+			ii. App Service still helps by:
+				1) Passing authentication info in HTTP headers for authenticated users.
+				2) So your app knows who is logged in
+				
+				
+		b. Require authentication: When you enable this option in Azure App Service Authentication, every request to your app must be authenticated. If a request is not authenticated, Azure will reject it before it reaches your app.
+			i. How does Azure reject unauthenticated requests?
+				1) There are two ways:
+					a) Redirect to Login Page (for browser clients): 
+					If the request comes from a browser, Azure redirects the user to the login page of the chosen identity provider.
+					b) Return HTTP Error (for non-browser clients like mobile apps): 
+					If the request is from a native app or API client, Azure returns HTTP 401 Unauthorized (default) Or HTTP 403 Forbidden (if configured)
+
+	5. Token Store in App service.
+	App Service provides a built-in token store, which is a repository of tokens that are associated with the users of your web apps, APIs, or native mobile apps. When you enable authentication with any provider, this token store is immediately available to your app.
+	
+	6. Logging and Tracing in App service.
+	If you enable application logging, authentication and authorization traces are collected directly in your log files. If you see an authentication error that you didn't expect, you can conveniently find all the details by looking in your existing application logs.
+	
+	7. Deployment type of Azure App service.
+	Two Main Deployment Types for Azure App Service
+		a. Multitenant Public Service: The roles that handle incoming HTTP or HTTPS requests are called front ends. The roles that host the customer workload are called workers. All the roles in an App Service deployment exist in a multitenant network. Because there are many different customers in the same App Service scale unit, you can't connect the App Service network directly to your network. 
+		Instead of directly connecting the networks, App Service provides networking features for different aspects of application communication. Inbound features control traffic coming to your app, and outbound features govern connections your app makes to external endpoints. Use inbound features to solve inbound problems and outbound features to solve outbound problems.
+			i. Your App Service runs on shared infrastructure managed by Microsoft.
+			ii. Multiple customers share the same physical resources, but isolation is maintained.
+			iii. Supports pricing tiers: Free, Shared, Basic, Standard, Premium, PremiumV2, PremiumV3
+			iv. Use case: Most web apps, APIs, and services that don’t need full network isolation.
+			
+		b. Single-tenant App Service Environment (ASE)
+			i. Your App Service runs in a dedicated environment inside your own Azure Virtual Network (VNet)
+			ii. No sharing with other customers → full isolation
+			iii. Supports Isolated SKU only.
+			iv. Use case: Apps that require high security, compliance, or private network access (e.g., banking, healthcare).
+			
+	8. Explain possibleOutboundIpAddress.
+	In Azure, possibleOutboundIpAddresses is a property associated with resources like Azure App Service or Azure Functions. It represents a list of all potential outbound IP addresses that your app might use to make outbound calls to external services. 
+	Azure infrastructure can change, scale, or update, so the actual outbound IP used at any moment may vary. This list includes all IPs that could be used under any scenario (scaling, failover, etc.).
+	Usecase: If you need to whitelist Azure App Service in a firewall or external API, you use these IPs to ensure connectivity. You can find in App Service resource properties in the Azure Portal or via Azure CLI. It is different from outboundIpAddresses (which shows the currently assigned IPs). For Example:
+	You have an Azure Web App that needs to call an external API (e.g., a payment gateway). The API provider requires you to whitelist IP addresses so only your app can access it.
+		a. Step 1: Check Outbound Ips: Your App Service has two properties: outboundIpAddresses & possibleOutboundIpAddresses 
+		{
+		  "outboundIpAddresses": "20.45.67.89,20.45.67.90",
+		  "possibleOutboundIpAddresses": "20.45.67.89,20.45.67.90,20.45.67.91,20.45.67.92"
+		}
+		b. Step 2: Why Two Lists: If you only whitelist outboundIpAddresses, your app might break during scaling because Azure could start using 20.45.67.91 or 20.45.67.92. So, you must whitelist all IPs in possibleOutboundIpAddresses to ensure uninterrupted connectivity.
+	9. What is a Virtual Network (VNet)?
+	Think of a VNet as a big private network in Azure, similar to a private LAN in your office. It’s a container for IP addresses where you can place your resources (VMs, databases, etc.). Example: You create a VNet with an address space like 10.0.0.0/16. This means all resources inside this VNet will have IPs in that range.
+	
+	10. What is Subnet?
+	A Subnet is a smaller segment inside Vnet. You divide the VNet into subnets to organize resources and apply rules. Example: Inside 10.0.0.0/16 VNet, you create 
+		a. Subnet1: 10.0.1.0/24 for Web Apps
+		b. Subnet2: 10.0.2.0/24 for Database
+	Each subnet can have its own Network Security Groups (NSGs) and policies.
+	
+	11. How to make our resource away from public access.
+	If we want to keep any resource away from public access, we can use Virtual Network Integration.
+	Then, based on our requirements:
+		a. If the main service (Web App) should remain public:
+			i. Keep publioc access enabled
+			ii. Use Vnet Integration for outbound trafficv to securely connect to private resources.
+		b. If the main service should be private(no public url):
+			i. Diable public access for webapps in networking.
+			ii. Configure a private endpoint for inbound access.
+			iii. Place the private endpoint in the inbound subnet inside the VNet.
+			iv. Enable Vnet integration for outbound traffic.
+			v. Assign the Web App to a dedicated outbound subnet inside the Vnet.
+			vi. This ensures the Web App can call other resources securely through that outbound subnet.
+		c. In Short:
+			i. Inbound security: Private Endpoint + Inbound subnet → Makes the app private.
+			ii. Outbound security: VNet Integration + Outbound subnet → Allows secure calls to private resources.
+			iii. Public or Private: Depends on your requirement for the main service.
+	
+	12. What is the role of DNS in Azure Web App inbound security?
+	Azure Web App’s Inbound security settings come into play when you configure a Private Endpoint for your app. While enabling Inbound security inside virtual network integration you must select a dedicated subnet in your Vnet to host the private endpoint. This subnet must be not delegated to other services and A/28 or larger size and empty or reserved for Private endpoint use.
+	Azure will assign a private IP from this subnet to your Web App's endpoint. After creating the Private Endpoint, your Web App needs to be reachable via a domain name. You will have two options:
+		a. Link an existing Private DNS Zone (like privatelink.azurewebsites.net) to the VNet.
+		b. Let Azure auto-create and link a zone for you.
+	Azure will then automatically create a DNS A record that maps the Web App’s hostname (e.g., yourapp.azurewebsites.net) to the private IP in the subnet.
+	This is required because Private Endpoints disable public access (inbound becomes private-only, and public traffic returns a 403). Without proper DNS resolution, clients inside your VNet won’t be able to resolve the Web App’s hostname to its private IP, breaking connectivity.
+	
+	13. How your code will be deployee in Azure Web Apps through github?
+	To deployee code from github, create a WebApp inside Azure Cloud portal and do configuration inside Deployment tab. Steps to deployee:
+		a. Enable Continous deployment option.
+		b. Under GitHub setting 
+			i. GitHub account -> Authorize Azure App Service
+			ii. Organization -> Your GitHub Organization
+			iii. Repository -> Select your repository
+			iv. Branch -> Choose you branch from where code will be deployed(develop or master..)
+		c. Set Build provider (GitHub Actions by default)
+		d. Toggle Continuous Deployment to On and click Finish
+			i. Azure will generate a workflow file (.github/workflows/azurewebapp.yml) in your repo
+			ii. App Service will configure authentication using OpenID Connect (preferred) or Publish Profile if needed
+	
+	14. FTP in Azure Web Apps.
+	FTP is about how you deploy/manage files. FTP (File Transfer Protocol) is a standard network protocol used to transfer files between a client and a server.
+	In Azure App Service (Web Apps), FTP is one of the methods you can use to deploy your application files or manage content.
+	Azure provides FTP/FTPS endpoints for your web app. You can access these using credentials from the Deployment Center or App Service settings.
+	Use case: Uploading or updating files without using Git, ZIP deployment, or Azure DevOps pipelines.
+	
+	15. Plateform Bitness
+	Platform bitness refers to whether your app runs on a 32-bit or 64-bit architecture. In Azure Web Apps, By default, apps run on 32-bit for compatibility and resource efficiency. You can switch to 64-bit if your app requires more memory or uses libraries that need 64-bit. To Configure, got to: App Service → Configuration → General Settings → Platform. Choose 32-bit or 64-bit under Platform. Platform bitness affects runtime performance and compatibility for your app.
+
+	16. Configure Azure app settings
+	Go to the Azure Web Apps: Setting--> Environment Variable. You will have two options App Settings & Connection Strings. 
+	Azure App Service does support connection strings, but they are mainly designed for .NET apps. For Java, Node.js, Python, it's better to use App Settings (environment variables) instead of Azure's "Connection Strings" feature because, Connection strings in Azure have special key formatting (like SQLCONNSTR_<name>), which is not intuitive for non-.NET apps. App Settings are simpler and automatically become environment variables. 
+	In ASP.NET, developers often store configuration values (like database connection strings, API keys, etc.) in files such as: Web.config → for ASP.NET and appsettings.json → for ASP.NET Core
+	For Java apps (Spring Boot, Jakarta EE, etc.), think of: application.properties or application.yml → similar to appsettings.json. When you deploy to Azure App Service, you can set App Settings in the portal. These become environment variables for your app. Spring Boot automatically picks up environment variables and overrides properties in application.properties.
+
+	17. Configure language stack settings
+	To configure language stack setting, configure general setting:
+	In the Azure portal, search for and select App Services, and then select your app. On the app's left menu, select Settings > Configuration. Then select General settings. Here, you can configure some common settings for the app. Some settings require you to scale up to higher pricing tiers.
+		a. Stack settings: Configure settings for the software stack to run the app, including the language and SDK versions.
+		b. Platform settings: Configure settings for the hosting platform, including:
+			i. Platform: Choose 32-bit or 64-bit. For Windows apps only.
+			ii. FTP state: Allow only FTPS, or disable FTP altogether.
+			iii. HTTP version: Set to 2.0 to enable support for the HTTPS/2 protocol.
+			
+	18. WebSockets
+	Enables real-time, bidirectional communication between client and server. Commonly used by: ASP.NET SignalR (for .NET apps), socket.io (for Node.js apps), Java frameworks like Spring WebSocket or Vert.x. So, it’s language-agnostic(Not specific to a particular language) you can use it for Java apps too if your app needs WebSocket support.
+	In Azure Portal: Go to your App Service → Configuration → General Settings. There you’ll see an option called WebSockets (usually a toggle: On/Off). By default, it’s Off. Turn it On if your app uses WebSocket-based communication.
+	If your app doesn’t use WebSockets, leave it Off (no benefit, and slightly more resource overhead if enabled unnecessarily).
+	
+	19. Always On Feature
+	Always On(By default Always On = OFF in "Azure Portal → App Service → Configuration → General Settings → Always On") is an Azure App Service setting whi is always off by default.  This means If your app has no incoming requests for 20 minutes, Azure will unload it. When a new request comes, the app will restart, causing a cold start delay. 
+	Why it is needed?
+			i. By default, if your app has no requests for 20 minutes, Azure unloads it to save resources.
+			ii. When a new request comes after that, the app needs to start again (cold start), which can cause high latency.
+			iii. Always On prevents this by sending a ping every 5 minutes, so the app never goes idle.
+	Benefits:
+			i. Faster response time (no cold start).
+			ii. Required for background tasks, scheduled jobs, or continuous WebJobs.
+			iii. Useful for apps with long startup times (like Java apps).
+			
+	20. What is Session Affinity?
+	When your app runs on multiple instances (for scaling), Azure uses a load balancer to distribute requests across those instances. Session affinity (also called "ARR Affinity") ensures that a client keeps hitting the same instance during its session. This is done by setting a special cookie (ARRAffinity) in the client’s browser.
+	Why is it needed:
+		a. If your app stores session data in memory (on the instance), switching instances would break the session. Example: Users login -> session stored in instance A, and next request goes to session B--> session not found-->user gets logout. Session affinity solves this by routing all requests from that user to instance A.
+	When you turn it off: If your app is stateless (doesn’t store session data in memory, uses distributed cache or database for session). Example: REST APIs, microservices, or apps using Redis for session storage.
+	In Azure App Service, an instance = a virtual machine (VM) running your app. When you scale out your app (increase instance count), Azure runs multiple copies of your app on different VMs. The Azure load balancer distributes incoming traffic across these instances. So, One App Service Plan can have multiple instances. Each instance is like one application server running your app. In Azure, “app servers” are called instances. So, instance = one application server in this context.
+	The Session Affinity option (also called ARR Affinity) is available in the General Settings section of your Azure App Service configuration.Here’s where you find it: Azure Portal → Your App Service → Configuration → General Settings . Look for ARR Affinity (or Session Affinity) toggle: On → Enables session affinity (client stays on the same instance) & Off → Disables session affinity (requests can go to any instance).
+
+	21. What is Session Affinity Proxy.
+	Session Affinity Proxy ensures sticky sessions work when your app is behind a reverse proxy by adjusting the cookie domain so browsers accept it. To understand same-origin policy for cookies which all modern browsers(Chrome, Edge, Firefox, Safari, etc.) is using:
+	When the server sends a Set-Cookie header, the browser checks the Domain attribute in that header.
+	If the domain matches the site the user is visiting (or is a parent domain), the browser stores the cookie.
+	If it doesn’t match, the browser rejects it automatically for security reasons.
+	This is not a user-controlled setting; it’s a built-in security feature to prevent cookies from being shared across unrelated domains (which could lead to privacy and security issues like cross-site request forgery).
+	Session Affinity Proxy is a feature in Azure App Service that helps keep a user’s requests going to the same app instance (sticky sessions) even when your app is behind a reverse proxy like Azure Front Door or Application Gateway.
+	Why do we need this?
+		a. When you scale your app to multiple instances (multiple servers), Azure uses a load balancer to distribute traffic.
+		b. To keep a user’s session consistent (e.g., logged-in state), Azure sets a special cookie called ARRAffinity.
+		c. This cookie tells Azure: “Send this user’s requests to the same instance.”
+	If your app is behind a proxy (e.g., users access it via contoso.com instead of appname.azurewebsites.net):
+		a. Azure sets the cookie for azurewebsites.net.
+		b. The browser is visiting contoso.com.
+		c. Browsers reject cookies for mismatched domains (security rule).
+	Result: The cookie is never stored → session affinity breaks → user requests bounce between instances → session data lost.
+	The Solution: Session Affinity Proxy
+		a. When Session Affinity Proxy is enabled
+			i. Azure dynamically sets the cookie domain to match the client-facing domain (e.g., contoso.com).
+			ii. The browser accepts the cookie and sends it back.
+			iii. Sticky sessions work properly, even behind proxies.
+	Session Affinity Proxy ensures sticky sessions work when your app is behind a reverse proxy by adjusting the cookie domain so browsers accept it.
+	
+	22. How you can enable HTTPS Only for your Azure App Service. What happens after enabling?
+	After enabling HTTPS, All HTTP requests will automatically redirect to HTTPS and No need to manually configure redirects in your code. Step to enable in Azure Portal:
+		a. Log in to Azure Portal-->Go to https://portal.azure.com.
+		b. Navigate to your App Service-->In the left menu, click App Services.-->Select the app you want to configure.
+		c. Go to Configuration-->In the left pane of your App Service, click Configuration.
+		d. Open General Settings-->Under Configuration, select the General Settings tab.
+		e. Enable HTTPS Only-->Find the option HTTPS Only.-->Toggle it to On.
+		f. Save the changes-->Click Save at the top.-->Azure will apply the setting.
+		
+	23. What is TLS?
+	TLS (Transport Layer Security) is a protocol that encrypts data sent between your app and the client (browser, API consumer).  It’s what makes HTTPS secure. TLS has versions: 1.0, 1.1, 1.2, 1.3 (newer = more secure). Older TLS versions (1.0, 1.1) have known security vulnerabilities. Best practice: Use TLS 1.2 or higher for strong encryption. Many compliance standards (PCI DSS, GDPR) require TLS 1.2+.
+	In Azure Under the General Setting inside configuration, you will have option of Minimum TLS version where you can Select the minimum TLS encryption version that your app requires.
+	
+	24. Mutual Authentication or Client Certificate Authentication.
+	You can restrict access to your Azure App Service app by enabling various types of authentication for the app. One way to set up authentication is to request a client certificate when the client request is sent by using Transport Layer Security (TLS) / Secure Sockets Layer (SSL) and to validate the certificate. This mechanism is called mutual authentication or client certificate authentication.
+	When you enable client certificates for your app, you should select your choice of client certificate mode. The mode defines how your app handles incoming client certificates. The modes are described in the following table:
+		a. Required: All requests require a client certificate.
+		b. Optional: Requests can use a client certificate. Clients are prompted for a certificate by default. For example, browser clients show a prompt to select a certificate for authentication.
+		c. Optional Interactive User: Requests can use a client certificate. Clients aren't prompted for a certificate by default. For example, browser clients don't show a prompt to select a certificate for authentication.
+	To use the Azure portal to enable client certificates:select Configuration > General settings > Client certificate mode > Save.
+	When you enable mutual authentication for your application, all paths under the root of your app require a client certificate for access. To remove this requirement for certain paths, define exclusion paths as part of your application configuration.
+		a. In the left menu of your app management page, select Settings > Configuration. Select the General settings tab.
+		b. Next to Certificate exclusion paths, select the pencil icon.
+		c. Select New path, specify a path or a list of paths separated by , or ;, and then select OK.
+		d. Select Save.
+		
+	25. What is TLS renegotiation.
+	Client certificates are used for mutual TLS (mTLS), where the client proves its identity to the server using a certificate. Normally, the server decides whether to ask for a client certificate during the initial TLS handshake. Azure App Service can be configured to require or allow client certificates.
+	Normally, the server decides whether to ask for a client certificate during the initial TLS handshake. But in some cases (like optional client certificates or exclusion paths), the server doesn’t know yet if it needs the certificate until it sees the HTTP request. So it does TLS renegotiation:
+		a. First handshake → establish connection.
+		b. Then renegotiate → ask for client certificate.
+	Now Problem is. 
+		a. TLS 1.3 and HTTP/2 do NOT support renegotiation (by design, for security and performance). If your app uses these protocols AND relies on renegotiation, it will fail.
+		b. If you use Optional Interactive User mode (certificate only if user interaction requires it). or Client certificate exclusion paths (skip cert for some URLs). These require renegotiation because the decision is made after reading the request.
+	So, To avoid recognition Go to General Settings -> Set Client Certificate Mode to Required or Optional (not interactive) and remove all exclusion paths. This way, the server knows upfront whether to ask for a certificate → no renegotiation → works with TLS 1.3 and HTTP/2.
+	Client certificate configurations that use TLS renegotiation can't support incoming requests with files that are larger than 100 KB. This limit is caused by buffer size limitations. In this scenario, any POST or PUT requests that are over 100 KB fail with a 403 error. This limit isn't configurable and can't be increased.
+
+	26. How to access the Client Certificate.
+	In App Service, TLS termination of the request happens at the front-end load balancer. When App Service forwards the request to your app code with client certificates enabled, it injects an X-ARR-ClientCert request header with the client certificate. App Service doesn't do anything with this client certificate other than forward it to your app. Your app code needs to validate the client certificate.
+	In ASP.NET, the client certificate is available through the HttpRequest.ClientCertificate property. In other application stacks (Node.js, PHP), the client certificate is available via a Base64-encoded value in the X-ARR-ClientCert request header. Java Sample:
+	import java.io.ByteArrayInputStream;
+	import java.security.NoSuchAlgorithmException;
+	import java.security.cert.*;
+	import java.security.MessageDigest;
+	
+	import sun.security.provider.X509Factory;
+	
+	import javax.xml.bind.DatatypeConverter;
+	import java.util.Base64;
+	import java.util.Date;
+	
+	public class ClientCertValidator { 
+	
+	    private String thumbprint;
+	    private X509Certificate certificate;
+	
+	    /**
+	     * Constructor.
+	     * @param certificate. The certificate from the "X-ARR-ClientCert" HTTP header.
+	     * @param thumbprint. The thumbprint to check against.
+	     * @throws CertificateException if the certificate factory can't be created.
+	     */
+	    public ClientCertValidator(String certificate, String thumbprint) throws CertificateException {
+	        certificate = certificate
+	                .replaceAll(X509Factory.BEGIN_CERT, "")
+	                .replaceAll(X509Factory.END_CERT, "");
+	        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+	        byte [] base64Bytes = Base64.getDecoder().decode(certificate);
+	        X509Certificate X509cert =  (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(base64Bytes));
+	
+	        this.setCertificate(X509cert);
+	        this.setThumbprint(thumbprint);
+	    }
+	
+	    /**
+	     * Check that the certificate's thumbprint matches the one given in the constructor, and that the
+	     * certificate isn't expired.
+	     * @return True if the certificate's thumbprint matches and isn't expired. False otherwise.
+	     */
+	    public boolean certificateIsValid() throws NoSuchAlgorithmException, CertificateEncodingException {
+	        return certificateHasNotExpired() && thumbprintIsValid();
+	    }
+	
+	    /**
+	     * Check certificate's timestamp.
+	     * @return True if the certificate isn't expired. It returns False if it is expired.
+	     */
+	    private boolean certificateHasNotExpired() {
+	        Date currentTime = new java.util.Date();
+	        try {
+	            this.getCertificate().checkValidity(currentTime);
+	        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+	            return false;
+	        }
+	        return true;
+	    }
+	
+	    /**
+	     * Check whether the certificate's thumbprint matches the given one.
+	     * @return True if the thumbprints match. False otherwise.
+	     */
+	    private boolean thumbprintIsValid() throws NoSuchAlgorithmException, CertificateEncodingException {
+	        MessageDigest md = MessageDigest.getInstance("SHA-1");
+	        byte[] der = this.getCertificate().getEncoded();
+	        md.update(der);
+	        byte[] digest = md.digest();
+	        String digestHex = DatatypeConverter.printHexBinary(digest);
+	        return digestHex.toLowerCase().equals(this.getThumbprint().toLowerCase());
+	    }
+	
+	    // Getters and setters.
+	
+	    public void setThumbprint(String thumbprint) {
+	        this.thumbprint = thumbprint;
+	    }
+	
+	    public String getThumbprint() {
+	        return this.thumbprint;
+	    }
+	
+	    public X509Certificate getCertificate() {
+	        return certificate;
+	    }
+	
+	    public void setCertificate(X509Certificate certificate) {
+	        this.certificate = certificate;
+	    }
+	}
+	
+
+	27. What is IIS.
+	It listens for HTTP/HTTPS requests and serves responses (HTML, API data, etc.). IIS is responsible for hosting websites and web applications. It listens for HTTP/HTTPS requests and serves responses (HTML, API data, etc.). It listens for HTTP/HTTPS requests and serves responses (HTML, API data, etc.).
+	
+	28. What is Handler Mapping?
+	A handler is a component processes HTTP requests for certain resources. 
+	Handler Mapping defines which handler should process which type of request. For example: .jsp → handled by Java servlet engine, .php → handled by PHP runtime, .php → handled by PHP runtime.
+	For Java apps, Azure App Service uses Tomcat (for Java web apps like JSP/Servlets) and Java SE (for standalone apps). The JVM handles .class files inside your WAR/JAR, not the .java source files. .java files are compiled into bytecode and executed by the JVM (via Tomcat or Java SE), not by IIS or any web server directly.
+
+	29. What is Application Insights?
+	Application Insights is a feature of Azure Monitor that helps you monitor the performance, availability, and usage of your applications. It’s mainly used for observability—meaning it gives you visibility into what’s happening inside your app. Think of it as a diagnostic tool that: Tracks requests, dependencies, exceptions, and performance metrics and Collects telemetry data (logs, traces, events) from your app and Helps you detect issues early, analyze root causes, and improve user experience. It works for: Web apps (ASP.NET, Java, Node.js, Python, etc.), APIs, Background services and Even desktop and mobile apps (with SDKs)
+	In the Azure portal, create a new Web App resource with your desired information. Enable Application Insights on the Monitor + secure tab.
+	To Automate the creation of an Application Insights resource and link to your newly created App Service resource Go to Review + create, then select Download a template for automation. This option generates the latest Resource Manager template with all required settings configured.
+
+	30. How to Configure Logging on Azure Web Apps?
+	Logging helps you capture diagnostic information about your web app running on Azure. This includes:
+		a. Application logs (messages from your app code)
+		b. Web server logs (HTTP requests and responses)
+		c. Detailed error logs (for troubleshooting)
+		d. Failed request tracing (to analyze why requests fail)
+	Why Configure Logging?
+		a. To debug issues in production.
+		b. To monitor app health and performance
+		c. To audit user activity and requests.
+	Steps to Configure Logging on Azure Web Apps
+		a. Navigate to your App Service.
+		b. In the left menu, select Monitoring → App Service logs.
+		c. Enable Logging:
+			i. Application Logging (Filesystem): Inside your app (business logic, exceptions).
+				1) Turn ON-->Choose Level: Error, Warning, Information, Verbose-->Note: Filesystem logs are temporary (retained for 12 hours)
+			ii. Application Logging (Blob Storage):
+				1) Turn ON-->Select a Storage Account and container-->This is for long-term storage
+		d. Enable Web Server Logging: Outside your app (HTTP traffic, server-level details).
+			i. Turn ON-->Choose Storage or Filesystem
+		e. Enable Detailed Error Messages
+			i. Turn ON to capture detailed error pages.
+		f. Enable Failed Request Tracing
+			i. Enable Failed Request Tracing
+	To access this log: 
+		a. Filesystem logs: Use FTP or Kudu Console.
+		b. Blob Storage logs: Access via Azure Storage Explorer.
+		c. Stream logs in real-time: Use Log Stream in the portal.
+	Best Practice is to use Blob Storage for persistent logs and combine with Application Insights for advanced telemetry and set appropriate log level (avoid Verbose in production unless debugging)
+	
+	31. What are different log level in Azure we have?
+	In Azure, logging uses log levels to control the amount of detail captured. These levels help you filter logs based on severity or importance. Here are the common log levels available with hierarchy:
+		a. Verbose
+			i. Most Detailed level.
+			ii. Captures everything: detailed diagnostic information, trace messages.
+			iii. Useful during development or troubleshooting.
+			iv. Not recommended for production (too much data).
+			v. It include Information, Warning , Error and Critical also.
+		b. Information
+			i. Captures general events in the application flow.
+			ii. Examples: service started, request processed successfully.
+			iii. Good for tracking normal operations.
+			iv. It include Warning, Error and Critical also.
+		c. Warning
+			i. Indicates potential issues that might need attention.
+			ii. Examples: slow response time, deprecated API usage.
+			iii. Does not stop the app but signals caution.
+			iv. It include Error and Critical also.
+		d. Error
+			i. Captures failures that prevent an operation from completing.
+			ii. Examples: database connection failure, unhandled exceptions.
+			iii. Critical for debugging problems.
+			iv. It include Critical also.
+		e. Critical(or Fatal)
+			i. Indicates serious failures that cause the application to crash or become unusable.
+			ii. Examples: system outage, major configuration error.
+			iii. Rare but important for alerting and incident response.
+	
+	32. What is Stream Log?
+	It is a live log viewer that shows application logs, web server logs, and console output as they are generated.
+	Instead of downloading log files, you can monitor logs instantly while your app runs. Use stream log for:
+		a. Real-time troubleshooting: See errors as they happen.
+		b. Real-time troubleshooting: See errors as they happen.
+		c. Debugging without waiting: No need to wait for logs to be written to storage.
+	To enable stream log: 
+		a. Enable Logging First:
+			i. Go to App Service → Monitoring → App Service Logs.
+			ii. Turn ON Application Logging and/or Web Server Logging.
+			iii. Save Setting.
+		b. Stream Logs:
+			i. In the Azure Portal, go to App Service → Monitoring → Log Stream.
+			ii. Click Log Stream to start viewing logs live.
+	
+	33. Explain Scaling Up/Down and Scaling Out/In
+	Scaling Up/Down and Scaling Out/In are two different approaches to handle application load in Azure (or any cloud environment).
+		a. Scaling Up / Scaling Down (Vertical Scaling): Changing the size or capacity of a single machine (or instance).
+		b. Scaling Out / Scaling In (Horizontal Scaling): Adding or removing multiple instances of your app.
+	
+	
+
