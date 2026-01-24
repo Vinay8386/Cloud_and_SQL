@@ -1,9 +1,10 @@
-	1. Azure Function.
-	Azure Functions is a serverless compute service that enables you to run event‑driven code without having to manage servers. With Azure Functions, you write less code, maintain less infrastructure, and reduce operational costs. Instead of provisioning, configuring, or maintaining servers, Azure automatically provides and manages all the required compute resources to keep your applications running efficiently.
-	It’s important to note that serverless does not mean “there are no servers.” Rather, it means that all server‑related responsibilities—such as provisioning, scaling, patching, and managing infrastructure—are fully handled by the cloud provider. Azure automatically decides when to allocate servers, when to scale out or scale in, and when to clean up resources based on demand.
-	Azure Functions also supports triggers and bindings, which simplify app development. A trigger defines how your function is invoked (for example, an HTTP request, a timer, or a message in a queue), while bindings provide a declarative way to connect inputs and outputs to other Azure services. This allows developers to focus only on writing business logic while Azure handles the rest.
+=> **Azure Function**: Azure Functions is a serverless compute service that enables you to run event‑driven code without having to manage servers. With Azure Functions, you write less code, maintain less infrastructure, and reduce operational costs. Instead of provisioning, configuring, or maintaining servers, Azure automatically provides and manages all the required compute resources to keep your applications running efficiently.
+
+-> It’s important to note that serverless does not mean “there are no servers.” Rather, it means that all server‑related responsibilities—such as provisioning, scaling, patching, and managing infrastructure—are fully handled by the cloud provider. Azure automatically decides when to allocate servers, when to scale out or scale in, and when to clean up resources based on demand.
+
+-> Azure Functions also supports triggers and bindings, which simplify app development. A trigger defines how your function is invoked (for example, an HTTP request, a timer, or a message in a queue), while bindings provide a declarative way to connect inputs and outputs to other Azure services. This allows developers to focus only on writing business logic while Azure handles the rest.
 	
-	2. Differentiate Azure Web Apps vs Azure Functions.
+=> Differentiate Azure Web Apps vs Azure Functions.
 	Both are Azure compute services, but there is a major difference between these services:
 		a. Execution Model:
 			i. Azure Web Apps (Always Running Application)
@@ -79,72 +80,67 @@
 				4) Less control over server environment: Since it’s fully serverless, configuration options are limited.
 				
 			
-	3. Explain Azure Logic Apps.
-	It is a cloud based workflow automation tool by Microsoft that lets you connect different apps and services-like SharePoint, Teams, Outlook, and more - without writing any code. You triggers and actions to build visual workflows. For example: "When a file is upload in SharePoint" - that's your trigger. Then "Send a Message in Microsoft Teams" - that's your action. It is a part of Microsoft serverless ecosystem, which means it run automatically in the cloud and you only pay for what you use.
+=> **Explain Azure Logic Apps**: It is a cloud based workflow automation tool by Microsoft that lets you connect different apps and services-like SharePoint, Teams, Outlook, and more - without writing any code. You triggers and actions to build visual workflows. For example: "When a file is upload in SharePoint" - that's your trigger. Then "Send a Message in Microsoft Teams" - that's your action. It is a part of Microsoft serverless ecosystem, which means it run automatically in the cloud and you only pay for what you use.
 	
-	4. Compare Azure Functions and Azure Logic Apps
-	Both Functions and Logic Apps are Azure Services that enable serverless workloads. Azure Functions is a serverless compute service, whereas Azure Logic Apps is a serverless workflow integration platform. Both can create complex orchestrations. An orchestration is a collection of functions or steps, called actions in Logic Apps, that are executed to accomplish a complex task.
+=> **Compare Azure Functions and Azure Logic Apps**: Both Functions and Logic Apps are Azure Services that enable serverless workloads. Azure Functions is a serverless compute service, whereas Azure Logic Apps is a serverless workflow integration platform. Both can create complex orchestrations. An orchestration is a collection of functions or steps, called actions in Logic Apps, that are executed to accomplish a complex task.
 	For Azure Functions, you develop orchestrations by writing code and using the Durable Functions extension. For Logic Apps, you create orchestrations by using a GUI or editing configuration files.
 	
-	5. What is Azure WebJobs?
-	Azure WebJobs is a feature of Azure App Service that allows you to run background tasks or scripts inside the same App Service Plan where your Web App, API, or Mobile App is running. An Azure Web App (App Service) can have one or more WebJobs attached to it. A WebJob can run: .exe, .cmd/.bat, .ps1(PowerShell), .sh(Bash), .py(Python), Node.js scripts, .NET console applications. How it works:
+=> **What is Azure WebJobs**: Azure WebJobs is a feature of Azure App Service that allows you to run background tasks or scripts inside the same App Service Plan where your Web App, API, or Mobile App is running. An Azure Web App (App Service) can have one or more WebJobs attached to it. A WebJob can run: .exe, .cmd/.bat, .ps1(PowerShell), .sh(Bash), .py(Python), Node.js scripts, .NET console applications. How it works:
 		a. You deploy these scripts/executables into your Web App (typically under wwwroot/App_Data/jobs/…).Azure will then execute the WebJob:
 			i. Continously
 			ii. Or when triggered(manually or scheduled)
 		b. Flow: App Service (Main App) Contains WebJob --> WebJob executes batch/exe/script --> Background task runs
-	The WebJobs SDK adds a programming model similar to Functions—things like triggers (start when a queue message arrives, timer ticks, blob is created) and bindings (easy input/output to services) → so your code stays small and clean. For example: you write a Java code, you use attributes like QueueTrigger, BlobTrigger, TimerTrigger. The SDK connects your code to Azure services automatically. You don’t manually poll queues/blobs or write infrastructure code
+-> The WebJobs SDK adds a programming model similar to Functions—things like triggers (start when a queue message arrives, timer ticks, blob is created) and bindings (easy input/output to services) → so your code stays small and clean. For example: you write a Java code, you use attributes like QueueTrigger, BlobTrigger, TimerTrigger. The SDK connects your code to Azure services automatically. You don’t manually poll queues/blobs or write infrastructure code
 	
-	6. Compare Functions and WebJobs
-	Like Azure Functions, Azure App Service WebJobs with the WebJobs SDK is a code-first integration service that is designed for developers. Both are built on Azure App Service and support features such as source control integration, authentication, and monitoring with Application Insights integration.
-	Azure Functions is built on the WebJobs SDK, so it shares many of the same event triggers and connections to other Azure services. 
+=> **Compare Functions and WebJobs**: Like Azure Functions, Azure App Service WebJobs with the WebJobs SDK is a code-first integration service that is designed for developers. Both are built on Azure App Service and support features such as source control integration, authentication, and monitoring with Application Insights integration. Azure Functions is built on the WebJobs SDK, so it shares many of the same event triggers and connections to other Azure services. 
 	
-	7. Azure Functions Hosting Plans
+=> **Azure Functions Hosting Plans**: There are 5 different Azure Functions hosting plan:
 		a. Consumption
 		b. Flex Consumption
 		c. Premium
 		d. App Service(Dedicated)
 		e. Container Apps
 		
-	8. What is local.settings.json?
-	When you run your Azure Function locally (on your machine), it needs configuration—connection strings, API keys, and other app settings. These live in a file called local.settings.json. Think of it as your local “App Settings.” In Azure (the cloud), the same settings live under Configuration → Application settings in your Function App.
-	Many triggers/bindings have a property like connection or connectionStringSetting. You put the name of a setting there (e.g., "AzureWebJobsStorage"), and the runtime will look it up in Values. A complete example of local.setting.json:
-	
-	{
-	  "IsEncrypted": false,
-	  "Values": {
-	    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-	    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-	    "BlobConnection": "DefaultEndpointsProtocol=https;AccountName=youracct;AccountKey=...;EndpointSuffix=core.windows.net",
-	    "ServiceBusConnection": "Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...",
-	    "CosmosDBConnection": "AccountEndpoint=https://yourcosmos.documents.azure.com:443/;AccountKey=...;"
-	  }
-	}
-	Example: Blob trigger that uses a connection setting
-		Here, Connection = "BlobConnection" means: look for a key named BlobConnection in Values.
-	[Function("BlobTriggered")]
-	public static void Run(
-	    [BlobTrigger("images/{name}", Connection = "BlobConnection")] Stream blob,
-	    string name,
-	    ILogger log)
-	{
-	    log.LogInformation($"Processed blob {name}");
-	}
-		a. IsEncrypted: When this setting is set to true, all values are encrypted with a local machine key. Default value is false. You might want to encrypt the local.settings.json file on your local computer when it contains secrets, such as service connection strings. The host automatically decrypts settings when it runs. Use the func settings decrypt command before trying to read locally encrypted settings.
+=> **What is local.settings.json**: When you run your Azure Function locally (on your machine), it needs configuration—connection strings, API keys, and other app settings. These live in a file called local.settings.json. Think of it as your local “App Settings.” In Azure (the cloud), the same settings live under Configuration → Application settings in your Function App. Many triggers/bindings have a property like connection or connectionStringSetting. You put the name of a setting there (e.g., "AzureWebJobsStorage"), and the runtime will look it up in Values. A complete example of local.setting.json:
+		{
+		  "IsEncrypted": false,
+		  "Values": {
+		    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+		    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+		    "BlobConnection": "DefaultEndpointsProtocol=https;AccountName=youracct;AccountKey=...;EndpointSuffix=core.windows.net",
+		    "ServiceBusConnection": "Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...",
+		    "CosmosDBConnection": "AccountEndpoint=https://yourcosmos.documents.azure.com:443/;AccountKey=...;"
+		  }
+		}
+		Example: Blob trigger that uses a connection setting. Here, Connection = "BlobConnection" means: look for a key named BlobConnection in Values.
+		[Function("BlobTriggered")]
+		public static void Run(
+		    [BlobTrigger("images/{name}", Connection = "BlobConnection")] Stream blob,
+		    string name,
+		    ILogger log)
+		{
+		    log.LogInformation($"Processed blob {name}");
+		}
+		a. IsEncrypted: When this setting is set to true, all values are encrypted with a local machine key. Default value is false. 
+		   You might want to encrypt the local.settings.json file on your local computer when it contains secrets, such as service connection strings. 
+           The host automatically decrypts settings when it runs. Use the func settings decrypt command before trying to read locally encrypted settings.
 
-		a. Value: Many triggers and bindings have a property that refers to a connection string app setting, like Connection for the Blob storage trigger. For these properties, you need an application setting defined in the Values array. Commonly used settings (names you’ll see often):
-			i. AzureWebJobsStorage – Storage account for the Functions runtime (required by many triggers and the host).
-			ii. FUNCTIONS_WORKER_RUNTIME – E.g., dotnet, dotnet-isolated, node, python.
-			iii. BlobConnection, ServiceBusConnection, CosmosDBConnection – Your own friendly names for connection strings used by bindings.
+		a. Value: Many triggers and bindings have a property that refers to a connection string app setting, like Connection for the Blob storage trigger. 
+		   For these properties, you need an application setting defined in the Values array. Commonly used settings (names you’ll see often):
+				i. AzureWebJobsStorage – Storage account for the Functions runtime (required by many triggers and the host).
+				ii. FUNCTIONS_WORKER_RUNTIME – E.g., dotnet, dotnet-isolated, node, python.
+				iii. BlobConnection, ServiceBusConnection, CosmosDBConnection – Your own friendly names for connection strings used by bindings.
 		
-	9. Explain Trigger and Bindings?
-		a. Trigger: Event that make your function start running. For Example: Pressing a button triggers a lift, Opening a door triggers an automatic light, Uploading a file triggers a virus scanner, Receiving a WhatsApp message triggers a notification sound. In Azure, Every function has one and only one trigger. Type of Trigger in Azure:
-			i. HTTP Trigger: An HTTP request Hit an endpoint.
-			ii. Blob Trigger: A file is uploaded to Blob storage
-			iii. Queue Trigger: A message arrives in a queue
-			iv. Service Bus Trigger: A message arrives in service bus.
-			v. Cosmos DB Trigger: A document is updated in cosmos DB
-			vi. Time Trigger: Time reaches X:00 PM
-		To create a Trigger function, follow the three step:
+=> Explain Trigger and Bindings?
+		a. Trigger: Event that make your function start running. For Example: Pressing a button triggers a lift, Opening a door triggers an automatic light, 
+		   Uploading a file triggers a virus scanner, Receiving a WhatsApp message triggers a notification sound. In Azure, Every function has one and only one trigger. Type of Trigger in Azure:
+				i. HTTP Trigger: An HTTP request Hit an endpoint.
+				ii. Blob Trigger: A file is uploaded to Blob storage
+				iii. Queue Trigger: A message arrives in a queue
+				iv. Service Bus Trigger: A message arrives in service bus.
+				v. Cosmos DB Trigger: A document is updated in cosmos DB
+				vi. Time Trigger: Time reaches X:00 PM
+		   To create a Trigger function, follow the three step:
 			i. Which annotation is used. It will tell you the trigger type?
 				1) @BlobTrigger → fires when a blob changes
 				2) @QueueTrigger → fires when a queue message appears
@@ -164,26 +160,25 @@
 				3) HTTP → HttpRequestMessage<Optional<String>>
 				4) Cosmos → List<String> or a typed POJO
 				5) Timer → String
-		Example:
-				How To Understand this Instantly:
-1. Look at annotation: event source
-2. See annotation properties: How to access Source
-3. See Parameter type: What data you receive
-4. Logic: What you want to do
-			@FunctionName("NewFunc")
-			public void run(
-			    @EventHubTrigger(
-			        name = "myEvent",
-			        eventHubName = "logs",
-			        connection = "EventHubConn"
-			    ) String event,
-			    ExecutionContext context
-			) {
-			    context.getLogger().info("Event = " + event);
-			}
-			
-		
-		b. Bindings:  A binding is Azure’s way of saying: “Tell me what data you need, and I’ll give it to your function automatically. You don’t need to write connection code.” Bindings are the biggest time‑saver in Azure Functions. Azure Functions have 3 types of bindings:
+		  How To Understand this Instantly:
+				1. Look at annotation: event source
+				2. See annotation properties: How to access Source
+				3. See Parameter type: What data you receive
+				4. Logic: What you want to do
+							@FunctionName("NewFunc")
+							public void run(
+							    @EventHubTrigger(
+							        name = "myEvent",
+							        eventHubName = "logs",
+							        connection = "EventHubConn"
+							    ) String event,
+							    ExecutionContext context
+							) {
+							    context.getLogger().info("Event = " + event);
+							}
+							
+		b. Bindings:  A binding is Azure’s way of saying: “Tell me what data you need, and I’ll give it to your function automatically. 
+		   You don’t need to write connection code.” Bindings are the biggest time‑saver in Azure Functions. Azure Functions have 3 types of bindings:
 			i. Trigger Binding:  This is the event that starts (triggers) your function. Examples:
 				• @BlobTrigger
 				• @QueueTrigger
@@ -193,164 +188,163 @@
 				• @HttpTrigger
 			
 			ii. Input Binding: This gives extra data to the function without you writing any code. Example in Java: 
-				1) @BlobInput(name = "file", path = "images/info.json", connection = "Storage").
-				2) String jsonContent
-			Azure will automatically connect to storage, read the file and give you the file content in the parameter. You don't write SDK code.
-			Types of Input Bindings:
-				• @BlobInput
-				• @CosmosDBInput
-				• @QueueInput
-				• @TableInput
-				• @HttpTrigger (input + trigger)
+					1) @BlobInput(name = "file", path = "images/info.json", connection = "Storage").
+					2) String jsonContent
+			    Azure will automatically connect to storage, read the file and give you the file content in the parameter. You don't write SDK code.
+			    Types of Input Bindings:
+					• @BlobInput
+					• @CosmosDBInput
+					• @QueueInput
+					• @TableInput
+					• @HttpTrigger (input + trigger)
 		
 			i. Output Binding: This writes data to Azure services automatically. Azure, please save this data without me using SDK. Example in Java:
-					
-				@CosmosDBOutput(	outputDoc.setValue("{\"message\": \"Hello\"}");
-				    name = "out",	
-				    databaseName = "Store",
-				    containerName = "Audit",
-				    connection = "CosmosConn"
-				) OutputBinding<String> outputDoc
-				1) Azure automatically writes to Cosmos DB.
-			Types of output Bindings:
-				• @BlobOutput
-				• @QueueOutput
-				• @TableOutput
-				• @CosmosDBOutput
-				• @ServiceBusQueueOutput
-				• returning an HTTP response (for HTTP trigger)
+					@CosmosDBOutput(	outputDoc.setValue("{\"message\": \"Hello\"}");
+					    name = "out",	
+					    databaseName = "Store",
+					    containerName = "Audit",
+					    connection = "CosmosConn"
+					) OutputBinding<String> outputDoc
+				Azure automatically writes to Cosmos DB. 
+				Types of output Bindings:
+					• @BlobOutput
+					• @QueueOutput
+					• @TableOutput
+					• @CosmosDBOutput
+					• @ServiceBusQueueOutput
+					• returning an HTTP response (for HTTP trigger)
 				
-		Complete example of Trigger and Bindings are:
-			
-			package com.example;
-			import com.microsoft.azure.functions.*;
-			import com.microsoft.azure.functions.annotation.*;
-			import java.nio.charset.StandardCharsets;
-			import java.util.Optional;
-			public class ProcessUploadFunction {
-			    /**
-			     * Trigger: BlobTrigger - fires when a blob is created/updated at uploads/{imageName}
-			     * Input binding #1: BlobInput - read config/settings.json (e.g., thresholds)
-			     * Input binding #2: CosmosDBInput - read product metadata by id & partition key
-			     * Output binding #1: CosmosDBOutput - write a processed summary document
-			     * Output binding #2: QueueOutput - send a message to a queue
-			     */
-			    @FunctionName("ProcessUpload")
-			    public void run(
-			        // === Trigger (starts the function) ===
-			        @BlobTrigger(
-			            name = "triggerBlob",
-			            path = "uploads/{imageName}",
-			            connection = "StorageConn"
-			        ) byte[] imageBytes,
-			        // Extract {imageName} from path as a variable
-			        @BindingName("imageName") String imageName,
-			        // === Input Binding #1: Read a blob file as config ===
-			        @BlobInput(
-			            name = "configFile",
-			            path = "config/settings.json",
-			            connection = "StorageConn"
-			        ) String configJson,
-			        // === Input Binding #2: Read a Cosmos DB doc (e.g., product metadata) ===
-			        @CosmosDBInput(
-			            name = "product",
-			            databaseName = "Store",
-			            containerName = "Products",
-			            partitionKey = "{imageName}",     // using imageName as partition key (example)
-			            id = "{imageName}",               // using imageName as id (example)
-			            connection = "CosmosConn"
-			        ) Optional<String> productDoc,
-			        // === Output Binding #1: Write a summary document to Cosmos DB ===
-			        @CosmosDBOutput(
-			            name = "processedOut",
-			            databaseName = "Store",
-			            containerName = "ProcessedImages",
-			            connection = "CosmosConn"
-			        ) OutputBinding<String> processedOut,
-			        // === Output Binding #2: Send a message to a Storage Queue ===
-			        @QueueOutput(
-			            name = "notifyOut",
-			            queueName = "image-notifications",
-			            connection = "StorageConn"
-			        ) OutputBinding<String> queueOut,
-			        final ExecutionContext context
-			    ) {
-			        var log = context.getLogger();
-			        log.info("Triggered by blob: " + imageName);
-			        log.info("Image size: " + imageBytes.length + " bytes");
-			        log.info("Config loaded (bytes): " + configJson.getBytes(StandardCharsets.UTF_8).length);
-			        log.info("Product metadata present: " + productDoc.isPresent());
-			        // Very basic “processing” (placeholder)
-			        int width = 0;
-			        int height = 0;
-			        // In real code, you’d inspect imageBytes to compute metadata.
-			        // Build the processed summary JSON
-			        String processedJson = String.format(
-			            "{ \"id\":\"%s\", \"file\":\"%s\", \"sizeBytes\":%d, \"width\":%d, \"height\":%d, \"hasProduct\":%b }",
-			            imageName, imageName, imageBytes.length, width, height, productDoc.isPresent()
-			        );
-			        // Set outputs
-			        processedOut.setValue(processedJson); // Cosmos DB output
-			        String queueMsg = String.format(
-			            "{ \"image\":\"%s\", \"status\":\"processed\", \"size\":%d }",
-			            imageName, imageBytes.length
-			        );
-			        queueOut.setValue(queueMsg);          // Queue output
-			        log.info("Processed document and notification queued.");
-			    }
-			}
+			  Complete example of Trigger and Bindings are:
+				package com.example;
+				import com.microsoft.azure.functions.*;
+				import com.microsoft.azure.functions.annotation.*;
+				import java.nio.charset.StandardCharsets;
+				import java.util.Optional;
+				public class ProcessUploadFunction {
+				    /**
+				     * Trigger: BlobTrigger - fires when a blob is created/updated at uploads/{imageName}
+				     * Input binding #1: BlobInput - read config/settings.json (e.g., thresholds)
+				     * Input binding #2: CosmosDBInput - read product metadata by id & partition key
+				     * Output binding #1: CosmosDBOutput - write a processed summary document
+				     * Output binding #2: QueueOutput - send a message to a queue
+				     */
+				    @FunctionName("ProcessUpload")
+				    public void run(
+				        // === Trigger (starts the function) ===
+				        @BlobTrigger(
+				            name = "triggerBlob",
+				            path = "uploads/{imageName}",
+				            connection = "StorageConn"
+				        ) byte[] imageBytes,
+				        // Extract {imageName} from path as a variable
+				        @BindingName("imageName") String imageName,
+				        // === Input Binding #1: Read a blob file as config ===
+				        @BlobInput(
+				            name = "configFile",
+				            path = "config/settings.json",
+				            connection = "StorageConn"
+				        ) String configJson,
+				        // === Input Binding #2: Read a Cosmos DB doc (e.g., product metadata) ===
+				        @CosmosDBInput(
+				            name = "product",
+				            databaseName = "Store",
+				            containerName = "Products",
+				            partitionKey = "{imageName}",     // using imageName as partition key (example)
+				            id = "{imageName}",               // using imageName as id (example)
+				            connection = "CosmosConn"
+				        ) Optional<String> productDoc,
+				        // === Output Binding #1: Write a summary document to Cosmos DB ===
+				        @CosmosDBOutput(
+				            name = "processedOut",
+				            databaseName = "Store",
+				            containerName = "ProcessedImages",
+				            connection = "CosmosConn"
+				        ) OutputBinding<String> processedOut,
+				        // === Output Binding #2: Send a message to a Storage Queue ===
+				        @QueueOutput(
+				            name = "notifyOut",
+				            queueName = "image-notifications",
+				            connection = "StorageConn"
+				        ) OutputBinding<String> queueOut,
+				        final ExecutionContext context
+				    ) {
+				        var log = context.getLogger();
+				        log.info("Triggered by blob: " + imageName);
+				        log.info("Image size: " + imageBytes.length + " bytes");
+				        log.info("Config loaded (bytes): " + configJson.getBytes(StandardCharsets.UTF_8).length);
+				        log.info("Product metadata present: " + productDoc.isPresent());
+				        // Very basic “processing” (placeholder)
+				        int width = 0;
+				        int height = 0;
+				        // In real code, you’d inspect imageBytes to compute metadata.
+				        // Build the processed summary JSON
+				        String processedJson = String.format(
+				            "{ \"id\":\"%s\", \"file\":\"%s\", \"sizeBytes\":%d, \"width\":%d, \"height\":%d, \"hasProduct\":%b }",
+				            imageName, imageName, imageBytes.length, width, height, productDoc.isPresent()
+				        );
+				        // Set outputs
+				        processedOut.setValue(processedJson); // Cosmos DB output
+				        String queueMsg = String.format(
+				            "{ \"image\":\"%s\", \"status\":\"processed\", \"size\":%d }",
+				            imageName, imageBytes.length
+				        );
+				        queueOut.setValue(queueMsg);          // Queue output
+				        log.info("Processed document and notification queued.");
+				    }
+				}
 			1. This function begins its execution when a new file is uploaded to Azure Blob Storage.
-The BlobTrigger listens on the path uploads/{imageName}, and whenever a blob is created or updated at this location, the trigger fires and starts the function automatically.
+			   The BlobTrigger listens on the path uploads/{imageName}, and whenever a blob is created or updated at this location, the trigger fires and starts the function automatically.
 			
 			2. After the trigger activates, Azure Functions uses the first input binding (BlobInput) to fetch configuration details required for processing.
-It reads the file located at config/settings.json using the StorageConn connection, and the file content is passed directly into the function without requiring any manual SDK code.
-			This configuration may include thresholds, processing rules, or other settings.
+			   It reads the file located at config/settings.json using the StorageConn connection, and the file content is passed directly into the function without requiring any manual SDK code.
+			   This configuration may include thresholds, processing rules, or other settings.
 			
 			3. Next, Azure uses the second input binding (CosmosDBInput) to fetch product metadata from the Products container in Cosmos DB.
-The imageName value is used as both the document ID and partition key.
-Azure performs the Cosmos DB lookup automatically and provides the document (if available) to the function.
+			   The imageName value is used as both the document ID and partition key.
+			   Azure performs the Cosmos DB lookup automatically and provides the document (if available) to the function.
 			
 			4. After retrieving all required data, the function performs its processing logic on the uploaded file.
-This logic may involve analyzing the image, extracting metadata, or combining it with the configuration and product details.
+			   This logic may involve analyzing the image, extracting metadata, or combining it with the configuration and product details.
 			
 			5. Once processing is complete, the function uses the first output binding (CosmosDBOutput) to write a summary document into the ProcessedImages container in Cosmos DB.
-Azure handles the entire insert operation, requiring only that the function supply the JSON payload.
+			   Azure handles the entire insert operation, requiring only that the function supply the JSON payload.
 			
 			6. Finally, the second output binding (QueueOutput) sends a small message to the image-notifications queue.
-This message informs downstream systems that the image has been processed successfully and is ready for the next step in the workflow.
+			   This message informs downstream systems that the image has been processed successfully and is ready for the next step in the workflow.
 			
 			7. In summary, this function demonstrates the complete Azure Functions model:
-a trigger that starts execution, multiple input bindings that supply supporting data automatically, and multiple output bindings that deliver results without requiring any explicit client or SDK code.
-The developer focuses solely on business logic while Azure manages all underlying connections and operations.
+			   A trigger that starts execution, multiple input bindings that supply supporting data automatically, and multiple output bindings that deliver results without requiring any explicit client or SDK code.
+			   The developer focuses solely on business logic while Azure manages all underlying connections and operations.
 
-	{
-	    "id": "/subscriptions/540b7602-d4c7-41d9-ae81-9b1cfaa2f21d/resourceGroups/ADMAppDevAPACDelivery-2364176-RG/providers/Microsoft.Web/sites/VinayTestFunction/functions/TimerTrigger1",
-	    "name": "VinayTestFunction/TimerTrigger1",
-	    "type": "Microsoft.Web/sites/functions",
-	    "location": "Central US",
-	    "properties": {
-	        "name": "TimerTrigger1",
-	        "function_app_id": null,
-	        "script_root_path_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/",
-	        "script_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/run.ps1",
-	        "config_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/function.json",
-	        "test_data_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/data/Functions/sampledata/TimerTrigger1.dat",
-	        "secrets_file_href": null,
-	        "href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/functions/TimerTrigger1",
-	        "config": {
-	            "bindings": [
-	                {
-	                    "name": "Timer",
-	                    "type": "timerTrigger",
-	                    "direction": "in",
-	                    "schedule": "0 */5 * * * *"
-	                }
-	            ]
-	        },
-	        "files": null,
-	        "test_data": "",
-	        "invoke_url_template": null,
-	        "language": "powershell",
-	        "isDisabled": false
-	    }
-	}
+				{
+				    "id": "/subscriptions/540b7602-d4c7-41d9-ae81-9b1cfaa2f21d/resourceGroups/ADMAppDevAPACDelivery-2364176-RG/providers/Microsoft.Web/sites/VinayTestFunction/functions/TimerTrigger1",
+				    "name": "VinayTestFunction/TimerTrigger1",
+				    "type": "Microsoft.Web/sites/functions",
+				    "location": "Central US",
+				    "properties": {
+				        "name": "TimerTrigger1",
+				        "function_app_id": null,
+				        "script_root_path_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/",
+				        "script_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/run.ps1",
+				        "config_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/site/wwwroot/TimerTrigger1/function.json",
+				        "test_data_href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/vfs/data/Functions/sampledata/TimerTrigger1.dat",
+				        "secrets_file_href": null,
+				        "href": "https://vinaytestfunction-f3ffbqcadtgeg3g2.centralus-01.azurewebsites.net/admin/functions/TimerTrigger1",
+				        "config": {
+				            "bindings": [
+				                {
+				                    "name": "Timer",
+				                    "type": "timerTrigger",
+				                    "direction": "in",
+				                    "schedule": "0 */5 * * * *"
+				                }
+				            ]
+				        },
+				        "files": null,
+				        "test_data": "",
+				        "invoke_url_template": null,
+				        "language": "powershell",
+				        "isDisabled": false
+				    }
+				}
+
