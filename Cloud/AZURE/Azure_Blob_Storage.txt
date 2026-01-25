@@ -209,3 +209,34 @@
       -> Public users can: List blobs in the container and read blobs
       -> Anyone can browse all files if container URL is known
       -> Use cases: Public datasets, Open data sharing, Static website assets (older approach)
+
+=> Azure Storage Security – Encryption
+  -> Azure Storage secures data mainly using encryption. Encryption ensures that even if someone gets physical access to disks, data is unreadable.
+  -> There are three different type of encryption which Azure is using:
+    -> Service-Side Encryption (SSE) – Default & Most Important
+      -> It means Data is encrypted automatically by Azure when it is stored and decrypted automatically when accessed
+      -> It happens inside Azure, not in your application. You don’t write any code for this.
+      -> It Uses AES-256 encryption and Enabled by default for all storage accounts and Cannot be disabled and No extra cost
+      -> What is encrypted: Blobs (Block, Append, Page – even Archive tier), Files (Azure Files), Queues, Tables, Disks, Metadata, Primary + Secondary regions (GRS, GZRS)
+      -> Encryption is independent of: Standard / Premium, Hot / Cool / Archive, LRS / ZRS / GRS
+      -> Think of it like BitLocker for Azure Storage disks. You store data → Azure encrypts it → you read data → Azure decrypts it.
+    -> Encryption Key Management (Who controls the key?)
+      -> Microsoft-Managed Keys (Default)
+        -> Azure creates, stores, rotates and manages encryption keys
+        -> Supported for all Azure Storage services
+        -> Used when no special compliance requirement  
+      -> Customer-Managed Keys (CMK)
+        -> Keys are stored in Azure Key Vault or Key Vault HSM
+        -> Customer controls key rotation, access and revocation
+        -> Supported for Blob Storage and Azure Files
+      -> Customer-Provided Keys (CPK)
+        -> Customer provides encryption key with every request
+        -> Azure never stores the key
+        -> Supported only for Blob Storage
+    -> Client-Side Encryption (Optional, Extra Security)
+      -> Data is encrypted in the client application before uploading to Azure
+      -> Azure stores already-encrypted data and never sees plain text
+      -> Supported by Blob Storage and Queue Storage client libraries
+      -> Uses AES encryption
+      -> Version 1 uses AES with CBC mode
+      -> Version 2 uses AES with GCM mode (more secure and recommended)
