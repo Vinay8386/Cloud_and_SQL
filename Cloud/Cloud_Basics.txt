@@ -143,3 +143,25 @@
 => Oauth 2.O Flow vs OpenID Connect Flow.
 		○ OAuth 2.0: User → Application → Authorization Server → Access Token (used for resource access).
 		○ OIDC: Same flow, but adds an ID Token (used for authentication, so the app knows who the user is).
+
+=> What is Blob Storage: Blob Storage is a type of object storage used to store large amounts of unstructured data such as images, videos, documents, backups, and media files.
+                         Blob stands for Binary Large Object, which means data stored in binary form (files).
+                         Blob Storage is not a database and not a traditional file system.
+
+=> What kind of data is stored in Blob Storage?
+  -> Blob Storage is used to store files, not structured records. Example: Images (jpg, png), Videos (mp4), PDFs, Word, Excel files, Log files, Backups, Static website files
+  -> It is not suitable for Tables, Rows and Columns, Transactional Business data
+
+=> How data is organized in Blob Storage
+  -> Blob Storage follows a three-level hierarchy: storage account --> Container --> Blob(Files)
+  -> Example: company-storage --> invoice_101.pdf --> invoice_102.pdf
+      -> Storage Account: Top-level storage resource
+      -> Container: Logical grouping of blobs (similar to folder)
+      -> Blob: Actual file (image, video, document, etc.)
+
+=> What is Object Storage?
+  -> Blob Storage is an example of object storage, where:
+    -> Each file is stored as a single object
+    -> Objects are accessed using URLs or APIs
+    -> There are no real directories like a file system
+    -> Each Object contain Data (file content),  Metadata (file info), Unique identifier (blob name / URL)
