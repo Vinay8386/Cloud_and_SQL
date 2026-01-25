@@ -40,6 +40,22 @@
     -> Azure CLI
     -> Azure Storage client libraries (Java, .NET, Python, etc.)
 
+=> Storage Tier: Storage tier defines the cost and access characteristics of data based on how frequently it is accessed. There are basically 3 types pf tier:
+  -> Hot Tier:
+    -> Used for data that is accessed frequently.
+    -> Has the highest storage cost but the lowest access cost.
+    -> Suitable for active data like images, videos, or files used by applications.
+  -> Cool Tier:
+    -> Used for data that is accessed infrequently (at least once in 30 days)
+    -> Has lower storage cost than Hot tier but higher access cost.
+    -> Suitable for backups, older documents, or infrequently used data.
+  -> Archive Tier:
+    -> Used for data that is rarely accessed (long-term storage).
+    -> Has the lowest storage cost but the highest access cost and retrieval latency.
+    -> Data must be rehydrated before access.
+    -> Suitable for compliance data, long-term backups, and archival records.
+  Storage tiers apply only to Standard storage accounts, while Premium storage accounts always provide high performance and do not support Hot, Cool, or Archive tiers.
+
 => Types of Azure Storage Accounts
   -> Azure Storage provides two performance levels Storage Accounts:
     -> Standard: This is the default and recommended storage account type for most Azure Storage scenarios.
