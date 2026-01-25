@@ -54,7 +54,7 @@
     -> Has the lowest storage cost but the highest access cost and retrieval latency.
     -> Data must be rehydrated before access.
     -> Suitable for compliance data, long-term backups, and archival records.
-  Storage tiers apply only to Standard storage accounts, while Premium storage accounts always provide high performance and do not support Hot, Cool, or Archive tiers.
+  Storage tiers apply only to Standard storage accounts(only in Blob Storage not in Azure Files, Queue Storage, or Table Storage), while Premium storage accounts always provide high performance and do not support Hot, Cool, or Archive tiers.
 
 => Types of Azure Storage Accounts
   -> Azure Storage provides two performance levels Storage Accounts:
@@ -63,10 +63,34 @@
       -> Cost-effective
       -> Recommended for most use cases
       -> Supported services:
-        -> Blob Storage (including Azure Data Lake Storage Gen2)
+        -> Blob Storage (including Azure Data Lake Storage Gen2):
+          -> It support storage tier: Hot, Cool and Archive
+          -> It is designed for storing large amounts of unstructured data (any kind of files).
+          -> Files are stored as objects (blobs) inside containers.
+          -> Accessed and uploaded using URL / REST API / SDKs.
+          -> Not mounted like a traditional file system.
+          -> Optimized for high throughput and scalability.
+          -> Example: images, videos, PDFs, backups, logs, big data files.
         -> Azure Files
+          -> Provides fully managed file shares in the cloud.
+          -> Supports standard file system access using SMB and NFS protocols.
+          -> Used when applications need shared file access, similar to a network file system.
+          -> This is file system storage, access like a network drive. 
+          -> Can be mounted on Windows, Linux, or macOS machines.
+          -> You can mount it locally using PowerShell or shell script, and it appears as a new drive.
+          -> Any upload, delete, or update reflects immediately in the Azure portal.
+          -> Example: shared application files, configuration files, lift-and-shift file servers.
         -> Queue Storage
+          -> Used for storing small pieces of data called messages.
+          -> Designed for scalable and asynchronous communication between application components.
+          -> Helps decouple different parts of an application.
+          -> Examples: background job processing, task queues, message buffering.
         -> Table Storage
+          -> Stores semi-structured data in the form of key-value pairs.
+          -> Data is stored in tables, but there is no relationship between tables.
+          -> Data is accessed using Partition Key and Row Key.
+          -> Designed for fast access to large amounts of structured or semi-structured data.
+          -> Examples: user profiles, metadata storage, configuration data.
       -> Redundancy options:
         -> LRS (Locally Redundant Storage)
         -> ZRS (Zone-Redundant Storage)
@@ -128,5 +152,6 @@
   -> RA-GRS – Read-Access Geo-Redundant Storage: It means you can read data from the secondary region even when the primary region is healthy. Used when global read access is required.
   -> GZRS – Geo-Zone-Redundant Storage: It means ZRS in the primary region and GRS replication to a secondary region.
   -> RA-GZRS – Read-Access Geo-Zone-Redundant Storage: It means GZRS with read access enabled for the secondary region. Provides the highest availability and has the highest cost.
+
 
 
