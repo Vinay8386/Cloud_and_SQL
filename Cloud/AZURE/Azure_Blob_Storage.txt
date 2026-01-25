@@ -1,0 +1,116 @@
+=> What is Blob Storage: Blob Storage is a type of object storage used to store large amounts of unstructured data such as images, videos, documents, backups, and media files.
+                         Blob stands for Binary Large Object, which means data stored in binary form (files).
+                         Blob Storage is not a database and not a traditional file system.
+
+=> What kind of data is stored in Blob Storage?
+  -> Blob Storage is used to store files, not structured records. Example: Images (jpg, png), Videos (mp4), PDFs, Word, Excel files, Log files, Backups, Static website files
+  -> It is not suitable for Tables, Rows and Columns, Transactional Business data
+
+=> How data is organized in Blob Storage
+  -> Blob Storage follows a three-level hierarchy: storage account --> Container --> Blob(Files)
+  -> Example: company-storage --> invoice_101.pdf --> invoice_102.pdf
+      -> Storage Account: Top-level storage resource
+      -> Container: Logical grouping of blobs (similar to folder)
+      -> Blob: Actual file (image, video, document, etc.)
+
+=> What is Object Storage?
+  -> Blob Storage is an example of object storage, where:
+    -> Each file is stored as a single object
+    -> Objects are accessed using URLs or APIs
+    -> There are no real directories like a file system
+    -> Each Object contain Data (file content),  Metadata (file info), Unique identifier (blob name / URL)
+
+=> What is Azure Blob Storage?
+  -> Azure Blob Storage is Microsoft’s object storage solution for the cloud. It is optimized for storing massive amounts of unstructured data. 
+  -> Unstructured data is data that does not follow a predefined data model or schema, such as: Text files, Images, Videos, Binary files
+
+=> What is Azure Blob Storage used for?
+  -> Azure Blob Storage is designed for the following use cases:
+    -> Serving images or documents directly to a browser
+    -> Storing files for distributed access
+    -> Streaming video and audio content
+    -> Writing and storing log files
+    -> Backup, restore, disaster recovery, and archiving
+    -> Storing data for analysis by on-premises or Azure-hosted services
+
+=> How can Blob Storage be accessed?
+  -> Objects stored in Azure Blob Storage can be accessed from anywhere in the world using HTTP or HTTPS. Access methods include:
+    -> Azure Storage REST API
+    -> Azure PowerShell
+    -> Azure CLI
+    -> Azure Storage client libraries (Java, .NET, Python, etc.)
+
+=> Types of Azure Storage Accounts
+  -> Azure Storage provides two performance levels Storage Accounts:
+    -> Standard: This is the default and recommended storage account type for most Azure Storage scenarios.
+      -> Uses hard disk drives (HDD)
+      -> Cost-effective
+      -> Recommended for most use cases
+      -> Supported services:
+        -> Blob Storage (including Azure Data Lake Storage Gen2)
+        -> Azure Files
+        -> Queue Storage
+        -> Table Storage
+      -> Redundancy options:
+        -> LRS (Locally Redundant Storage)
+        -> ZRS (Zone-Redundant Storage)
+        -> GRS (Geo-Redundant Storage)
+        -> RA-GRS (Read-Access Geo-Redundant Storage)
+        -> GZRS (Geo-Zone-Redundant Storage)
+        -> RA-GZRS (Read-Access Geo-Zone-Redundant Storage)
+      -> Usage:
+        -> Standard storage account for blobs, file shares, queues, and tables
+        -> Recommended for most Azure Storage workloads
+    -> Premium: Premium Storage Accounts are designed to deliver high performance and low latency by using solid-state drives (SSDs) instead of traditional hard disk drives (HDDs). 
+      -> Uses solid-state drives (SSD)
+      -> Higher performance and lower latency
+      -> Higher cost
+      -> Designed for high-performance workloads
+      -> Azure provides three types of premium storage accounts, each optimized for a specific storage service and workload.
+        -> Premium Block Blobs
+          -> Premium Block Blob Storage is optimized for workloads that require high transaction rates, low latency, and frequent access to blob data.
+          -> This storage account type is ideal for storing block blobs and append blobs, which are commonly used for files such as images, documents, logs, and analytics data.
+          -> It also supports Azure Data Lake Storage Gen2, making it suitable for big data analytics and data processing scenarios.
+          -> Supported services: Block blobs, Append Blobs, Azure Data Lake Storage Gen2
+          -> Redundancy Options: 
+            -> Locally Redundant Storage (LRS)
+            -> Zone-Redundant Storage (ZRS)
+          -> Typical Use Cases
+            -> Applications with high read/write transaction rates
+            -> Workloads involving smaller objects accessed frequently
+            -> Applications that require consistently low latency
+            -> Real-time analytics and streaming ingestion scenarios
+        -> Premium File Shares
+          -> Premium File Shares Storage is designed to provide high-performance file storage using the Azure Files service.
+          -> This storage account type is optimized for enterprise-grade file system workloads, where applications require low-latency access to shared files using standard file system protocols.
+          -> It is particularly recommended when Network File System (NFS) support is required in Azure Files.
+          -> upported Services: Azure Files only
+          -> Redundancy Options
+            -> Locally Redundant Storage (LRS)
+            -> Zone-Redundant Storage (ZRS)
+          -> Typical Use Cases
+            -> Enterprise applications requiring shared file systems
+            -> High-performance file shares for application data
+            -> Lift-and-shift workloads migrating on-prem file servers to Azure
+            -> Scenarios requiring NFS-based file access
+        -> Premium Page Blob Storage Account: 
+          -> Premium Page Blob Storage is designed specifically for page blob workloads, which require random read and write operations with very low latency.
+          -> Page blobs are primarily used to store virtual hard disk (VHD) files, making this storage account type ideal for Azure virtual machine disks and other disk-based workloads.
+          -> Supported Services: Page Blobs only
+          -> Redundancy Options
+            -> Locally Redundant Storage (LRS)
+            -> Zone-Redundant Storage (ZRS)
+          -> Typical Use Cases
+            -> Virtual machine disks
+            -> High-performance random I/O workloads
+            -> Scenarios requiring frequent updates to specific ranges within a file
+
+=> Types of Redundancy in Azure
+  -> LRS – Locally Redundant Storage: It means 3 copies of data stored in the same data centre within the same region.
+  -> ZRS – Zone-Redundant Storage: It means 3 copies of data stored across different availability zones within the same region.
+  -> GRS – Geo-Redundant Storage: It means 3 copies of data stored in the primary region and 3 copies of data stored in a paired secondary region (different region).
+  -> RA-GRS – Read-Access Geo-Redundant Storage: It means you can read data from the secondary region even when the primary region is healthy. Used when global read access is required.
+  -> GZRS – Geo-Zone-Redundant Storage: It means ZRS in the primary region and GRS replication to a secondary region.
+  -> RA-GZRS – Read-Access Geo-Zone-Redundant Storage: It means GZRS with read access enabled for the secondary region. Provides the highest availability and has the highest cost.
+
+
