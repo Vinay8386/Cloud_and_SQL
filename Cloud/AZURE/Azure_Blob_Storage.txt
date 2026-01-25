@@ -20,6 +20,22 @@
     -> There are no real directories like a file system
     -> Each Object contain Data (file content),  Metadata (file info), Unique identifier (blob name / URL)
 
+=> SMB (Server Message Block) vs NFS (Network File System)
+  -> SMB (Server Message Block)
+    -> A network file sharing protocol mainly used by Windows systems.
+    -> Allows applications to read, write, create, and delete files on a remote server as if they are local.
+    -> Supports file locking, authentication, and permissions.
+    -> Commonly used for shared folders and network drives.
+    -> In Azure Files, SMB is used to mount file shares on Windows, Linux, macOS.
+    -> Example: Mapping a network drive like Z: in Windows.
+  -> NFS (Network File System)
+    -> A network file sharing protocol mainly used by Linux and Unix systems.
+    -> Allows multiple machines to access shared files over a network.
+    -> Designed for high performance and scalability in Linux environments.
+    -> Uses a stateless or lightweight state model depending on version.
+    -> In Azure Files, NFS is used to mount file shares on Linux systems.
+    -> Example: Mounting a shared directory like /mnt/shared.
+
 => What is Azure Blob Storage?
   -> Azure Blob Storage is Microsoft’s object storage solution for the cloud. It is optimized for storing massive amounts of unstructured data. 
   -> Unstructured data is data that does not follow a predefined data model or schema, such as: Text files, Images, Videos, Binary files
