@@ -169,5 +169,43 @@
   -> GZRS – Geo-Zone-Redundant Storage: It means ZRS in the primary region and GRS replication to a secondary region.
   -> RA-GZRS – Read-Access Geo-Zone-Redundant Storage: It means GZRS with read access enabled for the secondary region. Provides the highest availability and has the highest cost.
 
+=> Explain Type of Blobs in Azure?
+  -> There are three different types of Blobs in Azure:
+    -> Block Blobs: Upload / Replace whole file
+      -> Store text and binary data. Example: Streaming Content, Images or Videos
+      -> Made up of blocks of data that can be uploaded and managed independently.
+      -> Optimized for streaming and storing large files. Maximum size is up to ~190.7 TiB.
+      -> Commonly used for images, videos, documents, backups, logs.
+      -> Once uploaded, a block blob cannot be modified partially (like editing a few bytes in the middle).
+      -> You can overwrite the entire blob or delete and re-upload it.
+      -> You can also upload it block-by-block, but once committed, random in-place modification is not supported.
+    -> Append Blobs: Only add at the end
+      -> Designed specifically for append-only operations. Example Logs files
+      -> You cannot overwrite existing content in the file.
+      -> You can only append new data at the end of the same blob.
+      -> Used mainly for logs, audit files, and streaming data.
+    -> Page Blobs: Works like a disk for VM
+      -> Random read and write operations. Example Virtual Machine Disks
+      -> Used to store Virtual Hard Disks (VHDs) for Azure Virtual Machines.
+      -> Supports random read and write operations.
+      -> Acts like a disk, not a directory itself.
+      -> When attached to a VM, the operating system formats it and then it appears as drives like C:, D: etc (similar to your local machine)
 
-
+=> Explain public access level in Azure Blob Storage?
+  -> Public access level controls who can read blobs without authentication. These access levels are set at the container level, not per storage account.
+  -> There are 3 different access levels:
+    -> Private (No public access)
+      -> No anonymous access allowed
+      -> Only accessible using: Azure AD, SAS token, Storage account key
+      -> Blobs and container are both private
+      -> Use cases: User documents, Internal application data, Sensitive files
+    -> Blob (Anonymous read access for blobs only)
+      -> Public users can read individual blobs
+      -> Container listing is NOT allowed
+      -> If someone has the exact blob URL, they can access it
+      -> Upload / delete still requires authentication
+      -> Use cases: Public images, PDFs shared via direct link, Public media files
+    -> Container (Anonymous read access for container and blobs)
+      -> Public users can: List blobs in the container and read blobs
+      -> Anyone can browse all files if container URL is known
+      -> Use cases: Public datasets, Open data sharing, Static website assets (older approach)
