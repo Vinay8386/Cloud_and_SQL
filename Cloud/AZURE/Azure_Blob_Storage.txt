@@ -68,6 +68,7 @@
   -> Archive Tier:
     -> Used for data that is rarely accessed (long-term storage).
     -> Has the lowest storage cost but the highest access cost and retrieval latency.
+    -> This access tier is considered to be offline and can't be read or modified.
     -> Data must be rehydrated before access.
     -> Suitable for compliance data, long-term backups, and archival records.
   Storage tiers apply only to Standard storage accounts(only in Blob Storage not in Azure Files, Queue Storage, or Table Storage), while Premium storage accounts always provide high performance and do not support Hot, Cool, or Archive tiers.
@@ -240,3 +241,156 @@
       -> Uses AES encryption
       -> Version 1 uses AES with CBC mode
       -> Version 2 uses AES with GCM mode (more secure and recommended)
+
+=> Explain Blob Subtypes in Azure?
+  -> Azure Blob Storage supports three blob subtypes:
+    -> Base Blob: 
+      -> The main blob (original blob)
+      -> Represents the current active version of the blob
+      -> This is what you normally upload, read, overwrite, or delete
+      -> Can be modified (overwrite entire blob, append, or page write depending on blob type)
+      -> Example: resume.pdf stored in a container
+    -> Blob Snapshot
+      -> A read-only point-in-time copy of a blob
+      -> Snapshot is immutable (cannot be modified)
+      -> Snapshot has the same name as base blob, but with a timestamp
+      -> Stored in the same container
+      -> Used mainly for backup and restore
+      -> Example: Take snapshot of resume.pdf before overwriting it
+    -> Blob Version
+      -> Automatically created when blob versioning is enabled
+      -> Each update creates a new version with a unique version ID
+      -> Versions are read-only
+      -> Base blob always points to the latest version
+      -> Versioning is managed automatically by Azure
+      -> Example: Upload resume.pdf multiple times --> Each upload creates a new version --> You can restore any previous version
+
+=> Azure Blob Storage Lifecycle Management
+  -> Lifecycle management automatically manages blob data based on age. Lifecycle rules can apply to Base Blob (current blob), Snapshots, Previous Versions
+  -> Helps reduce storage cost by:
+    -> Moving data to cheaper tiers
+    -> Deleting old data
+  -> Defined using a JSON policy
+  -> Lifecycle Policy Structure
+    -> A lifecycle policy is a collection of rules. Each rule has:
+      -> Filter set (which blobs the rule applies to)
+      -> Action set (what to do with those blobs)
+  -> Rule Components: 
+    -> Rule Metadata
+      -> name → Unique rule name
+      -> enabled → Enable / disable rule
+      -> type → Always Lifecycle
+      -> definition → Contains filters + actions
+    -> Filters (Which blobs?): Filters limit the scope of the rule. Common Filters
+      -> blobTypes (Required)
+        -> blockBlob (most common)
+      -> prefixMatch
+        -> Apply rule to blobs with specific path
+        -> Must start with container name
+      -> blobIndexMatch
+        -> Match blobs using index tags
+    -> Actions (What to do?): Actions are applied when age conditions are met. Supported actions
+      -> Tiering actions
+        -> tierToHot
+        -> tierToCool
+        -> tierToCold
+        -> tierToArchive
+      -> Deletion actions
+        -> delete base blob
+        -> delete snapshot
+        -> delete previous versions
+  -> Azure calculates age using timestamps:
+    -> Base blob: Uses last modified time
+    -> Snapshot: Uses snapshot creation time
+    -> Versions: Uses version creation time
+
+  -> Common Run Conditions
+    -> daysAfterModificationGreaterThan: Used for base blobs
+    -> daysAfterCreationGreaterThan: Used for snapshots & versions
+    -> daysAfterLastAccessTimeGreaterThan: Used when access tracking is enabled
+    -> daysAfterLastTierChangeGreaterThan: Prevents immediate re-archiving after rehydration
+  -> If multiple actions apply to the same blob: Azure applies the cheapest action. Cost order (cheapest → expensive): Delete → Archive → Cold → Cool → Hot
+
+=> How to Implement Blob storage lifecycle policies.
+  -> You can add, edit, or remove a policy by using any of the following methods: Azure portal, Azure PowerShell, Azure CLI, REST APIs
+  -> In Azure Portal, There are two ways to add a policy through the Azure portal: Azure portal List view, and Azure portal Code view. 
+  -> Following is an example of how to add a policy in the Azure portal 
+    -> In the Azure portal, navigate to your storage account.
+    -> Under Data management, select Lifecycle Management to view or change lifecycle management policies.
+    -> Select the List View tab.
+      -> Used to create and manage rules visually. You can:
+        -> Add a new rule
+        -> Configure filters (container, prefix, blob type)
+        -> Configure actions (tier, delete, snapshots, versions)
+      -> Azure generates the JSON automatically in the background
+    -> Select the Code View tab. On this tab, you can define a lifecycle management policy in JSON.
+      -> Used to view and edit the full lifecycle policy JSON
+      -> You do not get an “Add rule” button
+      -> You must manually edit the JSON to:
+        -> Add new rules
+        -> Modify existing rules
+        -> Copy / paste rules
+      -> Changes are applied when you Save the JSON
+  -> Example: The following JSON is an example of a policy that moves a block blob whose name begins with log to the cool tier if it has been more than 30 days since the blob was modified.
+      {
+        "rules": [
+          {
+            "enabled": true,
+            "name": "move-to-cool",
+            "type": "Lifecycle",
+            "definition": {
+              "actions": {
+                "baseBlob": {
+                  "tierToCool": {
+                    "daysAfterModificationGreaterThan": 30
+                  }
+                }
+              },
+              "filters": {
+                "blobTypes": [
+                  "blockBlob"
+                ],
+                "prefixMatch": [
+                  "sample-container/log"
+                ]
+              }
+            }
+          }
+        ]
+      }
+
+=> Rehydrate Blob Data from Archive Tier
+  -> Archive tier blobs are offline. While a blob is in Archive, you can't be read or modify
+  -> To access the data, the blob must be rehydrated to an online tier: Hot or Cool
+  -> There are two ways to Rehydrate an Archive Blob:
+    -> Copy Archived Blob to an Online Tier (Recommended)
+      -> Create a new blob in Hot or Cool tier
+      -> Source blob remains in Archive
+      -> Uses: 
+        -> Copy Blob
+        -> Copy Blob From URL
+      -> You cannot overwrite the same blob
+      -> Destination blob must have:
+        -> Different name OR Different container
+      -> Version note:
+        -> Before 2021-02-12 → copy only within same account
+        -> After 2021-02-12 → can copy to another account in same region
+    -> Change Blob Access Tier (Set Blob Tier)
+      -> Change tier from Archive → Hot/Cool
+      -> Uses Set Blob Tier operation
+      -> Rehydrates the same blob
+      -> Important behavior:
+        -> Operation cannot be canceled once started
+        -> Blob still shows as Archive until rehydration completes
+        -> Blob becomes accessible only after completion
+      -> Rehydration Time: Rehydration is not instant. It can take several hours. Large blobs are rehydrated more efficiently. Many small blobs may take longer overall
+    -> When rehydrating, you can set priority as:
+      -> Standard(default)
+        -> Processed in request order
+        -> Can take up to 15 hours
+      -> High
+        -> Faster processing
+        -> Often completes in under 1 hour
+        -> Applies mainly to blobs under 10 GB
+      -> You can check priority using: Get Blob Properties
+
