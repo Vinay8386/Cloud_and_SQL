@@ -394,3 +394,15 @@
         -> Applies mainly to blobs under 10 GB
       -> You can check priority using: Get Blob Properties
 
+=> How to manage Azure Blob Storage using code
+  -> If you are managing Azure Blob Storage using code (C#, Java, etc.), you use the following client classes to connect and work with Blob Storage.
+    -> BlobServiceClient: Connect to the Storage Account "BlobServiceClient serviceClient =new BlobServiceClient(connectionString);"
+    -> BlobContainerClient: Connect to a Container. "BlobContainerClient containerClient = serviceClient.GetBlobContainerClient("my-container");"
+    -> BlobClient: Work with a Blob. "BlobClient blobClient = containerClient.GetBlobClient("file.txt");"
+  -> Supporting Utility: 
+    -> BlobClientOptions: Configuration for how the client connects. It is used for Retry policy, Logging, Transport Setting
+    -> BlobUriBuilder: Used to construct or modify Blob URLs. It is very useful for SAS URLs and Switching container/blob names dynamically
+  -> NuGet Packages
+    -> Azure.Storage.Blobs: Core package – always needed. It contains BlobServiceClient, BlobContainerClient and BlobClient.
+    -> Azure.Storage.Blobs.Specialized: Blob-type specific operations. It contains BlockBlobClient, AppendBlobClient, PageBlobClient
+    -> Azure.Storage.Blobs.Models: Supporting models & enums. It contains: BlobProperties, AccessTier, BlobItem and Status & response models.
