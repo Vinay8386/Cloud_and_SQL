@@ -1,3 +1,132 @@
 => What is Azure Cosmos DB?
-  -> Think of Azure Cosmos DB as a very fast, smart digital storage system where your app keeps its data.
-    -> 
+    -> Azure Cosmos DB is a managed Azure database service that provides multiple NoSQL database models (APIs).
+    -> Cosmos DB itself is not a single database engine like MySQL or PostgreSQL.
+    -> It is a cloud service that lets you choose which NoSQL model you want to use, and Azure runs it for you.
+    -> Think of Azure Cosmos DB as a very fast, smart digital storage system where your app keeps its data.
+        -> It is NoSQL → data is flexible (not strict tables like SQL)
+        -> Fully managed → Azure takes care of servers, backups, scaling, failures
+        -> Very fast → data reaches users quickly
+        -> High availability (no downtime): If one region goes down, Cosmos DB automatically serves data from another region
+        -> Consistency (data correctness): Cosmos DB lets you decide, Should data be always 100% same everywhere (slightly slower) Or almost same but very fast
+        -> Unlimited elastic write and read scalability.
+        -> 99.999% read and write availability all around the world.
+        -> Guaranteed reads and writes served in less than 10 milliseconds at the 99th percentile.
+
+=> Hierarchy of Cosmos DB:
+    -> Azure Subscription--------->
+             Cosmos DB Account (max 50 per subscription)----------->
+                      Database--------------------------------------------->
+                            Container  ← scalability happens here------------------>
+                                     Item
+
+    -> In Azure Cosmos DB, containers are the fundamental unit of scalability.
+    -> They store items, are partitioned using a logical partition key, and can scale to virtually unlimited throughput and storage.
+    -> Explanation: Think of Azure Cosmos DB like a company office system
+        -> Azure Subscription = Your company(billing + ownership boundary)
+        -> Cosmos DB Account = One big office building
+            -> A Cosmos DB account:
+                -> Decides which API you use (Core SQL, Mongo, Cassandra, etc.)
+                -> Decides which regions your data lives in
+                -> Handles global distribution, consistency, availability
+            -> You cannot store data directly in an account.
+        -> Database = Floors inside the building
+            -> Inside a Cosmos DB account, you create databases. Database:
+                -> Groups related data
+                -> Mostly for logical separation
+                -> Example: UserDB, OrderDB
+            -> Databases themselves do not scale.
+        -> Container = Rooms on each floor
+            -> A container:
+                -> Stores actual data
+                -> Is the unit of scalability
+                -> Has Throughput (RU/s), Storage, Partitioning
+            -> All scaling happens at container level, not database.
+        -> Item = Files inside a room
+            -> Items are the actual records. Example item (JSON):
+                {
+                  "id": "101",
+                  "name": "Vinay",
+                  "city": "Bangalore"
+                }
+
+=> NoSQL options (APIs) Cosmos DB provides
+    | Cosmos DB API      | What it’s compatible with                 |
+    | ------------------ | ----------------------------------------- |
+    | **Core (SQL) API** | Native Cosmos DB (JSON, SQL-like queries) |
+    | **MongoDB API**    | MongoDB-compatible                        |
+    | **Cassandra API**  | Apache Cassandra-compatible               |
+    | **Table API**      | Azure Table Storage–style                 |
+    | **Gremlin API**    | Graph (TinkerPop/Gremlin)                 |
+
+    -> Under the hood, Storage, Replication, Partitioning, Scaling are same for all APIs. Only the API surface + query language changes.
+    -> You cannot mix APIs inside one Cosmos DB account. One account = one API
+    -> If you want Mongo + Cassandra → you need two accounts
+
+=> Azure Cosmos DB containers
+    -> A Cosmos DB container is the place where your actual data lives and the place where scaling happens.
+    -> Unlike SQL DB (scale UP ⬆️ with bigger machine),
+    -> Cosmos DB scales OUT ➡️ by adding more machines automatically.
+    -> How data is stored: Think of a container as a huge warehouse.
+        -> Data is stored on multiple servers
+        -> Each server = partition
+        -> Azure automatically adds more servers when needed
+        -> You don’t manage servers. Cosmos does.
+    -> Partitions: A partition is a chunk of data stored on one server. Cosmos DB:
+        -> Splits your container into partitions
+        -> Distributes them across machines
+        -> Uses them to handle: Large data, High traffic
+        -> More traffic or more data = more partitions.
+    -> Throughput (RU/s) controls scaling
+        -> Think of RU/s as “How many requests per second my container can handle”
+        -> When you Increase RU/s Or store more data, Cosmos DB automatically adds partitions
+        -> That’s why they say: Virtually unlimited throughput and storage
+    -> Partition Key
+        -> When creating a container, you must choose one property from your data. Example item:
+            {
+              "orderId": "O123",
+              "userId": "U45",
+              "amount": 500
+            }
+        -> Good partition key choices:
+            -> /userId
+            -> /orderId (depends on access pattern)
+        -> Partition Key decides which partition the item goes to
+        -> It also helps cosmos route: read, write, update, delete
+        -> If query includes partition key → fast & cheap (low RU)
+    -> Logical vs Physical partitions
+        -> Physical partition (real machine)
+            -> This is actual server with max 10,000 RU/s, 50 GB storage. You never see or manage these.
+        -> Logical partition (your view)
+            -> Group of items with same partition key value. Max size: 20 GB
+            -> Example: Partition key = /userId and All items with userId = U45 → one logical partition
+        -> Azure maps many logical partitions to physical partitions.
+    -> Throughput configuration modes
+        -> When creating a container, you choose how RU/s is assigned.
+        -> Dedicated Throughput: Throughput belongs only to this container.
+            -> Types:
+                -> Standard: Fixed RU/s (e.g., 1000 RU/s)
+                -> Autoscale: Azure automatically scales RU/s based on load
+        -> Shared Throughput: RU/s is set at database level. Shared by up to 25 containers. Containers with dedicated RU/s are excluded
+        -> best for small containers, Dev/Test and Low traffic workloads
+        -> Downside: One busy container can eat all RU/s
+
+    -> Internally, Cosmos DB stores “items”. But each API gives it a different name so it feels familiar to people coming from that database world.
+        -> So, Storage engine = same and Naming & data model = different
+        -> One simple mapping (memorise this table)
+            | Cosmos DB concept      | NoSQL (SQL) API | Cassandra API | MongoDB API | Gremlin API | Table API |
+            | ---------------------- | --------------- | ------------- | ----------- | ----------- | --------- |
+            | **Single data record** | Item            | Row           | Document    | Node / Edge | Item      |
+
+            -> API for NoSQL (Core SQL API): Each record is called an Item and stored as JSON.
+                    -> This is the native Cosmos DB model. Queried using SQL-like syntax
+                    -> Example:
+                        {
+                          "id": "1",
+                          "name": "Vinay",
+                          "city": "Bangalore"
+                        }
+            -> Cassandra API: Each record is a Row. Data is stored in columns. Uses CQL
+            -> MongoDB API: Each record is a Document. Stored as BSON/JSON. Queried using Mongo syntax
+            -> Gremlin API: Data is stored as Nodes (vertices) → entities, Edges → relationships
+                -> Example: Person → node, FRIEND_OF → edge(Graph structure, not table or JSON list.)
+            -> Table API: Each record is an Item. Key-value style. Similar to Azure Table Storage
