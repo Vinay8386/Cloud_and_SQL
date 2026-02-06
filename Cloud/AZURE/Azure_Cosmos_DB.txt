@@ -1,0 +1,3 @@
+=> What is Azure Cosmos DB?
+  -> Think of Azure Cosmos DB as a very fast, smart digital storage system where your app keeps its data.
+    -> 
