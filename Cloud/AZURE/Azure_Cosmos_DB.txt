@@ -130,3 +130,226 @@
             -> Gremlin API: Data is stored as Nodes (vertices) → entities, Edges → relationships
                 -> Example: Person → node, FRIEND_OF → edge(Graph structure, not table or JSON list.)
             -> Table API: Each record is an Item. Key-value style. Similar to Azure Table Storage
+
+=> Cosmos DB Consistency = A Spectrum (Not Just 2 Options)
+    -> Most database give strong consistency, eventual consistency
+    -> But Azure Cosmos DB give 5 levels-so you can choose the exact balance between Performance, Availability, correctness.
+    -> The 5 Consistency Levels (Strong → Weak): Each level offers different guarantees about how up-to-date the data will be when it is read.
+        -> Hierarchy based on level: Strong(High Consistency but lowest performance)---->Bounded staleness---->Session---->Consistent Prefix---->Eventual(High Performance but Low Consistency)
+            -> As you move from String to Eventual, Performance will increase but Consistency will decrease
+            -> Strong Consistency (Strongest 🔒): Strong consistency guarantees that every read operation returns the most recent committed write.
+                                                  Once data is written, all subsequent reads—regardless of region—will immediately reflect the updated value.
+                                                  This level provides the highest correctness but may increase latency and reduce availability in multi-region deployments because all replicas must stay synchronized before serving reads.
+                                                  Data immediately get updated in secondary region. User always read latest data from secondary region.
+                                                  Strong consistency is suitable for:
+                                                  Financial System
+                                                  Inventory management systems
+                                                  Banking Application
+            -> Bounded Staleness: Bounded staleness ensures that reads may lag behind writes, but only within a predefined limit.
+                                  Data get updated in secondary region after a certain number of write or after a certain time interval.
+                                  Example: If we set time duration to 5 minutes, and if we read from secondary region - data we read will be at most 5 min old.
+                                  User never see out of order write. ex:-
+                                    -> Let's say we write operation in these order - A then B and then C
+                                    -> Now read operation will either return - A then B and then C OR B and then C or C
+                                    -> But it will never return B and then A.
+                                  It has low consistency than strong but better performance.
+                                  The staleness can be configured either by: A maximum time interval, or A maximum number of versions (updates)
+                                  This provides predictable data freshness while offering better performance and availability than strong consistency.
+                                  Bounded staleness is appropriate for Applications that tolerate slight delays, Stock price dashboards and Reporting systems.
+            -> Session Consistency (Most commonly used ⭐): Session consistency guarantees that within a single client session, a user always reads their own writes.
+                                  However, other users in different sessions may temporarily see older data.
+                                  This level offers a balanced trade-off between consistency and performance and is the default consistency level in Azure Cosmos DB.
+                                  Session consistency is ideal for E-commerce applications, User profile systems, Social media platforms
+
+            -> Consistent Prefix: Consistent prefix ensures that reads never see out-of-order writes. If updates occur in a sequence (A → B → C), a client will never see C without first seeing A and B. However, the client may not see the most recent update immediately.
+                                  This level guarantees ordering without requiring the latest value, which improves performance compared to stronger consistency levels.
+                                  It is suitable for Event logging systems, Streaming data applications, Activity feeds
+                                    -> Same as that of bounded staleness, except condition - no of write and time interval.
+                                    -> Let's say we write operation in these order - A, then B, and then C
+                                    -> Now read operation will either return - A and then B and then C OR B and then C OR C
+                                    -> But it will not return B and then C
+            -> Eventual Consistency (Weakest ⚡): Eventual consistency provides the weakest guarantee. It ensures that, given enough time without further updates, all replicas will converge to the same value. However, there is no guarantee on how quickly this will occur.
+                                  This level offers the lowest latency and highest availability, making it suitable for applications that can tolerate stale reads.
+                                  There is no fixed time when the data will be replicated in secondary region.
+                                  Common use cases include: Analytics dashboards, Social media likes and views, Recommendation systems
+        -> The chosen consistency level in Azure Cosmos DB is region-agnostic. This means the consistency guarantees apply:
+            -> Regardless of the region serving reads and writes
+            -> Regardless of the number of regions configured
+            -> Whether the account uses single-region or multi-region writes
+    -> There is no thumb rule - when we should use which consistency level. It all depends on our app requirements.
+    -> This ensures predictable behavior across globally distributed deployments.
+
+=> Cosmos DB supported APIs
+    -> Azure Cosmos DB is a globally distributed, fully managed database service that supports multiple database APIs.
+    -> These APIs allow developers to use different data models and query languages while benefiting from Azure Cosmos DB’s automatic scaling, high availability, low latency, and performance guarantees.
+    -> Azure Cosmos DB supports the following APIs:
+        -> API for NoSQL
+        -> API for MongoDB
+        -> API for PostgreSQL
+        -> API for Apache Cassandra
+        -> API for Apache Gremlin
+        -> API for Table
+    -> Each API enables applications to interact with Cosmos DB as if it were a specific database technology, without requiring infrastructure management or manual scaling.
+    -> The main objective of supporting multiple APIs is:
+        -> To allow developers to use existing tools, drivers, and skills
+        -> To avoid rewriting application data access layers
+        -> To support different data models such as:
+            -> Document
+            -> Key-value
+            -> Graph
+            -> Column-family
+            -> Relational (distributed PostgreSQL)
+        -> All APIs provide:
+            -> Automatic scaling of storage and throughput
+            -> Flexible schema design (except relational PostgreSQL)
+            -> Low latency
+            -> Enterprise-grade SLAs
+        -> You should choose an API based on:
+            -> Existing application architecture
+            -> Current database technology in use
+            -> Required data model
+            -> Team expertise
+            -> Migration requirements
+    -> The API for NoSQL is native to Azure Cosmos DB.
+    -> All other APIs (MongoDB, PostgreSQL, Cassandra, Gremlin, and Table) implement the wire protocol of their respective open-source database engines.
+    -> This means existing drivers and tools can connect without modification.
+    -> Choose a compatible API when:
+        -> You already have applications using MongoDB, PostgreSQL, Cassandra, or Gremlin
+        -> You want minimal changes to your data access layer
+        -> You want to reuse existing drivers and developer expertise
+
+    -> API for NoSQL (Native API): The API for NoSQL is the native interface for Azure Cosmos DB.
+        -> Data Model: JSON documents (called items)
+        -> Features:
+            -> SQL-like query language
+            -> Full SDK support
+            -> Best performance and feature availability
+            -> New Cosmos DB features are released here first
+        -> Best suited for:
+            -> New cloud-native applications
+            -> Applications requiring maximum Cosmos DB capabilities
+            -> Flexible JSON document storage
+            -> This API offers the best end-to-end integration because Microsoft controls the interface, SDK, and service implementation completely.
+
+    -> API for MongoDB: The API for MongoDB stores data as documents in BSON format.
+        -> Key Characteristics:
+            -> Wire protocol compatible with MongoDB
+            -> Supports MongoDB drivers
+            -> Does not use native MongoDB engine internally
+        -> Best suited for:
+            -> Migrating existing MongoDB applications
+            -> Teams already familiar with MongoDB
+            -> Applications using MongoDB ecosystem tools
+            -> It allows developers to retain MongoDB skills while leveraging Azure’s global distribution and scaling.
+
+    -> API for PostgreSQL: Azure Cosmos DB for PostgreSQL is a managed distributed PostgreSQL service powered by the open-source Citus extension.
+        -> Data Model: Relational database and support SQL
+        -> Architecture:
+            -> Single-node or multi-node distributed configuration
+            -> Designed for horizontal scaling
+        -> Best suited for:
+            -> Applications needing relational structure
+            -> Analytical or hybrid transactional workloads
+            -> PostgreSQL-based systems requiring distributed scale
+            -> Unlike other APIs, this API supports traditional relational modeling.
+
+    -> API for Apache Cassandra: The API for Apache Cassandra supports a column-family data model.
+        -> Data Model: Column-oriented schema
+        -> Characteristics:
+            -> Wire protocol compatible with Cassandra
+            -> Horizontally scalable
+            -> Optimized for large-scale distributed systems
+        -> Best suited for:
+            -> IoT workloads
+            -> High-write throughput systems
+            -> Time-series data
+            -> Logging systems
+            -> This API follows Cassandra’s philosophy of distributed, highly scalable NoSQL architecture.
+
+    -> API for Apache Gremlin(Graph): The API for Gremlin supports graph-based data modeling.
+        -> Data Model: Vertices (nodes), Edges (relationships)
+        -> Best suited for:
+            -> Complex relationship-driven applications
+            -> Social networks
+            -> Fraud detection systems
+            -> Recommendation engines
+            -> It supports the Gremlin query language and ecosystem.
+
+    -> API for Table: The API for Table supports a key-value data model.
+        -> Data Model: Key-value pairs
+        -> Purpose:
+            -> Designed as an enhanced replacement for Azure Table Storage
+            -> Overcomes limitations of latency, scaling, global distribution, and indexing
+        -> Best suited for:
+            -> OLTP workloads
+            -> Simple key-based access scenarios
+            -> Applications migrating from Azure Table Storage
+            -> It is not intended for complex querying scenarios.
+
+    -> Summary Comparison
+        | API        | Data Model    | Best For                   |
+        | ---------- | ------------- | -------------------------- |
+        | NoSQL      | JSON document | New cloud-native apps      |
+        | MongoDB    | BSON document | MongoDB migrations         |
+        | PostgreSQL | Relational    | Distributed SQL workloads  |
+        | Cassandra  | Column-family | High write / IoT systems   |
+        | Gremlin    | Graph         | Relationship-heavy systems |
+        | Table      | Key-value     | Simple OLTP workloads      |
+
+=> Discover Request Units (RUs) in Azure Cosmos DB
+    -> In Azure Cosmos DB, pricing is based on two main factors:
+        -> Throughput provisioned
+        -> Storage consumed
+
+    -> What is a Request Unit (RU)?
+        -> A Request Unit (RU) is the normalized measure of system resources required to perform a database operation.
+        -> It represents the combined cost of: CPU, Memory, IOPS (Input/Output operations per second)
+        -> Instead of measuring CPU separately and memory separately, Azure abstracts everything into a single unit called RU.
+
+    -> How Database Operations Consume RUs
+        -> Every operation in Cosmos DB consumes RUs, including:
+            -> Point reads, Writes (insert/update), Queries, Deletes, Stored procedure execution
+            -> Example: A point read (fetching a single item using its ID and partition key) for a 1 KB document costs: 1 RU
+            -> Other operations consume RUs depending on:
+                -> Item size
+                -> Query complexity
+                -> Index usage
+                -> Consistency level
+                -> Number of items scanned
+            -> All APIs (NoSQL, MongoDB, Cassandra, etc.) use the same RU-based measurement system.
+        -> Why RUs Are Important: RUs ensure:
+            -> Predictable performance
+            -> Transparent billing
+            -> Controlled scalability
+            -> No hidden infrastructure costs
+            -> By provisioning RUs, you guarantee that the necessary system resources are always available.
+
+        -> Throughput and RU/s: Throughput in Cosmos DB is defined as:
+            -> Request Units per second (RU/s)
+            -> For example:
+                -> 400 RU/s means your container can consume up to 400 request units every second.
+                -> If your workload exceeds that limit, requests are throttled (HTTP 429 error).
+
+        -> Billing Modes in Azure Cosmos DB: Azure Cosmos DB offers two modes for throughput billing:
+            -> Provisioned Throughput Mode: In this mode,
+                -> You manually define how many RU/s your application needs.
+                -> Minimum increment: 100 RU/s
+                -> You can increase or decrease throughput at any time.
+                -> Throughput can be configured at: Container level, Database level
+                -> You are billed hourly for the provisioned RU/s, regardless of actual usage.
+            -> Serverless Mode: In this mode
+                -> You do not provision throughput in advance
+                -> You are billed based on actual RU consumption.
+                -> No minimum RU requirement.
+                -> Billing happens at the end of the billing cycle based on total RUs consumed.
+
+        -> Factors That Affect RU Consumption: RU cost depends on:
+            -> Item size
+            -> Query complexity
+            -> Indexing policy
+            -> Consistency level
+            -> Cross-partition queries
+            -> Number of documents scanned
+            -> Example:
+                -> Simple point read → 1 RU
+                -> Complex query scanning thousands of documents → Many RUs
