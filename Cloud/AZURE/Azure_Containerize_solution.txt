@@ -40,9 +40,38 @@
 
 => What is Docker Hub: Docker Hub is a public container registry. It is like GitHub for Docker Images.
 
-=> Azure Container Registry (ACR): Azure Container Registry (ACR) is Microsoft’s private Docker registry service.
+=> Azure Container Registry (ACR): Azure Container Registry (ACR) is Microsoft’s private Docker registry service inside Azure.
     -> It is similar to Docker Hub but private, secure, Integrated with Azure, Used in production environments
     -> Companies prefer ACR instead of Docker Hub because Private images, Enterprise security, Azure Kubernetes Service integration
+    -> In real world when developers commit code, CI/CD tool(Azure Pipelines, Jenkins) build image and pushes to ACR.
+    -> ACR Tasks allows Azure to build images for you instead of docker build, docker push. You can tell Azure “Whenever code changes, build image automatically.”
+    -> ACR has 3 pricing levels:
+        -> Basic: Learning, small projects
+            -> Cheap, Limited Storage, Limited throughput, Good for Practice
+        -> Standard: Most production apps
+            -> More Storage, More speed, Used in Most real production setup
+        -> Premium: High traffic, enterprise. Premium adds:
+            -> Geo-replication: Store registry in multiple regions. Example: India, US, Europe. So users pull image from nearest region → Faster.
+            -> Content Trust: Digitally sign images. Ensures image is not tampered.
+            -> Private Link: Only allow private network access. No public internet access. Enterprise security feature.
+    -> ACR support Linux images, Window images, OCI images, Helm charts. So it is not just Docker images — it supports OCI standard.
+    -> Inside ACR each app has Repository name and Tags (versions) and each image is Read-only snapshot
+        myacr.azurecr.io
+           ├── app1:v1
+           ├── app1:v2
+           ├── app2:v1
+    -> Real-World Flow
+        Write Code
+           ↓
+        Dockerfile
+           ↓
+        Build Image
+           ↓
+        Push to ACR
+           ↓
+        AKS pulls image
+           ↓
+        Container runs
 
 => Complete Flow:
     -> Step 1: You write a Dockerfile
