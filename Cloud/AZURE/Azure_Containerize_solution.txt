@@ -1,0 +1,59 @@
+=> What is Docker: Docker is a containerization platform which allow you to package your application along with its dependency into a lightweight portable unit called a container.
+
+=> What is a Dockerfile: A Dockerfile is a text file that contains instructions to build a Docker image.
+    -> It tells Docker how to create my application image step-by-step.
+    -> A Dockerfile is a set of instructions used by Docker to automatically build a Docker image.
+    -> Why Do We Need Dockerfile?
+        -> Without Dockerfile You manually install Java, copy jar file, set environment and run app.
+        -> With docker everything is automated, Reproducible, Version Controlled, Same in Dev, test and Prod
+        -> The Dockerfile is kept inside your application project folder, usually at the root level.
+        -> Dockerfile itself is not executed like Java code. It is executed by Docker engine.
+        -> When you run "docker build -t myapp ."
+            -> Docker engine Reads Dockerfile ----> Executes instructions one by one ----> Creates image
+        -> Complete Flow:
+            -> Developer write the code ------> Adds Dockerfile in root -------> Pushes to Git
+            -> CI/CD Pipeline pull code and run command to build image and push to docker hub or ACR(Azure Container Registery)
+            -> Kubernetes pulls image from ACR and Runs container
+            -> Flow:
+                Application Code
+                        ↓
+                Dockerfile (inside project)
+                        ↓
+                docker build (runs locally or CI)
+                        ↓
+                Image Created
+                        ↓
+                Push to Registry (Docker Hub / ACR)
+                        ↓
+                Run as Container
+
+=> What is Image: An Image is a blueprint which contains application code, Runtime (Java, Node, Python etc.), Libraries, OS dependencies, Configuration.
+    -> You create it using a dockerfile. Example: dockerfile
+        FROM openjdk:17
+        COPY app.jar app.jar
+        ENTRYPOINT ["java","-jar","app.jar"]
+    -> When you run docker build -t myapp . This creates an image which is read-only and doesn't run by itself.
+
+=> What is container: A Container is a running instance of an image. Think like Image - class in java, Container - Object created from class
+    -> when you run "docker run myapp" Docker creates a container from the image and runs it.
+    -> You can start, stop, Delete and scale containers.
+
+=> What is Docker Hub: Docker Hub is a public container registry. It is like GitHub for Docker Images.
+
+=> Azure Container Registry (ACR): Azure Container Registry (ACR) is Microsoft’s private Docker registry service.
+    -> It is similar to Docker Hub but private, secure, Integrated with Azure, Used in production environments
+    -> Companies prefer ACR instead of Docker Hub because Private images, Enterprise security, Azure Kubernetes Service integration
+
+=> Complete Flow:
+    -> Step 1: You write a Dockerfile
+    -> Step 2: You build an image: "docker build -t myapp"
+    -> Step 3: You push image to a registry(Either push to Docker-Hub "docker push vinay/myapp" or ACR "docker push myacr.azurecr.io/myapp")
+    -> Step 4: From anywhere (VM, Kubernetes, Azure), you pull image "docker pull myacr.azurecr.io/myapp"
+    -> Step 5: Run container "docker run myapp"
+
+
+=======================================================================================================================
+=> Explain the features and benefits Azure Container Registry offers
+=> Describe how to use ACR Tasks to automate builds and deployments
+=> Explain the elements in a Dockerfile
+=> Build and run an image in the ACR using Azure CLI commands
