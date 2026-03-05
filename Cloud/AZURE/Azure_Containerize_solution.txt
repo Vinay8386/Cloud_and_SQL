@@ -80,6 +80,121 @@
     -> Step 4: From anywhere (VM, Kubernetes, Azure), you pull image "docker pull myacr.azurecr.io/myapp"
     -> Step 5: Run container "docker run myapp"
 
+=> Encryption-at-Rest: When your image is stored in ACR, It is automatically encrypted. Even Microsoft cannot see raw image data. When someone pulls image → It decrypts automatically
+    -> So, Push image → Azure encrypts → Stores safely and Pull image → Azure decrypts → Sends to you
+    -> You don’t have to configure anything.
+    -> For extra security option, You can use customer managed key(CMK):
+        -> It means instead of Azure managing encryption key, You manage it in Azure Key Vault. This is for enterprise use case.
+
+=> Regional Storage (Data Residency):
+    -> When you create ACR in East US, Central India, West Europe. Azure stores registry data in that region.
+    -> Region is Some companies have compliance rules like Data must stay in India, Data must stay in Europe.
+    -> Paired Region Concept:
+        -> In most regions (except Brazil South & Southeast Asia): Azure also keeps backup copy in paired region.
+        -> Example: Central India ↔ South India (paired). But this does NOT mean automatic failover.
+        -> If region fails: Registry may become unavailable, It does NOT automatically switch
+        -> That’s why geo-replication exists.
+
+=> Geo-Replication (Premium Feature):
+    -> Available only in Premium tier. Geo-replication means:
+        -> Your registry exists in multiple regions. Example:
+            myacr
+              ├── East US
+              ├── West Europe
+              └── Central India
+        -> Benifit: High availability, Faster image pull, Disaster protection
+        -> If India region fails → Europe still works.
+
+=> Zone Redundancy
+    -> It is also a premium features.
+    -> Inside one region, Azure has multiple availability zones.
+    -> Zone redundancy means: Your registry is replicated across 3 zones in same region.
+    -> So if one data center fails, Registry still works.
+    -> It protects against datacenter-level failure, not region-level.
+
+=> What Happens During Regional Outage?
+    -> Region down → Registry unavailable
+    -> With geo-replication:
+        -> Region A down → Region B continues working
+    -> So for production, Premium + geo-replication is recommended.
+    -> But sometimes, government regulations say: “Data must stay inside the country”
+        -> In this case cross-country geo-replication is not allowed. But you still have multiple high-availability options with ACR(Azure Container Registery)
+            -> Same-Country Geo Replication
+                -> If Azure has multiple regions inside the same country, you can replicate there.
+                -> Example: Central India, South India, East India
+                -> Architecture:
+                    ACR
+                     ├── Central India
+                     └── South India
+            -> Zone Redundancy (Most Common for Sensitive Data)
+                -> Instead of multiple regions, use Availability Zones inside the same region. Example:
+                    Central India
+                       ├── Zone 1
+                       ├── Zone 2
+                       └── Zone 3
+                -> This protects against Datacenter failure, Hardware failure, Power failure
+            -> Separate Registries per Country
+                -> Large enterprises often do this. Example:
+                    India Registry → myacr-india.azurecr.io
+                    US Registry → myacr-us.azurecr.io
+                    Europe Registry → myacr-eu.azurecr.io
+                -> Each region manages its own images.
+    -> Real Government / Banking Architecture
+        -> For regulated industries: Banking, Government, Healthcare. Typical setup:
+            ACR (Central India)
+               ├── Zone redundant
+               └── Private endpoint
+        -> No geo-replication outside country.
+
+=> Important Thing About Container Images
+    -> Container images usually contain: Application code, Runtime, Dependencies
+    -> They normally don't contain sensitive user data.
+    -> Sensitive data is usually stored in:
+        -> Azure SQL Database
+        -> Azure Cosmos DB
+        -> Azure Key Vault
+    -> So sometimes companies allow geo-replication for images because images themselves are not confidential.
+    -> But compliance rules vary.
+    -> What if data cannot leave the country?
+        -> In such scenarios geo-replication across countries is not allowed due to data residency requirements.
+        -> Instead we can configure geo-replication only across regions within the same country or use zone redundancy within a single region to ensure high availability while keeping data inside the country.
+
+=> How AKS(Azure Kubernetes Service) pulls images from ACR(Azure Container Registry) securely without storing username/password.
+    -> Suppose your container image is stored in ACR: myacr.azurecr.io/myapp:v1
+    -> Your Kubernetes cluster (AKS) needs to pull this image to run the container.
+    -> Normally in Docker you would do: docker login myacr.azurecr.io, This requires username and password, But storing credentials in Kubernetes is not secure.
+    -> So Azure uses Identity-based authentication instead.
+    -> Azure uses Managed Identity to authenticate automatically. Flow:
+        AKS Cluster
+             │
+             │ Managed Identity
+             │
+             ▼
+        Azure Active Directory
+             │
+             ▼
+        ACR authorization
+    -> So AKS does not store passwords. Internally:
+        -> When AKS pulls image
+            -> AKS cluster has Managed Identity
+            -> Azure verifies identity in Azure AD
+            -> Azure checks permissions on ACR
+            -> If allowed → image is pulled
+
+    -> Earlier people used Kubernetes secrets. But this method has problems:
+        -> ❌ Credentials stored in cluster
+        -> ❌ Security risk
+        -> ❌ Hard to rotate passwords
+        -> So Azure recommends Managed Identity.
+
+
+=> Scalable Storage
+    -> You can create unlimited repositories, unlimited image tags, and unlimited layers until storage limit is reached.
+    -> Example: Below all stored inside registry.
+        myapp:v1
+        myapp:v2
+        myapp:v3
+        myapp:latest
 
 =======================================================================================================================
 => Explain the features and benefits Azure Container Registry offers
