@@ -1,0 +1,162 @@
+=> Authentication vs Authorization
+    -> Authentication means verify identity
+    -> Authorization means what you are allowed to do.
+
+=> Role-Based Access Control (RBAC): Azure uses RBAC for authorization. Example roles:
+    | Role        | Permission                |
+    | ----------- | ------------------------- |
+    | Owner       | Full control              |
+    | Contributor | Create & manage resources |
+    | Reader      | Only view resources       |
+    | AcrPull     | Pull images from ACR      |
+
+    -> So Azure assigns roles to users, services, or identities.
+
+=> What is Microsoft Entra ID (Azure Active Directory)
+    -> Think of Microsoft Entra ID as the identity manager of Azure.
+    -> It manages Users(developers, admins), Applications, Permissions, Authentication
+        Microsoft Entra ID
+              │
+              ├── Users
+              ├── Applications
+              ├── Service Principals
+              └── Managed Identities
+    -> You can think of it as a global identity directory for Azure resources.
+    -> Example users: vinay@company.com, admin@company.com
+    -> These users log in to Azure using Entra ID.
+    -> Simple Real-World Example
+        -> When you login to Azure Portal, Microsoft team, Outlook, Office 365. Authentication happens through Entra ID.
+        -> So Entra ID answers the question:
+    -> Architecture Relationship
+        Microsoft Entra ID
+               │
+               ├── App Registration
+               │       │
+               │       ▼
+               │   Service Principal
+               │
+               └── Managed Identity
+                      │
+                      ▼
+               Azure Resource Identity
+
+        -> App Registration
+        -> Service Principal
+        -> Managed Identity
+
+=> App Registration
+    -> An App Registration represents an application definition in Microsoft Entra ID.
+    -> When you register an application, you are telling Azure: “This application exists and may request authentication.”
+    -> It creates a global identity for the application.
+    -> Key characteristics:
+        -> Represents the application itself
+        -> Used when apps need to authenticate users or services
+        -> Can be used across multiple tenants (if configured)
+    -> App Registration mainly stores:
+        -> Application ID (Client ID)
+        -> Authentication configuration(Redirect URI)
+        -> API permissions
+
+=> Service Principal
+    -> A Service Principal is the actual identity used by the application to access Azure resources.
+    -> Think of it as the instance of the application inside a tenant.
+    -> Relationship:
+        App Registration (Application Definition)
+                │
+                ▼
+        Service Principal (Security Identity in Tenant)
+    -> Suppose your application wants to access: storage, container registry, database
+    -> You create a Service Principal and assign roles.
+        -> Example roles: Contributor, Reader, AcrPull, Storage Blob Data Reader
+    -> Now the application can authenticate using: Client ID and Client Secret
+
+=> Managed Identity:
+    -> A Managed Identity is an identity automatically created and managed by Azure for an Azure resource.
+    -> It allows the resource to authenticate securely to other Azure services without storing credentials such as usernames or passwords.
+    -> Managed identities are issued and authenticated through Microsoft Entra ID.
+    -> Types of Managed Identity: There are two types.
+        -> System Assigned Managed Identity:
+            -> A System-assigned Managed Identity is directly associated with a specific Azure resource.
+            -> When this identity is enabled for a resource, Azure automatically creates an identity for that resource in Microsoft Entra ID.
+            -> This identity is tightly linked to the lifecycle of the resource.
+            -> Key Characteristics
+                -> Created automatically when enabled on a resource.
+                -> Tied to one Azure resource only.
+                -> Cannot be shared with other resources.
+                -> Automatically deleted when the resource is deleted.
+                -> Simplest identity option for most use cases.
+            -> How It Works
+                -> When a resource such as a virtual machine or Kubernetes cluster needs to access another Azure service-
+                -> Azure uses its system-assigned identity to authenticate with Microsoft Entra ID.
+                -> If the identity has the required role permissions, access is granted.
+                -> Example: Suppose an application running in Azure Kubernetes Service needs to pull container images from Azure Container Registry.
+                -> Step:
+                    -> Enable system-assigned identity on the Kubernetes cluster.
+                    -> Assign the AcrPull role to that identity on the container registry.
+                    -> The cluster can now securely pull images without storing credentials.
+                -> Service like AKS, Azure VM commonly use system-assigned identities.
+        -> User Assigned Managed Identity
+            -> A User-assigned Managed Identity is created as a separate Azure resource and can be assigned to multiple Azure services.
+            -> Unlike system-assigned identities, this identity is not tied to a single resource and remains available even if a resource using it is deleted.
+            -> Key Characteristics
+                -> Created as a separate Azure resource.
+                -> Can be shared across multiple services.
+                -> Lifecycle is independent of the resources using it.
+                -> Provides more flexibility in identity management.
+            -> How It Works
+                -> First, a user-assigned identity is created in Azure.
+                -> After that, this identity can be attached to different services such as virtual machines, app services, or container services.
+                -> When those services need to access another Azure service, they authenticate using this shared identity through Microsoft Entra ID.
+                -> Example: A company may have multiple services that need to access a centralized secrets store like: Azure Key Vault
+                    -> Instead of creating separate identities for each service, a single user-assigned identity can be created and attached to multiple applications. This identity is granted access to the Key Vault.
+                    -> This approach simplifies permission management.
+    -> Both types serve the same purpose: secure authentication between Azure services, but they differ in lifecycle and reuse capability.
+    -> Both identities rely on Microsoft Entra ID for authentication and integrate with Azure Role-Based Access Control (RBAC) to control permissions.
+    -> How Authentication Works:
+        -> When the Azure service wants to access another Azure service: Example - AKS → Access → Azure Container Registry
+        -> The process is:
+            AKS
+             │
+             │ Uses Managed Identity
+             │
+             ▼
+            Microsoft Entra ID
+             │
+             │ Verifies identity (Authentication)
+             │
+             ▼
+            Access decision
+        -> For authorization: After authentication, Azure checks permissions using RBAC.
+            -> Example service: Azure Container Registry
+            -> Permission example: Role: AcrPull
+            -> Flow:
+                1️⃣ AKS proves identity → Authentication
+                2️⃣ Azure checks role → Authorization
+                3️⃣ Access granted or denied
+
+=> Problem Before Managed Identity and how it is resolved
+    -> Earlier when an application needed to access another Azure service, we used credentials.
+    -> Example: App needs to access database. So we store username and password inside configuration file, environment variables, Kubernetes secret
+    -> Problem: ❌ Security risk, ❌ Password rotation required, ❌ Credentials can leak
+    -> Managed Identity solves this problem:
+        -> Managed Identity is an automatically managed identity for an Azure resource that allows it to authenticate to other Azure services without storing credentials.
+        -> In simple word: Application → gets its own identity in Azure
+        -> So instead of using password: App proves its identity automatically
+    -> Workflow:
+        -> Without Managed Identity:
+            AKS
+              │
+              │ username/password
+              ▼
+            ACR
+        -> With Managed Identity:
+            AKS
+              │
+              │ identity
+              ▼
+            Microsoft Entra ID
+              │
+              │ permission check
+              ▼
+            ACR
+
