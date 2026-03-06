@@ -35,8 +35,22 @@
     -> When you run docker build -t myapp . This creates an image which is read-only and doesn't run by itself.
 
 => What is container: A Container is a running instance of an image. Think like Image - class in java, Container - Object created from class
+    -> In other words, A container is a lightweight package that contains:
+        -> Application Code
+        -> Runtime
+        -> Libraries
+        -> Dependencies
+    -> All packed together so the application runs the same way everywhere.
+    -> Containers are usually built using Docker.
     -> when you run "docker run myapp" Docker creates a container from the image and runs it.
-    -> You can start, stop, Delete and scale containers.
+    -> You can start, stop, Delete and scale containers. Example:
+        Application Code
+               ↓
+        Dockerfile
+               ↓
+        Docker Image
+               ↓
+        Run as Container
 
 => What is Docker Hub: Docker Hub is a public container registry. It is like GitHub for Docker Images.
 
@@ -72,6 +86,14 @@
         AKS pulls image
            ↓
         Container runs
+
+    -> Important Role in ACR: To allow image pulling, the identity must have the AcrPull role in ACR.
+        | Role    | Purpose     |
+        | ------- | ----------- |
+        | AcrPull | Pull images |
+        | AcrPush | Push images |
+        | Owner   | Full access |
+
 
 => Complete Flow:
     -> Step 1: You write a Dockerfile
@@ -195,6 +217,411 @@
         myapp:v2
         myapp:v3
         myapp:latest
+
+=======================================================================================================================
+
+=> What is Azure Red Hat OpenShift (ARO): (Azure Infrastructure + OpenShift Platform)?
+    -> Azure Red Hat OpenShift (ARO) is a fully managed OpenShift cluster running on Azure that helps organizations deploy and manage containerized applications easily. or
+    -> Azure Red Hat OpenShift (ARO) is a managed container platform provided jointly by: Microsoft and RedHat
+    -> It allows organizations to deploy, manage, and scale containerized applications on the Red Hat OpenShift platform using the infrastructure of Microsoft Azure.
+    -> ARO = OpenShift platform running on Azure infrastructure and fully managed by Microsoft and Red Hat.
+
+=> What Problem ARO Solves
+    -> Running OpenShift yourself is difficult because you must manage: Servers, networking, Kubernetes control plane, Scaling, Security, Updates
+    -> This is where ARO helps. With ARO, Azure automatically manages: Infrastructure, Cluster installation, Patching, Updates, Security, Availability
+    -> So developers can focus only on applications.
+
+=> Real World Example: Imagine a company running microservices like:
+    -> User service
+    -> Payment service
+    -> Order service
+    -> Notification service
+    -> Each service runs in a container. ARO manages all these containers inside a cluster. Example structure:
+        ARO Cluster
+           │
+           ├── Pod → User Service Container
+           ├── Pod → Payment Service Container
+           ├── Pod → Order Service Container
+           └── Pod → Notification Service Container
+    -> ARO handles:
+        -> Scheduling containers
+        -> Scaling services
+        -> Networking
+        -> Monitoring
+
+=> URL Pattern and How to Identify an ARO Cluster
+    -> When you create a cluster using Azure Red Hat OpenShift, Azure automatically generates DNS domains and URLs so users and developers can access the OpenShift platform.
+    -> OpenShift Web Console URL:
+        -> Every OpenShift cluster has a web console where developers and administrators can manage applications.
+        -> Example console URL: https://console-openshift-console.apps.<cluster-name>.<region>.aroapp.io
+        -> Breakdown:
+            | Part                      | Meaning                                |
+            | ------------------------- | -------------------------------------- |
+            | console-openshift-console | OpenShift web console                  |
+            | apps                      | Application routing layer              |
+            | cluster-name              | Your cluster identifier                |
+            | region                    | Azure region where cluster is deployed |
+            | aroapp.io                 | Domain used by ARO                     |
+
+        -> The most important identifier is: aroapp.io
+        -> If you see aroapp.io, the cluster is almost certainly ARO.
+
+    -> Application Route URL
+        -> When applications run inside OpenShift, they are exposed through routes.
+        -> Example application URL: https://myapp.apps.demo.eastus.aroapp.io
+        -> Breakdown:
+            | Part      | Meaning          |
+            | --------- | ---------------- |
+            | myapp     | Application name |
+            | apps      | OpenShift router |
+            | demo      | Cluster name     |
+            | eastus    | Azure region     |
+            | aroapp.io | ARO domain       |
+        -> So application traffic flows like this:
+            Internet
+               ↓
+            OpenShift Router
+               ↓
+            Service
+               ↓
+            Pod
+               ↓
+            Container
+
+    -> Why Azure Uses aroapp.io:
+        -> The domain aroapp.io is owned and managed by Microsoft and Red Hat for the Azure Red Hat OpenShift service.
+        -> Azure automatically:
+            -> Creates DNS records
+            -> Configures routing
+            -> Connects load balancers
+        -> This means developers do not need to configure DNS manually.
+        -> Internal Infrastructure Behind the URL
+            -> User Browser
+                     ↓
+               Azure DNS
+                     ↓
+               Azure Load Balancer
+                     ↓
+               OpenShift Router
+                     ↓
+               Service
+                     ↓
+               Pod
+                     ↓
+               Container
+        -> These components are created automatically when the ARO cluster is deployed.
+        -> If a company installs Red Hat OpenShift themselves (on AWS, on-prem, or other clouds), the URL normally looks different. These use custom company domains, not aroapp.io.
+        -> Developer Access Flow
+            Developer
+               ↓
+            OpenShift Console URL
+               ↓
+            Authentication
+               ↓
+            OpenShift Dashboard
+               ↓
+            Deploy Applications
+
+=> Difference Between Azure Kubernetes Service (AKS) and Azure Red Hat OpenShift (ARO)
+    -> Both AKS and ARO are services available in Microsoft Azure that help you run containerized applications.
+    -> But they are designed for different needs.
+        -> AKS - Kubernetes only
+        -> ARO - OpenShift Platform - Built on Kubernetes
+    -> So OpenShift is like an enterprise layer on top of Kubernetes.
+    -> Feature Comparison:
+        | Feature         | AKS                        | ARO                             |
+        | --------------- | -------------------------- | ------------------------------- |
+        | Base Technology | Kubernetes                 | OpenShift (built on Kubernetes) |
+        | Managed By      | Microsoft                  | Microsoft + Red Hat             |
+        | Complexity      | Flexible but manual        | More automated                  |
+        | Developer Tools | Basic                      | Built-in developer tools        |
+        | CI/CD           | Need external tools        | Built-in pipelines              |
+        | Security        | Standard Kubernetes        | Strong enterprise security      |
+        | UI Console      | Basic Kubernetes dashboard | Advanced OpenShift console      |
+        | Best For        | Cloud-native teams         | Large enterprises               |
+
+=> High-Level Architecture When Using Azure Red Hat OpenShift (ARO)
+    -> When a company uses ARO, the goal is to run containerized applications on the cloud using the infrastructure of Microsoft Azure.
+    -> But the application does not run directly on Azure. Instead, it runs inside containers managed by OpenShift.
+    -> Main Components in ARO Architecture
+        | Component                      | Purpose                  |
+        | ------------------------------ | ------------------------ |
+        | Developer                      | Writes application code  |
+        | Docker                         | Builds container images  |
+        | Azure Container Registry (ACR) | Stores container images  |
+        | Azure Red Hat OpenShift        | Runs the containers      |
+        | Pod                            | Smallest deployable unit |
+        | Container                      | Running application      |
+    -> Application Deployment Flow
+        Developer
+           ↓
+        Build Docker Image
+           ↓
+        Push Image to ACR
+           ↓
+        ARO Cluster Pulls Image
+           ↓
+        Pod Created
+           ↓
+        Container Runs Application
+    -> This is the most common architecture used in real production environments.
+    -> Infrastructure Behind ARO:
+        -> Even though developers interact with OpenShift, behind the scenes Azure creates infrastructure automatically.
+        -> Example architecture:
+            Microsoft Azure
+                 │
+                 ├── Virtual Network
+                 │
+                 ├── Load Balancer
+                 │
+                 ├── Storage
+                 │
+                 └── ARO Cluster
+                        │
+                        ├── Control Plane Nodes
+                        │
+                        └── Worker Nodes
+                               │
+                               └── Pods
+                                     │
+                                     └── Containers
+            -> Azure manages: Networking, Virtual machines, Load balancing, Storage
+            -> Control Plane vs Worker Nodes: Inside an ARO cluster there are two types of nodes.
+                -> Control Plane: These nodes manage the cluster. These are based on **Kubernetes control plane components. They handle:
+                    -> Scheduling containers
+                    -> Cluster state
+                    -> API requests
+                -> Worker Nodes: Worker nodes actually run your applications. Inside worker nodes you will see:
+                    Worker Node
+                         ↓
+                    Pod
+                         ↓
+                    Container
+                         ↓
+                    Application
+            -> Architecture with ACR looks like this:
+                Developer
+                   ↓
+                Docker Build
+                   ↓
+                Push Image
+                   ↓
+                Azure Container Registry (ACR)
+                   ↓
+                ARO Pulls Image
+                   ↓
+                Pod Created
+                   ↓
+                Container Runs
+            -> Real Production Flow
+                Developer
+                   ↓
+                Git Repository
+                   ↓
+                CI/CD Pipeline
+                   ↓
+                Build Docker Image
+                   ↓
+                Push Image → ACR
+                   ↓
+                Deploy → ARO
+                   ↓
+                Pod Created
+                   ↓
+                Application Running
+            -> Tools commonly used in CI/CD include: Jenkins, GitHub Actions, Azure Pipelines
+
+=> Where Red Hat OpenShift Runs in Azure Red Hat OpenShift (ARO)
+    -> Many beginners think that OpenShift runs directly as a service, but in reality it runs on virtual machines created inside Microsoft Azure.
+    -> So the architecture is layered.
+    -> Infrastructure Layers in ARO: When you create an ARO cluster, Azure automatically creates infrastructure. The stack looks like this:
+        Azure Infrastructure
+                ↓
+        Virtual Machines (Nodes)
+                ↓
+        Kubernetes
+                ↓
+        OpenShift Platform
+                ↓
+        Pods
+                ↓
+        Containers
+                ↓
+        Applications
+    -> So OpenShift runs on top of Kubernetes, and Kubernetes runs on Azure Virtual Machines.
+    -> Infrastructure Layers in ARO: When you create an ARO cluster, Azure automatically creates infrastructure. The stack looks like this:
+        Azure Infrastructure
+                ↓
+        Virtual Machines (Nodes)
+                ↓
+        Kubernetes
+                ↓
+        OpenShift Platform
+                ↓
+        Pods
+                ↓
+        Containers
+                ↓
+        Applications
+
+    -> So OpenShift runs on top of Kubernetes, and Kubernetes runs on Azure Virtual Machines.
+    -> What Azure Actually Creates: When an ARO cluster is deployed, Azure automatically creates several resources.
+        | Resource         | Purpose                                 |
+        | ---------------- | --------------------------------------- |
+        | Virtual Network  | Network for cluster                     |
+        | Subnets          | Separate control plane and worker nodes |
+        | Load Balancer    | External traffic routing                |
+        | Virtual Machines | Nodes for cluster                       |
+        | DNS              | Cluster routing                         |
+        | Storage          | Persistent volumes                      |
+
+        -> These resources exist in your Azure subscription, but many are managed automatically by Azure.
+
+    -> Two Types of Nodes: Inside an ARO cluster there are two types of machines (VMs). Control Plane Nodes and Worker Nodes
+    -> Container Runtime: Inside worker nodes there is a container runtime. In OpenShift this is typically based on: CRI-O (OpenShift container runtime)
+        -> This runtime pulls images from registries such as: Azure Container Registry
+        -> Then it starts containers inside pods.
+    -> Networking Inside ARO:
+        -> ARO configures networking automatically. Traffic flow looks like this:
+            User
+              ↓
+            Azure Public IP
+              ↓
+            Azure Load Balancer
+              ↓
+            OpenShift Router
+              ↓
+            Service
+              ↓
+            Pod
+              ↓
+            Container
+    -> How Applications Run
+        -> Deployment created in OpenShift
+        -> Kubernetes scheduler selects worker node
+        -> Worker node pulls image from registry
+        -> Pod created
+        -> Container starts
+
+=> How ARO Pulls Images from ACR
+    -> When an application is deployed in ARO, the container image must be pulled from an image registry. In Azure environments, that registry is usually ACR.
+    -> So the process looks like this.
+        -> Developer → Build Image → Push Image → ACR → ARO pulls image → Pod runs container
+    -> Complete Flow
+        Developer
+           ↓
+        Code Commit
+           ↓
+        CI/CD Pipeline
+           ↓
+        Docker Build
+           ↓
+        Push Image
+           ↓
+        Azure Container Registry
+           ↓
+        OpenShift Deployment
+           ↓
+        Worker Node Pulls Image
+           ↓
+        Pod Created
+           ↓
+        Container Running
+
+=> How ACR Authentication Works with OpenShift
+    -> When Azure Red Hat OpenShift (ARO) tries to pull a container image from Azure Container Registry (ACR), authentication is required.
+    -> Because most container registries are private by default. So OpenShift must prove its identity before it can download the image.
+    -> Basic Authentication Flow:
+        OpenShift Pod
+             ↓
+        Worker Node
+             ↓
+        Authentication with ACR
+             ↓
+        Permission Check
+             ↓
+        Image Download
+
+        -> If authentication succeeds → image is pulled.
+        -> If authentication fails → pod will not start.
+
+    -> Three Ways to Authenticate with ACR
+        -> OpenShift can authenticate to ACR using different methods.
+            | Method            | Description                           |
+            | ----------------- | ------------------------------------- |
+            | Managed Identity  | Azure automatically manages identity  |
+            | Service Principal | Azure application identity            |
+            | Image Pull Secret | Username/password stored in OpenShift |
+
+        -> Managed Identity: Refer "Azure_Authentication_Fundamentals – Entra_ID_&_Managed_Identity.txt"
+        -> Service Principal: Refer "Azure_Authentication_Fundamentals – Entra_ID_&_Managed_Identity.txt"
+        -> Image Pull Secret: In this method, OpenShift stores registry credentials as a Kubernetes secret. Then this secret is attached to a service account.
+            -> Flow:
+                Pod
+                 ↓
+                Service Account
+                 ↓
+                Image Pull Secret
+                 ↓
+                ACR Authentication
+                 ↓
+                Image Pulled
+
+=> Image Pull Secrets in OpenShift
+    -> Why Image Pull Secrets Are Needed:
+        -> When your container image is stored in a private registry, the cluster must authenticate before downloading the image.
+        -> Example private registries: ACR, Docker Hub (private repo), Amazon Elastic Container Registry
+
+    -> What Exactly is an Image Pull Secret?
+        -> An Image Pull Secret is a Kubernetes/OpenShift Secret object that stores: Registry URL, Username, Password / Token, Email (optional)
+        -> This secret allows OpenShift to authenticate to the registry and download images.
+        -> This secret allows OpenShift to authenticate to the registry and download images.
+        -> In Red Hat OpenShift, image pull secrets are stored as: Kubernetes Secret, type: kubernetes.io/dockerconfigjson
+        -> How Image Pull Secret is Used by a Pod.
+              Pod
+               │
+               ▼
+            Service Account
+               │
+               ▼
+            ImagePullSecret
+               │
+               ▼
+            Registry Authentication
+        -> So usually the secret is attached to a Service Account.
+
+    -> Deployment Using the Secret
+        -> Yaml
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: payment-service
+            spec:
+              replicas: 2
+              template:
+                spec:
+                  serviceAccountName: default
+                  containers:
+                  - name: payment
+                    image: myacr.azurecr.io/payment-service:v1
+
+        -> Flow:
+            Pod starts
+               │
+               ▼
+            Service Account used
+               │
+               ▼
+            ImagePullSecret accessed
+               │
+               ▼
+            Authenticate with ACR
+               │
+               ▼
+            Image downloaded
+               │
+               ▼
+            Container starts
 
 =======================================================================================================================
 => Explain the features and benefits Azure Container Registry offers

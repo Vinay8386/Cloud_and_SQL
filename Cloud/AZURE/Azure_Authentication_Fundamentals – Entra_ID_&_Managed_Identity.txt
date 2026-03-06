@@ -58,7 +58,16 @@
         -> API permissions
 
 => Service Principal
-    -> A Service Principal is the actual identity used by the application to access Azure resources.
+    -> A Service Principal is basically an application identity in Azure.
+    -> It has Client ID, Client Secret and Permissions
+    -> Flow:
+        OpenShift
+             ↓
+        Service Principal Credentials
+             ↓
+        Authenticate with ACR
+             ↓
+        Image Pull Allowed
     -> Think of it as the instance of the application inside a tenant.
     -> Relationship:
         App Registration (Application Definition)
