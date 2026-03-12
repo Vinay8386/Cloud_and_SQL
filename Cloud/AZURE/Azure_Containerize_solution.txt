@@ -952,6 +952,104 @@
                 tags: {}  # Optional metadata tags (empty in this example)
                 type: Microsoft.ContainerInstance/containerGroups  # Resource type being created (ACI container group)
 
+=> Azure Container Apps:
+    -> Azure Container Apps is a serverless container platform built on top of Azure Kubernetes Service.
+    -> This means you can run containers without managing Kubernetes clusters and Azure automatically manages infrastructure, scaling, and networking.
+    -> Architecture Flow:
+        Developer
+           ↓
+        Container Image
+           ↓
+        Azure Container Apps
+           ↓
+        Runs on Azure Kubernetes Service
+           ↓
+        Auto scaling + networking + monitoring
+    -> Microsoft designed Azure Container Apps mainly for microservices and event-driven applications.
+    -> Container Apps automatically scale based on different triggers. Scaling engine is powered by KEDA (Kubernetes Event Driven Autoscaling).
+    -> Container Apps support multiple versions of an application.
+        Version 1 → current production
+        Version 2 → new release
+        -> You can run both versions and control traffic. This enables:
+            | Deployment Strategy   | Meaning                             |
+            | --------------------- | ----------------------------------- |
+            | Blue/Green Deployment | switch traffic to new version       |
+            | A/B Testing           | send partial traffic to new version |
+        -> HTTPS Ingress
+            -> Ingress means how users access the container app from the internet.
+            -> Azure Container Apps provides: automatic HTTPS, secure endpoint, no load balancer setup required
+            -> Example: https://myapp.azurecontainerapps.io. Azure automatically manages certificates.
+        -> Internal Service Communication
+            -> Container Apps also support internal networking.
+            -> This allows microservices to communicate securely.
+            -> Example architecture:
+                API Service
+                     ↓
+                Order Service
+                     ↓
+                Payment Service
+            -> These services communicate internally using: internal ingress, DNS based service discovery
+        -> Dapr Integration
+            -> Container Apps integrate with Dapr(Distributed Application Runtime).
+            -> It simplifies microservice development.
+            -> Dapr provides built-in features:
+                | Feature            | Purpose                  |
+                | ------------------ | ------------------------ |
+                | Service invocation | service-to-service calls |
+                | Pub/Sub messaging  | event communication      |
+                | Observability      | monitoring               |
+                | Retries            | fault tolerance          |
+                | Security           | mutual TLS               |
+            -> Container Registries Supported
+                -> Container Apps can pull images from:
+                    | Registry                 | Example              |
+                    | ------------------------ | -------------------- |
+                    | Docker Hub               | public images        |
+                    | Azure Container Registry | private Azure images |
+                    | Private registries       | enterprise images    |
+            -> Monitoring and Logging
+                -> Applications running in Azure Container Apps can send logs to: Azure Log Analytics
+                -> This allows: centralized logging, debugging, monitoring container performance
+        -> Simple Architecture Diagram
+            Developer
+                ↓
+            Container Image
+                ↓
+            Azure Container Apps
+                ↓
+            Auto Scaling (KEDA)
+                ↓
+            Microservices Communication (Dapr)
+                ↓
+            Logs → Log Analytics
+
+=> Container Instance vs Container App
+    | Feature        | Container Instances   | Container Apps         |
+    | -------------- | --------------------- | ---------------------- |
+    | Purpose        | run single containers | microservices platform |
+    | Scaling        | manual                | automatic              |
+    | Architecture   | simple workloads      | distributed systems    |
+    | Infrastructure | minimal               | managed Kubernetes     |
+
+=> Azure Container Instances (ACI) vs Azure Container Apps vs Azure App Service (Containers) vs AKS
+    | Feature                       | Azure Container Instances (ACI)                | Azure Container Apps                       | Azure App Service (Containers) | Azure Kubernetes Service (AKS)              |
+    | ----------------------------- | ---------------------------------------------- | ------------------------------------------ | ------------------------------ | ------------------------------------------- |
+    | Primary Purpose               | Run single containers quickly                  | Run microservices and containerized apps   | Host web apps and APIs         | Full Kubernetes container orchestration     |
+    | Infrastructure Management     | Fully serverless                               | Serverless (built on AKS)                  | Managed PaaS                   | You manage Kubernetes cluster               |
+    | Complexity Level              | Very low                                       | Low                                        | Medium                         | High                                        |
+    | Scaling                       | Manual or limited                              | Automatic scaling (KEDA supported)         | Automatic scaling              | Highly configurable                         |
+    | Scale to Zero                 | No                                             | Yes (most workloads)                       | No                             | Possible but requires configuration         |
+    | Container Orchestration       | No orchestration                               | Basic orchestration                        | Limited                        | Full Kubernetes orchestration               |
+    | Microservices Support         | Limited                                        | Designed for microservices                 | Limited                        | Full microservices platform                 |
+    | Deployment Model              | Single container or container group            | Multiple container apps                    | Web app container              | Pods, deployments, services                 |
+    | Networking                    | Basic public/private IP                        | Ingress with HTTPS + internal services     | Built-in web endpoint          | Full networking control                     |
+    | Service Discovery             | No                                             | Yes                                        | Limited                        | Yes                                         |
+    | Traffic Splitting             | No                                             | Yes (Blue/Green, A/B testing)              | Limited                        | Yes                                         |
+    | Kubernetes Knowledge Required | No                                             | No                                         | No                             | Yes                                         |
+    | Typical Use Cases             | Batch jobs, scripts, quick container execution | Microservices, APIs, event-driven apps     | Websites, REST APIs            | Enterprise-scale container platforms        |
+    | Example Scenario              | Run data processing container once             | Microservice architecture with autoscaling | Host a Spring Boot or Node API | Large distributed system with many services |
+
+
 =======================================================================================================================
 => Explain the features and benefits Azure Container Registry offers
 => Describe how to use ACR Tasks to automate builds and deployments
