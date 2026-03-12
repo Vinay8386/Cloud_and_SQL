@@ -870,6 +870,87 @@
                    ↓
             Application runs in cloud
 
+    -> Restart Policy:
+        -> Why Restart Policies Are Needed:
+            -> Many containers in the cloud are used to perform temporary tasks like: build an application, run tests, process images, run scripts, batch data processing.
+            -> Once the script finishes, the container does not need to run anymore.
+            -> However, sometimes you may want container to restart automatically, run only once.
+            -> To control this behavior, Azure provides restart policies.
+        -> Definition: A restart policy defines What Azure should do with a container after it stops.
+            -> In Azure Container Instances, when you create a container group, you can choose how the container should behave after it exits.
+            -> There are three restart policies:
+                -> Always(Default): Container restarts automatically every time it stops
+                -> Never: Container runs only once and never restarts
+                -> OnFailure: Container restarts only if it fails
+        -> Run to Completion Concept: Some containers are designed to finish their work and exit. Fpr example: Process 10k images
+            -> Steps: Container starts--->Images processed--->Application exits--->Container stops
+            -> This is called Run to completion. These workloads typically use: Restart Policy = Never or Restart Policy = OnFailure
+        -> Container Status After Completion: When a container finishes its work, Azure changes its status to: Terminated
+            -> It means Container finished execution
+            -> This happens when restart policy is: Never, OnFailure (and task succeeded)
+        -> Flow:
+                       Container stops
+                              │
+                  ┌───────────┼───────────┐
+                  │           │           │
+               Always       Never     OnFailure
+                  │           │           │
+            Restart        Stop       Restart if
+            always       permanently     failed
+
+    -> Container deployment configuration:
+        -> Below YAML file defines a container deployment configuration for Azure Container Instances.
+        -> It creates a container that runs an application and stores logs in an Azure file share so the data persists even after the container stops.
+        -> This configuration will:
+            -> Create a container group
+            -> Run a container image
+            -> Expose it on port 80 (public internet)
+            -> Mount an Azure file share for persistent storage
+            -> Allow access using a DNS name
+            -> Architecture:
+                Internet User
+                      ↓
+                Public DNS (aci-demo)
+                      ↓
+                Azure Container Instance
+                      ↓
+                Container (hellofiles)
+                      ↓
+                Mounted Azure File Share
+            -> YAML Configuration file:
+                apiVersion: '2019-12-01'  # API version used to create resources in Azure Container Instances
+                location: eastus  # Azure region where the container instance will be deployed
+                name: file-share-demo  # Name of the container group
+                properties:  # Main configuration section for the container group
+                  containers:  # List of containers inside this container group
+                  - name: hellofiles  # Name of the container
+                    properties:  # Container specific configuration
+                      environmentVariables: []  # No environment variables are passed to the container
+                      image: mcr.microsoft.com/azuredocs/aci-hellofiles  # Container image stored in Microsoft Container Registry
+                      ports:  # Ports exposed by the container
+                      - port: 80  # Container listens on port 80 (typically used for HTTP web servers)
+                      resources:  # Resource allocation for the container
+                        requests:
+                          cpu: 1.0  # Allocate 1 CPU core
+                          memoryInGB: 1.5  # Allocate 1.5 GB RAM
+                      volumeMounts:  # Mount external storage inside the container
+                      - mountPath: /aci/logs/  # Directory inside container where storage will be mounted
+                        name: filesharevolume  # Name of the volume defined later in YAML
+                  osType: Linux  # Operating system used by the container
+                  restartPolicy: Always  # Container automatically restarts if it stops
+                  ipAddress:  # Network configuration for accessing the container
+                    type: Public  # Container will have a public IP address accessible from the internet
+                    ports:
+                      - port: 80  # Expose port 80 publicly so users can access the application
+                    dnsNameLabel: aci-demo  # DNS prefix that Azure will use to generate public URL
+                  volumes:  # Define storage volumes available to containers
+                  - name: filesharevolume  # Volume name referenced earlier in volumeMounts
+                    azureFile:  # Volume is backed by Azure File Share storage
+                      shareName: acishare  # Name of the Azure file share
+                      storageAccountName: <Storage account name>  # Azure Storage account containing the file share
+                      storageAccountKey: <Storage account key>  # Authentication key for accessing the storage account
+                tags: {}  # Optional metadata tags (empty in this example)
+                type: Microsoft.ContainerInstance/containerGroups  # Resource type being created (ACI container group)
 
 =======================================================================================================================
 => Explain the features and benefits Azure Container Registry offers
