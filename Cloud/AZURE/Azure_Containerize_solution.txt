@@ -1049,7 +1049,34 @@
     | Typical Use Cases             | Batch jobs, scripts, quick container execution | Microservices, APIs, event-driven apps     | Websites, REST APIs            | Enterprise-scale container platforms        |
     | Example Scenario              | Run data processing container once             | Microservice architecture with autoscaling | Host a Spring Boot or Node API | Large distributed system with many services |
 
-
+=> What is Dapr: Dapr (Distributed Application Runtime) is:
+    -> An open-source project under the CNCF (Linux Foundation).
+    -> A set of incrementally adoptable features for building distributed microservices.
+    -> Designed to simplify communication between services, state management, pub/sub, secrets, and more
+    -> Azure Container Apps (ACA) provides:
+        -> Managed Dapr integration – no need to deploy Dapr yourself.
+        -> Automatic upgrades – Dapr versions are handled by Azure.
+        -> Simplified API – you interact with Dapr easily via HTTP/gRPC calls.
+        -> Think of it as: your container apps get a built-in Dapr “sidecar” that handles service-to-service communication, messaging, and more.
+        -> Core Dapr APIs in ACA
+            | API                               | Description                                                      |
+            | --------------------------------- | ---------------------------------------------------------------- |
+            | **Service-to-service invocation** | Call other container apps reliably with **mTLS encryption**.     |
+            | **State management**              | Store and retrieve state for CRUD operations and transactions.   |
+            | **Pub/sub**                       | Send messages via a broker between publishers and subscribers.   |
+            | **Bindings**                      | Trigger your app from external events (e.g., queue, timer).      |
+            | **Actors**                        | Single-threaded, message-driven units of work that scale easily. |
+            | **Observability**                 | Send traces to **Application Insights**.                         |
+            | **Secrets**                       | Access secure values from your app or secret stores.             |
+            | **Configuration**                 | Retrieve or subscribe to config items in supported stores.       |
+        -> How Dapr works in ACA
+            -> Dapr-enabled container app: Enabled at container app level, applies to all revisions.
+            -> Dapr sidecar: Runs alongside your container, exposes APIs at:
+                -> HTTP: port 3500, gRPC: port 50001
+            -> Components: Pluggable modules providing functionality like pub/sub, state store, secret store.
+                -> Components can be shared across apps or scoped to specific apps.
+                -> Scope ensures only intended apps use a component.
+        -> You can enable Dapr in ACA via: Azure CLI, Infrastructure as Code – Bicep or ARM templates, Azure Portal
 =======================================================================================================================
 => Explain the features and benefits Azure Container Registry offers
 => Describe how to use ACR Tasks to automate builds and deployments
