@@ -26,6 +26,45 @@
                 Push to Registry (Docker Hub / ACR)
                         ↓
                 Run as Container
+    -> Basic Structure of a Dockerfile
+        -> Typical Dockerfile contains:
+            | Instruction | Purpose           |
+            | ----------- | ----------------- |
+            | FROM        | Base image        |
+            | WORKDIR     | Working directory |
+            | COPY / ADD  | Copy files        |
+            | RUN         | Install packages  |
+            | EXPOSE      | Application port  |
+            | CMD         | Start application |
+        -> Example Dockerfile
+            # Use the .NET 6 runtime as base image
+            FROM mcr.microsoft.com/dotnet/runtime:6.0
+
+            # Set working directory
+            WORKDIR /app
+
+            # Copy application files
+            COPY bin/Release/net6.0/publish/ .
+
+            # Document application port
+            EXPOSE 80
+
+            # Run application
+            CMD ["dotnet", "MyApp.dll"]
+
+        -> Each Dockerfile instruction creates a new layer. Example:
+            Base Image
+               ↓
+            Install Runtime
+               ↓
+            Copy Application
+               ↓
+            Configure Ports
+               ↓
+            Run Command
+
+            These layers are cached.
+            Benefits: Faster builds, Reusable layers, Smaller downloads
 
 => What is Image: An Image is a blueprint which contains application code, Runtime (Java, Node, Python etc.), Libraries, OS dependencies, Configuration.
     -> You create it using a dockerfile. Example: dockerfile
@@ -94,6 +133,102 @@
         | AcrPush | Push images |
         | Owner   | Full access |
 
+    -> What Are ACR Tasks?
+        -> ACR Tasks are a feature of Azure Container Registry that allow you to: Build container images, Test them and Push them to the registry Directly in Azure cloud without needing a local Docker machine.
+        -> With ACR Tasks, Azure does this automatically in the cloud: Code → Azure builds image → Image stored in ACR
+        -> Without ACR Tasks: Developer machine ---> docker build ---> docker push ---> ACR
+        -> Main Types of ACR Tasks: ACR Tasks support 4 major scenarios.
+            -> Quick Task (On-Demand Build): This is like running docker build + docker push in the cloud.
+                Source Code
+                    ↓
+                ACR receives files
+                    ↓
+                Azure builds image
+                    ↓
+                Image stored in ACR
+            -> Trigger Build When Code Changes: You can connect ACR with a Git repository like: GitHub & Azure DevOps
+                Developer pushes code
+                        ↓
+                Git webhook triggers ACR Task
+                        ↓
+                ACR builds container image
+                        ↓
+                Image pushed to ACR
+
+                This is similar to CI/CD pipelines: Git commit → Image rebuild
+
+            -> Trigger Build When Base Image Updates: If openjdk:17 gets security updates in Docker Hub, your image should also rebuild. ACR Tasks can automatically detect this.
+                Base image updated
+                       ↓
+                ACR detects update
+                       ↓
+                Application image rebuilt
+
+            -> Scheduled Task: ACR Tasks can run on a schedule like "Run every day at midnight"
+
+            -> Multi-Step Tasks (Advanced CI/CD): Instead of just build + push, you can define multiple steps using YAML. This makes ACR Tasks similar to a mini CI/CD pipeline.
+                Step 1 → Build application image
+                Step 2 → Start application container
+                Step 3 → Run test container
+                Step 4 → If tests pass → push image
+                Step 5 → Deploy Helm chart
+
+            -> Source Code Context: ACR needs source code to build images. This location is called context. Possible contexts:
+                Git repository
+                Local directory
+                Azure DevOps repo
+
+            -> Supported Platforms: ACR can build images for different platforms.
+                | OS      | Architecture |
+                | ------- | ------------ |
+                | Linux   | AMD64        |
+                | Linux   | ARM          |
+                | Linux   | ARM64        |
+                | Windows | AMD64        |
+
+            -> How ACR Tasks Fit in Real Production Architecture: In many real projects (including yours with Azure Red Hat OpenShift)
+                Developer pushes code
+                        ↓
+                GitHub / Azure DevOps
+                        ↓
+                ACR Task triggered
+                        ↓
+                Image built in Azure
+                        ↓
+                Image stored in ACR
+                        ↓
+                OpenShift pulls image
+                        ↓
+                Application deployed
+                So ACR Tasks handle the image build automation.
+
+            -> Simple Real-World Example: Developer pushes code: "git push origin main". Automatically:
+                GitHub webhook
+                       ↓
+                ACR Task
+                       ↓
+                Docker build
+                       ↓
+                Image pushed to ACR
+                       ↓
+                OpenShift deployment updated
+
+    -> How ACR + CI/CD + OpenShift deployment are connected automatically.
+        Developer
+           ↓
+        Git Repository
+           ↓
+        CI/CD Pipeline
+           ↓
+        Build Docker Image
+           ↓
+        Push Image → ACR
+           ↓
+        OpenShift Deployment Updated
+           ↓
+        OpenShift Pulls Image
+           ↓
+        Application Running
 
 => Complete Flow:
     -> Step 1: You write a Dockerfile
@@ -622,6 +757,119 @@
                │
                ▼
             Container starts
+
+=> Azure Container Instance:
+    -> In modern cloud applications, developers package their applications and dependencies into containers. Containers make applications portable, lightweight, and easy to deploy across different environments.
+    -> To run containers in the cloud, cloud providers offer services such as Azure Container Instances, which allow developers to run containers without managing infrastructure.
+    -> Azure Container Instances is a serverless container service that allows you to run containers directly in Azure without creating or managing virtual machines.
+    -> In simple terms:
+        -> Traditional approach: Application → VM → OS → Infrastructure
+        -> ACI approach: Application → Container → Azure manages everything
+        -> So developers only focus on application code, while Azure manages the infrastructure.
+
+    -> Definition:
+        -> Azure Container Instances (ACI) is a cloud service that lets you quickly run Docker containers in Azure without managing servers or orchestration tools like Kubernetes.
+        -> It is the fastest and simplest way to run containers in Azure.
+        -> Key idea: Write application → create container image → run in ACI
+        -> Azure automatically handles: Virtual machines, Networking, Container runtime, Scaling infrastructure
+
+    -> Why Azure Container Instances is Needed
+        -> Before ACI, developers had two options: Virtual Machines & Kubernetes
+            -> Virtual Machines: You had to create VM, install Docker, manage OS updates, configure networking. This required infrastructure management.
+            -> Kubernetes: Services like Azure Kubernetes Service provide orchestration but are more complex.
+                -> ACI solves this problem by providing simple container execution.
+                -> ACI allows you to run containers in seconds without VM provisioning.
+
+    -> Key Features of Azure Container Instances
+        -> Fast Startup
+        -> No Infrastructure Management
+        -> Serverless Pricing
+        -> Supports Public Container Registries: ACI can pull images from multiple container registries such as:
+            -> Docker Hub
+            -> Microsoft Container Registry
+            -> Azure Container Registry
+            -> This allows easy deployment of container images
+        -> Container Groups in ACI: ACI introduces a concept called Container Group.
+            -> A container group is a group of one or more containers that run together on the same host and share resources.
+            -> They share network, storage, lifecycle
+            -> This is similar to a Pod in Kubernetes.
+            -> Example:
+                Container Group
+                   ├── Web Application Container
+                   ├── Logging Container
+                   └── Monitoring Container
+            -> All containers run together and communicate internally.
+        -> Networking in ACI: Azure Container Instances allows containers to be exposed to the internet.
+            -> When you create a container instance, Azure can assign: Public IP address, DNS name
+            -> Users can access the application using this DNS endpoint.
+        -> Persistent Storage:
+            -> Containers are normally stateless, meaning data disappears when the container stops. Example:
+                Container starts
+                   ↓
+                Application creates file /data/report.txt
+                   ↓
+                Container stops
+                   ↓
+                File disappears ❌
+            -> This happens because containers store data in temporary container storage. So containers are called stateless.
+            -> Containers Are Designed This Way because container are meant to be lightweight, replaceable, scalable
+            -> Cloud systems often destroy and recreate containers automatically.
+            -> Azure solves this problem by providing external storage for containers. In Azure Container Instances, you can mount Azure Files.
+            -> Think of it like attaching a cloud hard drive to the container.
+            -> With Azure File Share Instead of saving data inside the container, the container writes data to Azure storage.
+            -> Example: Azure Files → mounted to container. This allows data persistence even if the container stops.
+            -> Architecture:
+                -> Without external storage:
+                    Container
+                       └── data.txt
+
+                    Container stops
+                       ❌ data lost
+                -> With Azure File Share:
+                    Container
+                       └── mounted storage
+                             ↓
+                          Azure File Share
+                             └── data.txt
+
+                    Container stops
+                       ✅ data still exists
+        -> Security in Azure Container Instances:
+            -> ACI provides hypervisor-level isolation, which means containers run securely and are isolated like virtual machines.
+            -> Security features include:
+                -> secure TLS connections
+                -> container isolation
+                -> managed identity integration
+            -> Managed identity allows containers to securely access Azure services without storing credentials.
+        -> Linux and Windows Container Support
+            -> ACI supports both Linux and window container
+            -> You can select the operating system while creating the container instance
+        -> Integration with Virtual Networks
+            -> ACI can run containers inside an Azure Virtual Network (VNet).
+            -> Benefits: secure communication with databases, connection with on-premise systems, internal microservice communication
+        -> Integration with Kubernetes
+            -> ACI can integrate with Azure Kubernetes Service.
+            -> This enables elastic bursting.
+            -> Example: Normal workload → runs in AKS, Traffic spike → extra containers run in ACI
+            -> This allows automatic scaling without adding more servers.
+        -> Common Use Cases of Azure Container Instances
+            -> Batch processing jobs: data transformation, report generation
+            -> Build tasks: CI/CD pipeline container builds
+            -> Event driven processing: queue triggered processing
+            -> Quick application testing: Developers can quickly test containers without full infrastructure.
+        -> Limitations of ACI
+            -> Although ACI is powerful, it has some limitations. ACI is not designed for large microservice architectures.
+            -> For complex applications requiring: auto scaling, service discovery, rolling deployments
+            -> Microsoft recommends Azure Kubernetes Service.
+        -> Simple Architecture Example
+            Container Image
+                   ↓
+            Azure Container Registry
+                   ↓
+            Azure Container Instances
+                   ↓
+            Application runs in cloud
+
 
 =======================================================================================================================
 => Explain the features and benefits Azure Container Registry offers
