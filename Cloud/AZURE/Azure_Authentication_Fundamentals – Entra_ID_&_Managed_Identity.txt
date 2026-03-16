@@ -2,6 +2,206 @@
     -> Authentication means verify identity
     -> Authorization means what you are allowed to do.
 
+=> What is the Microsoft Identity Platform?
+    -> The Microsoft identity platform is a system provided by Microsoft that allows applications to authenticate users and get authorized access to resources and APIs.
+    -> The identity platform supports multiple types of users.
+        -> Microsoft accounts: These are personal accounts like: Outlook, Xbox, Hotmail
+        -> Work or school accounts: These are organizational accounts created in: Microsoft Entra ID. These accounts are used inside organizations.
+        -> Social or Local Accounts Using B2C: Applications that serve customers can use: Azure Active Directory B2C
+            -> B2C means Business to Consumer
+            -> It allows login using: Google, Facebook, Local accounts, Microsoft accounts
+            -> It is used when your application is used by public customers.
+            -> Example customers: Shopping website users, Banking app users, Mobile app users, Online service users. These users are not employees of your company.
+        -> External Customer Accounts(Microsoft Entra External ID)
+            -> This allows organizations to authenticate: Customers, Partners, External users
+            -> Example: Partner portals or B2B applications.
+            -> This is used when external people need access to your organization's resources.
+            -> These people are not employees, but they collaborate with your company.
+            -> Example external users: Partners, Suppliers, Vendors, Contractors, Customers accessing internal portals
+            -> These users are not employees, but they need secure access. So the company uses Microsoft Entra External ID.
+    -> Developer does not need to create a custom authentication system. Applications can allow users to log in using existing identities.
+    -> The identity platform handles the authentication process.
+    -> Components of the Microsoft Identity Platform: There are several component of MIP
+            -> Authentication Service (Standards-based)
+                -> Authenticate users using OAuth / OpenID
+                -> It supports protocols like:
+                    -> OAuth 2.0: OAuth 2.0 is a standard authorization framework. It allows applications to access resources on behalf of a user.
+                    -> OpenID Connect: OpenID Connect is an authentication layer built on top of OAuth 2.0. It allows applications to verify user identity.
+                -> This service allows developers to authenticate multiple identity types such as:
+                    -> Work or school accounts from Microsoft Entra ID
+                    -> Personal Microsoft accounts (Outlook, Xbox)
+                    -> Social accounts through Azure Active Directory B2C
+                    -> Customer identities through Microsoft Entra External ID
+                -> So this component is responsible for: User authentication, Identity verification and Token issuance
+            -> Authentication Libraries(Microsoft Authentication Library)
+                -> Help developers integrate authentication
+                -> These libraries help developers: Sign in users, Acquire tokens, Call APIs securely
+                -> Supported platforms include: Java, Javascript, Python, .NET, Android, iOS
+            -> Identity Platform Endpoint
+                -> API endpoint for authentication and tokens
+                -> Example endpoint: https://login.microsoftonline.com
+                -> Applications send requests to this endpoint for: User authentication, Token requests, Authorization
+                -> The endpoint works with: MSAL, Any OAuth-compliant library
+            -> Application Management Portal
+                -> Register and configure applications
+                -> Applications must be registered in Azure. This is done through: Azure Portal → App Registrations
+                -> Here developers configure:
+                    -> Application ID
+                    -> Redirect URI
+                    -> Permissions (Scopes)
+                    -> Secrets / Certificates
+                -> This configuration allows the identity platform to recognize the application.
+            -> Application Configuration API
+                -> Automate application configuration
+                -> This is fifth component allows programmatic management of applications.
+                -> Developers can configure applications using:
+                    -> Microsoft Graph
+                    -> Microsoft PowerShell
+                -> This helps in:
+                    -> DevOps automation
+                    -> CI/CD pipelines
+                    -> Infrastructure automation
+    -> Example: Suppose you build an e-commerce website. Users should be able to login using: Email/password, Google, Facebook
+       Instead of implementing Facebook login yourself, you integrate your application with:
+           -> Microsoft identity platform
+           -> Azure Active Directory B2C (used for customer identities)
+       Now users can login with Facebook.
+       -> High Level Architecture
+            User
+              ↓
+            Your Web Application
+              ↓
+            Microsoft Identity Platform (Azure AD B2C)
+              ↓
+            Facebook Identity Provider
+              ↓
+            Token returned
+              ↓
+            User logged into your application
+       -> Step-by-Step Login Flow (Facebook Login)
+            -> User clicks "Login"
+                -> Your application does not perform authentication itself.
+                -> Instead, it redirects the user to an Identity Platform (Identity Provider).
+                -> Example: Microsoft identity platform.
+
+            -> Request Sent to Identity Platform
+                -> Your application sends an authentication request to the Identity Platform.
+                -> Example request parameters:
+                    -> client_id = your_app_id
+                    -> scope = openid profile email
+                    -> redirect_uri = your_app_url
+                    -> response_type = code
+                -> This request follows OAuth 2.0 and OpenID Connect standards.
+
+            -> Identity Platform Processes the Request
+                -> The Identity Platform checks the application configuration.
+                -> It verifies which identity providers are configured for login.
+
+            -> Identity Platform Displays Login Page
+                -> The login page is generated by the Identity Platform.
+                -> The user is presented with multiple login options.
+
+            -> Login Options May Include
+                -> Social login providers
+                    -> Facebook
+                    -> Google
+                    -> Apple
+                -> Direct sign-in using credentials
+                    -> Email / Username
+                    -> Password
+                -> This is usually called Local Account authentication.
+
+            -> User Selects Facebook Login
+                -> The Identity Platform redirects the user to Facebook for authentication.
+                -> Facebook asks the user:
+                    -> "Do you allow this application to access your profile?"
+
+            -> User Grants Permission
+                -> The user clicks "Allow".
+
+            -> Facebook Authenticates the User
+                -> Facebook verifies:
+                    -> User credentials
+                    -> Valid Facebook account
+
+            -> Facebook Generates Authentication Result
+                -> After successful authentication, Facebook generates a token confirming the user's identity.
+
+            -> Facebook Sends Result Back to Identity Platform
+                -> The authentication result is returned to the Identity Platform.
+                -> Example Identity Platform: Microsoft identity platform.
+
+            -> Identity Platform Generates Authorization Code
+                -> Instead of sending tokens directly to the application, the Identity Platform generates an Authorization Code.
+
+            -> Redirect Back to Your Application
+                -> The Identity Platform redirects the user back to your application.
+                -> The Authorization Code is sent to the redirect_uri.
+
+            -> Application Sends Authorization Code to Identity Platform
+                -> Your application sends the Authorization Code to the Identity Platform's token endpoint.
+                -> This request includes:
+                    -> client_id
+                    -> client_secret
+                    -> authorization_code
+                    -> redirect_uri
+
+            -> Identity Platform Verifies the Authorization Code
+                -> The Identity Platform verifies the authorization code and application identity.
+
+            -> Identity Platform Issues Tokens
+                -> After successful verification, the Identity Platform returns:
+                    -> ID Token (contains user identity information)
+                    -> Access Token (used to call APIs)
+                    -> Refresh Token (optional, used to obtain new access tokens)
+
+            -> Application Verifies the ID Token
+                -> Your application validates the ID Token to confirm the user's identity.
+
+            -> User Logged Into Application
+                -> Once the token is verified, the application trusts the identity.
+                -> The user is successfully logged into the system.
+
+            -> Application Uses Access Token
+                -> The Access Token is used to call protected APIs such as:
+                    -> Microsoft Graph
+                    -> Custom backend APIs
+       -> Visual Flow
+            User
+              ↓
+            Application
+              ↓
+            Identity Platform
+              ↓
+            Facebook (Authentication)
+              ↓
+            Identity Platform
+              ↓
+            Authorization Code
+              ↓
+            Application
+              ↓
+            Token Request
+              ↓
+            Access Token / ID Token
+
+=> Open-Source Libraries (MSAL)
+    -> MSAL is a client library for developers.
+    -> It helps applications easily: Sign in users, Acquire tokens, Call APIs securely
+    -> Supported languages: Java, Python, Javascript, .NET, Android, iOS
+    -> Example: A Java application may use MSAL to: Redirect user to login, Receive access token, Call API with token
+    -> Without MSAL, developers would need to implement OAuth flows manually.
+    -> The most important one MSAL is: Microsoft Authentication Libraries
+
+=> What is Microsoft Graph?
+    -> Microsoft Graph is an API gateway that allows applications to access Microsoft services like:
+        -> Outlook
+        -> Teams
+        -> OneDrive
+        -> Calendar
+        -> Users in Entra ID
+    -> Example: Your app may call Graph API to: Read user profile, Send email, Get calendar events. But the user must authorize access first.
+
 => Role-Based Access Control (RBAC): Azure uses RBAC for authorization. Example roles:
     | Role        | Permission                |
     | ----------- | ------------------------- |
@@ -57,115 +257,775 @@
         -> Authentication configuration(Redirect URI)
         -> API permissions
 
-=> Service Principal
-    -> A Service Principal is basically an application identity in Azure.
-    -> It has Client ID, Client Secret and Permissions
-    -> Flow:
-        OpenShift
-             ↓
-        Service Principal Credentials
-             ↓
-        Authenticate with ACR
-             ↓
-        Image Pull Allowed
-    -> Think of it as the instance of the application inside a tenant.
-    -> Relationship:
-        App Registration (Application Definition)
-                │
-                ▼
-        Service Principal (Security Identity in Tenant)
-    -> Suppose your application wants to access: storage, container registry, database
-    -> You create a Service Principal and assign roles.
-        -> Example roles: Contributor, Reader, AcrPull, Storage Blob Data Reader
-    -> Now the application can authenticate using: Client ID and Client Secret
+=> Why Application Registration Is Required
+    -> Before an application can authenticate users or access APIs, it must be registered in Microsoft Entra ID.
+    -> When you register an app, Azure creates an identity configuration for that application.
+    -> This configuration allows the application to:
+        -> Authenticate users
+        -> Request tokens
+        -> Access APIs
+        -> Integrate with Azure identity system
+    -> Example: Your Web App → Register in Entra ID → Gets identity
+    -> Just like users have identities, applications also need identities.
 
-=> Managed Identity:
-    -> A Managed Identity is an identity automatically created and managed by Azure for an Azure resource.
-    -> It allows the resource to authenticate securely to other Azure services without storing credentials such as usernames or passwords.
-    -> Managed identities are issued and authenticated through Microsoft Entra ID.
-    -> Types of Managed Identity: There are two types.
-        -> System Assigned Managed Identity:
-            -> A System-assigned Managed Identity is directly associated with a specific Azure resource.
-            -> When this identity is enabled for a resource, Azure automatically creates an identity for that resource in Microsoft Entra ID.
-            -> This identity is tightly linked to the lifecycle of the resource.
-            -> Key Characteristics
-                -> Created automatically when enabled on a resource.
-                -> Tied to one Azure resource only.
-                -> Cannot be shared with other resources.
-                -> Automatically deleted when the resource is deleted.
-                -> Simplest identity option for most use cases.
-            -> How It Works
-                -> When a resource such as a virtual machine or Kubernetes cluster needs to access another Azure service-
-                -> Azure uses its system-assigned identity to authenticate with Microsoft Entra ID.
-                -> If the identity has the required role permissions, access is granted.
-                -> Example: Suppose an application running in Azure Kubernetes Service needs to pull container images from Azure Container Registry.
-                -> Step:
-                    -> Enable system-assigned identity on the Kubernetes cluster.
-                    -> Assign the AcrPull role to that identity on the container registry.
-                    -> The cluster can now securely pull images without storing credentials.
-                -> Service like AKS, Azure VM commonly use system-assigned identities.
-        -> User Assigned Managed Identity
-            -> A User-assigned Managed Identity is created as a separate Azure resource and can be assigned to multiple Azure services.
-            -> Unlike system-assigned identities, this identity is not tied to a single resource and remains available even if a resource using it is deleted.
-            -> Key Characteristics
-                -> Created as a separate Azure resource.
-                -> Can be shared across multiple services.
-                -> Lifecycle is independent of the resources using it.
-                -> Provides more flexibility in identity management.
-            -> How It Works
-                -> First, a user-assigned identity is created in Azure.
-                -> After that, this identity can be attached to different services such as virtual machines, app services, or container services.
-                -> When those services need to access another Azure service, they authenticate using this shared identity through Microsoft Entra ID.
-                -> Example: A company may have multiple services that need to access a centralized secrets store like: Azure Key Vault
-                    -> Instead of creating separate identities for each service, a single user-assigned identity can be created and attached to multiple applications. This identity is granted access to the Key Vault.
-                    -> This approach simplifies permission management.
-    -> Both types serve the same purpose: secure authentication between Azure services, but they differ in lifecycle and reuse capability.
-    -> Both identities rely on Microsoft Entra ID for authentication and integrate with Azure Role-Based Access Control (RBAC) to control permissions.
-    -> How Authentication Works:
-        -> When the Azure service wants to access another Azure service: Example - AKS → Access → Azure Container Registry
-        -> The process is:
-            AKS
-             │
-             │ Uses Managed Identity
-             │
-             ▼
-            Microsoft Entra ID
-             │
-             │ Verifies identity (Authentication)
-             │
-             ▼
-            Access decision
-        -> For authorization: After authentication, Azure checks permissions using RBAC.
-            -> Example service: Azure Container Registry
-            -> Permission example: Role: AcrPull
-            -> Flow:
-                1️⃣ AKS proves identity → Authentication
-                2️⃣ Azure checks role → Authorization
-                3️⃣ Access granted or denied
+=> Single-Tenant vs Multi-Tenant Applications
+    -> When registering an application, you choose its accessibility.
+    -> In Single Tenant Application, Application is accessible only inside your organization tenant.
+        -> Example: Internal HR portal, Internal company dashboard: Only users from your tenant can log in.
+    -> In Multi-Tenant Application, Application can be used by users from other organizations.
+        -> Example: SaaS application, Microsoft Teams integrations, Third-party enterprise apps. Users from multiple tenants can authenticate.
+
+=> What Happens When You Register an App
+    -> When you register an application in the Azure portal, two objects are created automatically.
+        -> Application Object(Global Definition of the App)
+            -> It is a blueprint or template created in the tenant where the application was registered (called the home tenant).
+            -> Properties stored in the application object include:
+                -> Application ID (Client ID)
+                -> Redirect URIs
+                -> API permissions
+                -> Token configuration
+                -> Required scopes
+            -> The schema for this object is defined by Microsoft Graph. The documentation gives a class analogy.
+                Application Object = Class/Blueprint
+                Service Principal = Object Instance in tenants
+            -> The application object defines three important aspects of the application.
+                -> Token Issuance: It defines how tokens are issued for accessing the application.
+                    -> Example: OAuth configuration and OpenID Connect settings
+                    -> Protocols involved: OAuth 2.0 and OpenID Connect
+                -> Resources the App Needs:
+                    -> The application object defines which resources the application wants to access.
+                    -> Example: Microsoft Graph API, Custom backend APIs
+                -> Actions the App Can Perform
+                    -> It defines what actions the application is allowed to perform.
+                    -> Example: Read user profile, Send email, Access calendar
+        -> Service Principal Object (Identity of the App Inside a Tenant)
+            -> To access resources in a tenant, there must be a security principal. Examples of security principals:
+                -> User Principal → Represents a user
+                -> Service Principal → Represents an application
+            -> So a Service Principal is the identity of an application inside a tenant.
+            -> Example: Suppose you build an application "MyApp". You register it in Tenant A
+            -> Azure creates:
+                -> Application Object → Global definition
+                -> Service Principal → Identity of the app in Tenant A
+            -> In case of Multi-Tenants, suppose another company uses your app.
+                Tenant A → Original tenant.
+                Tenant B → External organization
+                Tenant C → Another organization
+            -> When users from those tenants use your app:
+                Application Object → Still one (global)
+                Service Principals → Created in each tenant
+            -> Types of Service Principals Object: Azure defines three types.
+                -> Application Service Principal: This is the most common type.
+                -> Managed Identity Service Principal
+                -> Legacy Service Principal
+
+                -> Application Service Principal
+                    -> A Service Principal is the security identity of an application inside a tenant.
+                    -> This is created when you:
+                        -> Register an application
+                        -> Create a service principal manually
+                        -> Provide credentials
+                    -> Service Principal uses: Client ID (Application ID), Client Secret / Certificate and Assigned Roles / Permissions
+                    -> Flow:
+                        OpenShift / Kubernetes
+                                ↓
+                        Uses Service Principal Credentials
+                        (Client ID + Client Secret)
+                                ↓
+                        Authenticate with Azure
+                                ↓
+                        Azure validates identity
+                                ↓
+                        Checks Role Assignment
+                                ↓
+                        ACR allows Image Pull
+                    -> Think of it as the instance of the application inside a tenant.
+                    -> Relationship:
+                        App Registration (Application Definition)
+                                │
+                                ▼
+                        Service Principal (Security Identity in Tenant)
+                    -> Suppose your application wants to access: storage, container registry, database
+                    -> You create a Service Principal and assign roles.
+                        -> Example roles: Contributor, Reader, AcrPull, Storage Blob Data Reader
+                    -> Now the application can authenticate using: Client ID and Client Secret
+
+                -> Managed Identity Service Principal:
+                    -> A Managed Identity is a special type of Service Principal automatically created and managed by Azure for a resource.
+                        -> So technically Application Identity Types in Azure:
+                            -> Application Service Principal (manual)
+                            -> Managed Identity Service Principal (automatic)
+                    -> This is created automatically by Azure when you enable Managed Identity on a resource. Examples of Azure resources: AKS, VM, AAS
+                    -> It allows the resource to authenticate securely to other Azure services without storing credentials such as usernames or passwords.
+                    -> Managed identities are issued and authenticated through Microsoft Entra ID.
+                    -> Types of Managed Identity: There are two types.
+                        -> System Assigned Managed Identity:
+                            -> A System-assigned Managed Identity is directly associated with a specific Azure resource.
+                            -> When this identity is enabled for a resource, Azure automatically creates an identity for that resource in Microsoft Entra ID.
+                            -> This identity is tightly linked to the lifecycle of the resource.
+                            -> Key Characteristics
+                                -> Created automatically when enabled on a resource.
+                                -> Tied to one Azure resource only.
+                                -> Cannot be shared with other resources.
+                                -> Automatically deleted when the resource is deleted.
+                                -> Simplest identity option for most use cases.
+                            -> How It Works
+                                -> When a resource such as a virtual machine or Kubernetes cluster needs to access another Azure service-
+                                -> Azure uses its system-assigned identity to authenticate with Microsoft Entra ID.
+                                -> If the identity has the required role permissions, access is granted.
+                                -> Example: Suppose an application running in Azure Kubernetes Service needs to pull container images from Azure Container Registry.
+                                -> Step:
+                                    -> Enable system-assigned identity on the Kubernetes cluster.
+                                    -> Assign the AcrPull role to that identity on the container registry.
+                                    -> The cluster can now securely pull images without storing credentials.
+                                -> Service like AKS, Azure VM commonly use system-assigned identities.
+                        -> User Assigned Managed Identity
+                            -> A User-assigned Managed Identity is created as a separate Azure resource and can be assigned to multiple Azure services.
+                            -> Unlike system-assigned identities, this identity is not tied to a single resource and remains available even if a resource using it is deleted.
+                            -> Key Characteristics
+                                -> Created as a separate Azure resource.
+                                -> Can be shared across multiple services.
+                                -> Lifecycle is independent of the resources using it.
+                                -> Provides more flexibility in identity management.
+                            -> How It Works
+                                -> First, a user-assigned identity is created in Azure.
+                                -> After that, this identity can be attached to different services such as virtual machines, app services, or container services.
+                                -> When those services need to access another Azure service, they authenticate using this shared identity through Microsoft Entra ID.
+                                -> Example: A company may have multiple services that need to access a centralized secrets store like: Azure Key Vault
+                                    -> Instead of creating separate identities for each service, a single user-assigned identity can be created and attached to multiple applications. This identity is granted access to the Key Vault.
+                                    -> This approach simplifies permission management.
+                    -> Both types serve the same purpose: secure authentication between Azure services, but they differ in lifecycle and reuse capability.
+                    -> Both identities rely on Microsoft Entra ID for authentication and integrate with Azure Role-Based Access Control (RBAC) to control permissions.
+                    -> How Authentication Works:
+                        -> When the Azure service wants to access another Azure service: Example - AKS → Access → Azure Container Registry
+                        -> The process is:
+                            AKS
+                             │
+                             │ Uses Managed Identity
+                             │
+                             ▼
+                            Microsoft Entra ID
+                             │
+                             │ Verifies identity (Authentication)
+                             │
+                             ▼
+                            Access decision
+                        -> For authorization: After authentication, Azure checks permissions using RBAC.
+                            -> Example service: Azure Container Registry
+                            -> Permission example: Role: AcrPull
+                            -> Flow:
+                                1️⃣ AKS proves identity → Authentication
+                                2️⃣ Azure checks role → Authorization
+                                3️⃣ Access granted or denied
+                -> Mental Model:
+                    Service Principal
+                         │
+                         ├── Application Service Principal (Manual)
+                         │        Created by developer
+                         │        Uses Client Secret / Certificate
+                         │
+                         └── Managed Identity Service Principal (Automatic)
+                                  Created by Azure
+                                  No credentials required
+
+                -> Legacy Service Principal:
+                    -> A Legacy Service Principal is an older type of service principal that was created before the modern App Registration model existed.
+                    -> In the early days of Azure, applications could create service principals directly, without creating an application object (App Registration) first. So the identity looked like this:
+                        Application
+                              ↓
+                        Legacy Service Principal
+                    -> There was no App Registration / Application Object involved.
 
 => Problem Before Managed Identity and how it is resolved
     -> Earlier when an application needed to access another Azure service, we used credentials.
     -> Example: App needs to access database. So we store username and password inside configuration file, environment variables, Kubernetes secret
     -> Problem: ❌ Security risk, ❌ Password rotation required, ❌ Credentials can leak
-    -> Managed Identity solves this problem:
+    -> To solve this problem, Azure introduced Managed Identity.:
         -> Managed Identity is an automatically managed identity for an Azure resource that allows it to authenticate to other Azure services without storing credentials.
-        -> In simple word: Application → gets its own identity in Azure
+        -> Important point: Managed Identity internally creates a Service Principal in Microsoft Entra ID. So technically
+            Managed Identity
+                  ↓
+            Service Principal (automatically created)
+        -> Traditional Service Principal (Manual Identity): When developers created identities manually, the architecture looked like this:
+                Application
+                     ↓
+                App Registration
+                     ↓
+                Application Object
+                     ↓
+                Service Principal
+                     ↓
+                Authentication using Client ID + Client Secret
+            -> Managed Identity Architecture: With Managed Identity, Azure automatically creates and manages the identity.
+                Azure Resource (AKS / VM / App Service)
+                            ↓
+                Managed Identity Enabled
+                            ↓
+                Service Principal Automatically Created
+                            ↓
+                Authentication through Microsoft Entra ID
+                            ↓
+                Access Azure Resource
         -> So instead of using password: App proves its identity automatically
     -> Workflow:
         -> Without Managed Identity:
             AKS
               │
-              │ username/password
-              ▼
-            ACR
-        -> With Managed Identity:
-            AKS
-              │
-              │ identity
+              │ Client ID + Secret / Username + Password(Problem: secret stored in config)
               ▼
             Microsoft Entra ID
               │
-              │ permission check
+              │ Authentication
               ▼
-            ACR
+            RBAC Permission Check
+              ▼
+            ACR Access
+        -> With Managed Identity:
+            AKS
+              │
+              │ Managed Identity
+              ▼
+            Microsoft Entra ID
+              │
+              │ Authentication
+              ▼
+            Azure RBAC Permission Check
+              ▼
+            ACR Access
 
+=> Why Permissions Are Needed
+    -> When an application integrates with the identity system, it often needs to access another resource or API.
+    -> Example resources: Microsoft Graph, Microsoft 365 APIs, Azure Key Vault (Your App → wants to read user calendar)
+    -> But Azure cannot allow this automatically. Instead, permissions must be requested and approved. This model ensures:
+        -> User control, Admin control, Security, Limited access
+    -> Authorization Protocol Used: The identity platform uses the protocol OAuth2.O
+
+=> What Are Scopes (Permissions)
+    -> Resources expose permissions called scopes. A scope represents a specific action that an application can perform.
+        -> Example resource: Microsoft Graph API
+            -> Example permission: https://graph.microsoft.com/Calendars.Read
+            -> Meaning: Application can read user calendars
+        -> Example resource: Microsoft Graph API
+            -> Example permission: https://graph.microsoft.com/Mail.Send
+            -> Meaning: Application can send email as user
+    -> So scopes break functionality into small permission units.
+
+=> Resource Identifier (Application ID URI)
+    -> Every resource has a unique identifier. Example
+        Microsoft Graph → https://graph.microsoft.com
+        Microsoft Mail API → https://outlook.office.com
+        Azure Key Vault → https://vault.azure.net
+    -> Permission format: resource_identifier / permission
+    -> Example: https://graph.microsoft.com/Calendars.Read
+
+=> How Apps Request Permissions
+    -> Applications request permissions using the scope parameter in OAuth requests.
+    -> Example request: GET https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize
+            -> Important parameters: client_id, redirect_uri, response_type, scope
+            -> scope=https://graph.microsoft.com/Calendars.Read, https://graph.microsoft.com/Mail.Send
+        -> Meaning: App requests permission to: Read calendar, Send mail
+
+=> Permission Types: The identity platform supports two types of permissions.
+    -> Delegated Permissions: Delegated permissions are used when: User is signed in. The application acts on behalf of the user.
+        -> Example: User logs into an app-->App calls Microsoft Graph--> App reads user's calendar
+    -> Application Permissions (App-Only)
+        -> These are used when: No user is present
+        -> Example: Background services, Scheduled jobs, Daemons, Server-to-server apps
+        -> Example scenario: Nightly service → scans organization mailboxes. In this App accesses API directly.Only administrators can grant these permissions.
+
+=> Consent Concept
+    -> Before an application can use permissions, someone must approve them. This approval is called consent.
+    -> Consent ensures:
+        -> Users know what data the app can access
+        -> Admins control organization data
+    -> Types of Consent: There are three consent models.
+        -> Static User Consent: Permissions are defined during App Registration in the Azure portal. Example: User.read, Mail.send, Calendars.read
+            -> When the user signs in: App requests all permissions immediately
+            -> User sees a consent screen like:
+                App wants to:
+                Read your calendar
+                Send mail
+                Read your profile
+            -> Problems with static consent:
+                Too many permissions shown
+                Users may refuse access
+                Hard to know future needs
+        -> Incremental / Dynamic Consent: Instead of asking everything upfront, the app requests permissions only when needed.
+            -> Example:
+                User logs in → ask User.Read
+                Later → ask Calendars.Read
+                Later → ask Mail.Send
+            -> Flow:
+                User uses new feature
+                      ↓
+                App requests new permission
+                      ↓
+                User consents
+            -> Dynamic consent works only for delegated permissions, not app-only permissions.
+        -> Admin Consent: Some permissions are high-privilege.
+            -> Example:
+                Read all users in organization
+                Read all mailboxes
+                Access organization data
+            -> These require administrator approval. Admins can approve on behalf of the entire organization.
+
+=> Complete Permission Flow (End-to-End)
+    Application
+          ↓
+    Redirect user to Microsoft identity platform
+          ↓
+    User signs in
+          ↓
+    App requests scopes
+          ↓
+    User/Admin gives consent
+          ↓
+    Access token issued
+          ↓
+    App calls API
+
+=> Conditional Access in Microsoft Entra ID
+    -> Conditional Access is a security feature in Microsoft Entra ID.
+    -> It allows organizations to control how users access applications and services.
+    -> Access is granted only when specific security conditions are satisfied.
+    -> It is commonly used to enforce identity security policies before issuing tokens.
+
+    -> Purpose of Conditional Access
+        -> Protect applications and APIs
+        -> Enforce additional security verification
+        -> Reduce unauthorized access risks
+        -> Apply security policies dynamically
+
+    -> Security Controls Supported by Conditional Access
+        -> Multifactor Authentication (MFA)
+        -> Allow access only from Intune enrolled devices
+        -> Restrict access based on location
+        -> Restrict access based on IP ranges
+        -> Require compliant or managed devices
+
+    -> How Conditional Access Impacts an Application
+        -> In most cases Conditional Access does NOT require application code changes.
+        -> The authentication flow automatically handles the security policy.
+        -> However, some scenarios require the application to handle Conditional Access challenges.
+
+    -> Scenarios That May Require Code Changes
+        -> Applications performing On-Behalf-Of (OBO) flow
+        -> Applications accessing multiple APIs or resources
+        -> Single Page Applications using MSAL.js
+        -> Web applications calling a protected API
+
+    -> Why Conditional Access Challenges Occur
+        -> When the requested resource has a security policy enabled
+        -> When additional verification like MFA is required
+        -> When a downstream API requires stronger authentication
+
+    -> Conditional Access Challenge Flow
+        User Sign-In
+        		→ Application requests access token
+        			→ Identity platform checks Conditional Access policies
+        				→ If policy requirement exists
+        					→ Conditional Access challenge returned
+        						→ Application prompts user for additional authentication
+        							→ Token issued after successful verification
+
+    -> Example Scenario 1 (No Code Change Required)
+        -> Scenario: A single-tenant mobile application is developed. The application signs in the user but does not call any API.
+        -> Process:
+            → User signs in
+            → Conditional Access policy triggers MFA
+            → User completes MFA
+            → Authentication completes successfully
+
+    -> Example Scenario 2 (Code Change Required)
+        -> Scenario: Application calls a middle-tier service. Middle-tier service calls a downstream API.
+        -> Process:
+            -> User signs in to the application
+            -> Application sends token to middle-tier service
+            -> Middle-tier performs On-Behalf-Of flow
+            -> Requests access to downstream API
+            -> Downstream API has Conditional Access policy
+        -> Result
+            -> Identity platform returns claims challenge
+            -> Middle-tier sends challenge back to application
+            -> Application must prompt user to complete additional authentication
+
+    -> Key Concept (Claims Challenge)
+        -> A claims challenge is returned when additional security verification is required.
+        -> It informs the application that Conditional Access requirements must be satisfied.
+        -> The application must handle the challenge and request additional authentication.
+
+    -> Best Practice for Developers
+        -> Implement Conditional Access challenge handling
+        -> Use authentication libraries like MSAL
+        -> Ensure applications can perform interactive sign-in when required
+        -> Design applications to handle policy changes dynamically
+
+    -> Final Summary
+        -> Conditional Access is a security policy engine in Microsoft Entra ID.
+        -> It enforces conditions such as MFA, device compliance, or location restrictions.
+        -> Most applications work without modification.
+        -> Some advanced scenarios require the application to handle Conditional Access challenges.
+        -> Proper implementation ensures the application continues functioning when new security policies are applied.
+
+=> Difference between Conditional Access vs RBAC vs Authentication vs Authorization
+    1 → Authentication
+
+    	→ Authentication means verifying the identity of a user or application.
+    	→ It answers the question: "Who are you?"
+
+    	Process
+    	→ User provides credentials
+    	→ Identity provider verifies credentials
+    	→ User identity is confirmed
+
+    	Examples
+    	→ Username and Password
+    	→ Multifactor Authentication (MFA)
+    	→ Login using Microsoft Entra ID
+    	→ OAuth login
+
+    	Result
+    	→ Identity is verified
+    	→ Access token or ID token is issued
+
+    --------------------------------------------------
+
+    2 → Authorization
+
+    	→ Authorization means determining what an authenticated user is allowed to do.
+    	→ It answers the question: "What are you allowed to access?"
+
+    	Process
+    	→ User is authenticated
+    	→ System checks permissions or policies
+    	→ Access is granted or denied
+
+    	Examples
+    	→ Access to an API
+    	→ Access to a database
+    	→ Access to application features
+
+    	Result
+    	→ User receives permission to access specific resources
+
+    --------------------------------------------------
+
+    3 → Role-Based Access Control (RBAC)
+
+    	→ RBAC is a type of authorization mechanism.
+    	→ It controls access to Azure resources based on roles.
+
+    	Concept
+    	→ Instead of assigning permissions directly to users, roles are assigned.
+
+    	Structure
+    		User
+    			→ Role Assignment
+    				→ Resource
+
+    	Examples
+    	→ Owner
+    	→ Contributor
+    	→ Reader
+    	→ Storage Blob Data Contributor
+
+    	Purpose
+    	→ Control access to Azure resources
+    	→ Simplify permission management
+
+    --------------------------------------------------
+
+    4 → Conditional Access
+
+    	→ Conditional Access is a security policy engine.
+    	→ It decides whether authentication should be allowed based on conditions.
+
+    	Concept
+    	→ Access is allowed only when specific conditions are satisfied.
+
+    	Examples of Conditions
+    	→ Require Multifactor Authentication
+    	→ Allow access only from corporate network
+    	→ Allow access only from managed devices
+    	→ Block access from risky locations
+
+    	Purpose
+    	→ Add extra security before granting access
+
+    --------------------------------------------------
+
+    5 → Relationship Between All Concepts
+
+    	User tries to access application
+    		→ Authentication verifies identity
+    			→ Conditional Access checks security policies
+    				→ Authorization determines permissions
+    					→ RBAC enforces resource access
+
+    --------------------------------------------------
+
+    6 → Simple Real World Example
+
+    	User tries to access Azure Blob Storage
+
+    	Process
+    	→ User signs in using Microsoft Entra ID (Authentication)
+    	→ Conditional Access checks if MFA is required
+    	→ If conditions satisfied, authentication continues
+    	→ RBAC checks if user has Storage Blob Data Reader role
+    	→ Authorization allows access to the storage resource
+
+    --------------------------------------------------
+
+    7 → Quick Comparison Table
+
+    	Authentication
+    	→ Verifies identity
+    	→ Example: Login with username/password
+
+    	Authorization
+    	→ Determines what the user can access
+    	→ Example: Permission to read files
+
+    	RBAC
+    	→ Role based authorization system in Azure
+    	→ Example: Contributor role
+
+    	Conditional Access
+    	→ Security policy controlling how authentication happens
+    	→ Example: Require MFA from outside corporate network
+
+    --------------------------------------------------
+
+    8 → Final Summary
+
+    	Authentication
+    	→ Who you are
+
+    	Authorization
+    	→ What you can access
+
+    	RBAC
+    	→ How Azure manages authorization
+
+    	Conditional Access
+    	→ Under what conditions access is allowed
+
+=> Question Scenario
+    QUESTION: Suppose you are building an application that scans Outlook emails every 1 minute, reads CSV
+    attachments, and stores the extracted data into Azure Blob Storage. What are the complete steps required
+    to implement this using the Microsoft Identity Platform?
+
+    STEP 1 → Identify Architecture Components
+    	→ Background Application (Worker / Service)
+    	→ Microsoft Identity Platform
+    	→ Microsoft Graph API (for Outlook Mail)
+    	→ Azure Blob Storage
+
+    	Application Flow
+    	→ Background Application authenticates with Microsoft Identity Platform
+    	→ Identity platform issues Access Token
+    	→ Application calls Microsoft Graph API
+    	→ Outlook emails are scanned
+    	→ CSV attachments are downloaded
+    	→ CSV data is processed
+    	→ Data is stored in Azure Blob Storage
+
+    STEP 2 → Register Application in Microsoft Entra ID
+    	→ Go to Azure Portal
+    	→ Navigate to Microsoft Entra ID
+    	→ Open App Registrations
+    	→ Click New Registration
+
+    	Provide details
+    	→ Application Name
+    	→ Supported Account Type
+    	→ Redirect URI (optional for background apps)
+
+    	Result
+    	→ Application Object created
+    	→ Service Principal created
+    	→ Client ID generated
+    	→ Tenant ID generated
+
+    STEP 3 → Understand Application Object and Service Principal
+
+    	Application Object
+    	→ Global definition of the application
+    	→ Contains configuration information
+
+    	Includes
+    	→ Client ID
+    	→ Redirect URIs
+    	→ API Permissions
+    	→ Scopes
+    	→ Application configuration
+
+    	Service Principal
+    	→ Represents application identity inside a tenant
+    	→ Responsible for authentication and authorization
+
+    	Responsibilities
+    	→ Authentication
+    	→ Authorization
+    	→ RBAC access control
+
+    	Relationship
+    	→ Application Object
+    		→ Service Principal
+
+    STEP 4 → Configure API Permissions
+    	→ Application must read Outlook emails
+    	→ Outlook APIs are accessed through Microsoft Graph
+
+    	Required Permission
+    	→ Mail.Read
+
+    	Permission format
+    	→ https://graph.microsoft.com/Mail.Read
+
+    	Since the application runs without a user
+    	→ Use Application Permission (App Only Access)
+
+    STEP 5 → Grant Admin Consent
+    	→ Application permissions require administrator approval
+
+    	Process
+    	→ Open App Registration
+    	→ Go to API Permissions
+    	→ Add Permission
+    	→ Select Microsoft Graph
+    	→ Select Application Permission
+    	→ Choose Mail.Read
+    	→ Click Grant Admin Consent
+
+    	Purpose
+    	→ Allows application to read mailbox data
+
+    STEP 6 → Create Application Credentials
+    	→ Application must authenticate with Microsoft Identity Platform
+
+    	Credential options
+    	→ Client Secret
+    	→ Certificate
+
+    	Application configuration
+    	→ Client ID
+    	→ Client Secret
+    	→ Tenant ID
+
+    STEP 7 → OAuth Authentication (Client Credentials Flow)
+    	→ Application runs without signed-in user
+    	→ Uses OAuth 2.0 Client Credentials Flow
+
+    	Token endpoint
+    	→ https://login.microsoftonline.com/{tenant-id}/oauth2/v2.0/token
+
+    	Request parameters
+    	→ client_id
+    	→ client_secret
+    	→ scope = https://graph.microsoft.com/.default
+    	→ grant_type = client_credentials
+
+    	Result
+    	→ Access Token is returned
+
+    STEP 8 → Read Outlook Emails Using Microsoft Graph
+
+    	Use Access Token to call API
+
+    	Example API
+    	→ GET https://graph.microsoft.com/v1.0/users/{user}/messages
+
+    	Read attachments
+    	→ GET /messages/{message-id}/attachments
+
+    	Application processing
+    	→ Filter CSV attachments
+    	→ Download file
+
+    STEP 9 → Process CSV File
+    	→ Parse CSV file
+    	→ Extract rows
+    	→ Validate records
+    	→ Transform data if required
+
+    STEP 10 → Store Data in Azure Blob Storage
+
+    	Option 1 (Traditional method)
+    	→ Storage Account Key
+    	→ Connection String
+
+    	Problem
+    	→ Secrets must be stored in application
+
+    	Option 2 (Recommended)
+    	→ Managed Identity
+
+    STEP 11 → Enable Managed Identity
+    	→ If application runs on Azure resources
+
+    	Supported services
+    	→ Azure Virtual Machine
+    	→ Azure App Service
+    	→ Azure Kubernetes Service
+
+    	Benefits
+    	→ No secret management
+    	→ Automatic authentication
+    	→ Improved security
+
+    STEP 12 → Assign RBAC Permission to Blob Storage
+    	→ Access controlled using Azure Role Based Access Control (RBAC)
+
+    	Example role
+    	→ Storage Blob Data Contributor
+
+    	Access flow
+    	→ Managed Identity
+    		→ RBAC Role Assignment
+    			→ Azure Blob Storage
+
+    STEP 13 → Schedule Email Scan Every 1 Minute
+
+    	Implement background job
+
+    	Possible methods
+    	→ Cron Job
+    	→ Background Worker
+    	→ Timer Trigger
+
+    	Execution Flow
+    	→ Every 1 minute
+    		→ Request Access Token
+    		→ Call Microsoft Graph API
+    		→ Fetch emails
+    		→ Check CSV attachments
+    		→ Download file
+    		→ Parse CSV
+    		→ Store data in Blob Storage
+
+    STEP 14 → Complete End-to-End Flow
+
+    	Background Application
+    		→ Authenticate with Microsoft Identity Platform
+    			→ Receive Access Token
+    				→ Call Microsoft Graph API
+    					→ Read Outlook Emails
+    						→ Download CSV Attachments
+    							→ Process CSV Data
+    								→ Store in Azure Blob Storage
+
+    STEP 15 → Security Best Practices
+    	→ Use Managed Identity instead of storing secrets
+    	→ Grant least privilege permissions
+    	→ Use RBAC for authorization
+    	→ Limit application permissions
+    	→ Rotate secrets if client secret is used
+
+    -> FINAL SUMMARY
+        Application is registered in Microsoft Entra ID to obtain an identity.
+        Application authenticates using OAuth 2.0 Client Credentials Flow.
+        Access token is used to call Microsoft Graph API to read Outlook emails.
+        CSV attachments are downloaded and processed.
+        Processed data is securely stored in Azure Blob Storage using RBAC and Managed Identity.
