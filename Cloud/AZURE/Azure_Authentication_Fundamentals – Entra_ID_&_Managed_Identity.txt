@@ -315,14 +315,14 @@
                 Application Object → Still one (global)
                 Service Principals → Created in each tenant
             -> Types of Service Principals Object: Azure defines three types.
-                -> Application Service Principal: This is the most common type.
-                -> Managed Identity Service Principal
+                -> Application Service Principal(manual): This is the most common type.
+                -> Managed Identity Service Principal(automatic)
                 -> Legacy Service Principal
 
                 -> Application Service Principal
                     -> A Service Principal is the security identity of an application inside a tenant.
                     -> This is created when you:
-                        -> Register an application
+                        -> Register an application in Azure AD(for example: If you build a custom app and registered it). It represents that app in your tenant.
                         -> Create a service principal manually
                         -> Provide credentials
                     -> Service Principal uses: Client ID (Application ID), Client Secret / Certificate and Assigned Roles / Permissions
@@ -351,18 +351,27 @@
                     -> Now the application can authenticate using: Client ID and Client Secret
 
                 -> Managed Identity Service Principal:
-                    -> A Managed Identity is a special type of Service Principal automatically created and managed by Azure for a resource.
-                        -> So technically Application Identity Types in Azure:
-                            -> Application Service Principal (manual)
-                            -> Managed Identity Service Principal (automatic)
-                    -> This is created automatically by Azure when you enable Managed Identity on a resource. Examples of Azure resources: AKS, VM, AAS
+	                -> A Managed Identity is a service principal in Microsoft Entra ID that is fully managed by Azure.
                     -> It allows the resource to authenticate securely to other Azure services without storing credentials such as usernames or passwords.
-                    -> Managed identities are issued and authenticated through Microsoft Entra ID.
+                    -> Managed identities are issued and authenticated through Azure AD(Microsoft Entra ID).
+                    -> It is fully managed by Azure, meaning Azure handles creation, lifecycle, and credential rotation.
+
                     -> Types of Managed Identity: There are two types.
-                        -> System Assigned Managed Identity:
+                        -> System Assigned Managed Identity → Auto created + Auto linked to the resource
                             -> A System-assigned Managed Identity is directly associated with a specific Azure resource.
-                            -> When this identity is enabled for a resource, Azure automatically creates an identity for that resource in Microsoft Entra ID.
-                            -> This identity is tightly linked to the lifecycle of the resource.
+                            -> When this identity is enabled for a resource, Azure automatically creates an identity for that resource in Azure AD(Microsoft Entra ID) and provide you object id of that SAMI.
+                            -> This identity is tightly linked to the lifecycle of the particular  resource.
+                            -> Steps to enable system assigned Managed identity in a particular resource:
+                                -> Go to Azure Portal and Create a container registery resource or any other like VM, App Service etc
+                                -> Click on resource overview
+                                -> In Left hand side Setting--->identity
+                                -> Under System assigned managed identity, switch the status to on.
+                                -> Click save
+                                -> You will see Object(principal) ID below Status
+                                -> Object(principal) ID:
+                                    -> This is object id of Managed identity service principal created inside Azure AD
+                                    -> After enabling System assigned, Azure automatically create a Managed identity service principal in you Azure AD tenant.
+                            -> So, SAMI(System assigned Managed Identity) will be created inside the resource by simply toggling "On" under identity.
                             -> Key Characteristics
                                 -> Created automatically when enabled on a resource.
                                 -> Tied to one Azure resource only.
@@ -379,8 +388,10 @@
                                     -> Assign the AcrPull role to that identity on the container registry.
                                     -> The cluster can now securely pull images without storing credentials.
                                 -> Service like AKS, Azure VM commonly use system-assigned identities.
-                        -> User Assigned Managed Identity
-                            -> A User-assigned Managed Identity is created as a separate Azure resource and can be assigned to multiple Azure services.
+
+                        -> User Assigned Managed Identity: Manually created + Manually attached to the resource
+                            -> A User-assigned Managed Identity is created as a separate Azure resource(like creating a VM or Storage account).
+                            -> Once created, you can then attach/integrate that UAMI into one or more resources.
                             -> Unlike system-assigned identities, this identity is not tied to a single resource and remains available even if a resource using it is deleted.
                             -> Key Characteristics
                                 -> Created as a separate Azure resource.
@@ -396,6 +407,19 @@
                                     -> This approach simplifies permission management.
                     -> Both types serve the same purpose: secure authentication between Azure services, but they differ in lifecycle and reuse capability.
                     -> Both identities rely on Microsoft Entra ID for authentication and integrate with Azure Role-Based Access Control (RBAC) to control permissions.
+                    -> System-assigned identities are created automatically for a resource, whereas user-assigned identities are created manually but still managed by Azure.
+                    -> Important Point:
+                        -> A resource can have both SAMI and UAMI like SAMI, UAMI-1, UAMI-2..etc.
+                        -> You can enable SAMI and also link UAMI on the same resource if you want.
+                        -> During token request you can choose which identity to use.
+                        -> Most Azure resources allow you to pick the identity when requesting a token.
+                        -> Example for a VM: You call metadata endpoint:
+                            -> Without identity ID -> Azure uses SAMI
+                            -> With identity ID -> Azure uses UAMI
+                        -> You must assign roles separately to each identity. SAMI & UAMI both have its own permissions.
+                        -> Common scenario:
+                            -> SAMI: Used for resource's own operations.
+                            -> UAMI: Used for application logic(Because UAMI is reusable and portable)
                     -> How Authentication Works:
                         -> When the Azure service wants to access another Azure service: Example - AKS → Access → Azure Container Registry
                         -> The process is:
@@ -435,6 +459,49 @@
                               ↓
                         Legacy Service Principal
                     -> There was no App Registration / Application Object involved.
+
+=> Step to Enable Authentication/Authorization using Managed Identity (Microsoft Entra ID)
+    -> Goal:
+        -> Allow Azure resource to securely access another Azure resource
+        -> Avoid storing credentials (username/password, client secret)
+    -> Steps:
+    -> STEP 1 → Create User Assigned Managed Identity (Optional but Recommended)
+    -> STEP 2 → Enable Managed Identity on Resource
+        -> Enable SAMI or link UAMI created in step-1&2 (for more details about this refer Managed Identity Service Principal above)
+    -> STEP 3 → Assign RBAC Role to Managed Identity
+        -> To assign the role:
+            -> Go to Target Resource (the resource you want to access). Example: Azure Container Registry / Blob Storage
+            -> Open Access Control (IAM)
+            -> Click Add → Add role assignment
+    -> STEP 4 → Choose Role (Authorization). Select appropriate role based on requirement:
+                    | Role        | Permission                |
+                    | ----------- | ------------------------- |
+                    | Owner       | Full control              |
+                    | Contributor | Create & manage resources |
+                    | Reader      | Only view resources       |
+                    | AcrPull     | Pull images from ACR      |
+    -> STEP 5 → Assign Access to Managed Identity
+        -> In "Assign access to" → Select → Managed Identity
+        -> Click +Select Members. You will see 2 options:
+            -> System assigned -> Select your resource SAMI
+            -> User Assigned -> Select your resource UAMI
+            -> You can assign r0le to both or one or each one with different role.
+    -> STEP 6 → Finalize Role Assignment
+        -> Select required identity (SAMI / UAMI / both)
+        -> Click Review + Assign
+    -> STEP 7 → How It Works Internally
+        → Resource (VM / AKS / App Service)
+        		→ Uses Managed Identity
+        			→ Authenticates with Microsoft Entra ID
+        				→ Identity validated (Authentication)
+        					→ RBAC checks role permissions (Authorization)
+        						→ Access granted to target resource
+    -> Final Summary:
+        -> Managed Identity removes need for credentials
+        -> SAMI → Auto created and linked to resource
+        -> UAMI → Manually created and reusable
+        -> RBAC controls what the identity can access
+        -> Authentication handled by Microsoft Entra ID
 
 => Problem Before Managed Identity and how it is resolved
     -> Earlier when an application needed to access another Azure service, we used credentials.
