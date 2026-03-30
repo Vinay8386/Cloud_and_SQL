@@ -1096,3 +1096,566 @@
         Access token is used to call Microsoft Graph API to read Outlook emails.
         CSV attachments are downloaded and processed.
         Processed data is securely stored in Azure Blob Storage using RBAC and Managed Identity.
+=====================================================================================! PKCE !=====================================================================================
+
+    => PKCE (PROOF KEY FOR CODE EXCHANGE) Definition:
+        -> PKCE is a security extension to the Authorization Code Flow that protects against authorization code interception attacks.
+        -> It is mainly used by Public Clients:
+            -> Angular (SPA)
+            -> Mobile apps
+            -> Desktop apps
+
+        -> WHY PKCE IS NEEDED:
+            -> Public clients cannot store client_secret securely
+            -> So attacker can intercept authorization code and exchange it for token
+            -> PKCE solves this problem WITHOUT using client_secret
+
+        -> HOW PKCE WORKS (STEP BY STEP):
+            -> Step 1: Angular Generates Code Verifier
+                -> A random string (very secure)
+                -> Example:
+                   code_verifier = "abc123xyz_random_secure_string"
+
+            -> Step 2: Create Code Challenge
+                -> Hash the verifier (usually SHA256)
+                   code_challenge = HASH(code_verifier)
+
+            -> Step 3: Send Request to Azure AD
+                -> Angular sends code_challenge NOT code_verifier
+
+            -> Step 4: User Logs In (Azure AD)
+                -> Azure AD authenticates user
+                -> Returns Authorization Code
+
+            -> Step 5: Exchange Code for Token
+                -> Angular sends:
+                   - Authorization Code
+                   - ORIGINAL code_verifier
+
+            -> Step 6: Azure AD Verifies
+                -> Azure AD hashes code_verifier again
+                -> Compares with original code_challenge
+                    IF MATCH:
+                       -> Token is issued ✅
+                    ELSE:
+                       -> Request rejected ❌
+
+        -> SECURITY BENEFIT:
+            -> Even if attacker steals Authorization Code:
+                -> They DO NOT have code_verifier
+                -> So they cannot get access token
+
+        -> FLOW SUMMARY:
+            code_verifier (secret) → stays in frontend
+            code_challenge → sent to Azure AD
+        -> Azure AD verifies both → ensures request is genuine
+
+        INTERVIEW ONE-LINER:
+        --------------------
+        "PKCE is a security mechanism used in Authorization Code Flow where a
+        temporary secret (code_verifier) is used to securely exchange the authorization
+        code for an access token, especially for public clients like Angular apps."
+
+=====================================================================================! MSAL !=====================================================================================
+=> Microsoft Authentication Library (MSAL)
+    -> MSAL (Microsoft Authentication Library) is a library provided by Microsoft that helps your application:
+        -> Authenticate users
+        -> Get access tokens
+        -> Call secure APIs like Microsoft Graph or your own backend
+    -> Why MSAL is Important: Without MSAL:
+        -> You must manually implement OAuth 2.0
+        -> Handle token expiry
+        -> Manage refresh tokens
+    -> With MSAL:
+        -> No need to deal with OAuth protocol directly
+        -> Automatically handles token caching & refresh
+        -> Supports multiple platforms
+        -> Provides logging & debugging support
+    -> MSAL doesn't authenticate directly. It request token from Microsoft Identity Platform
+    -> Flow: User → MSAL → Microsoft Identity Platform → Token → App → API
+    -> Supported Platforms: MSAL works everywhere:
+        | Library          | Platform              |
+        | ---------------- | --------------------- |
+        | MSAL.NET         | .NET, MAUI, Xamarin   |
+        | MSAL Java        | Java apps             |
+        | MSAL.js          | JavaScript frameworks |
+        | MSAL React       | React apps            |
+        | MSAL Angular     | Angular apps          |
+        | MSAL Python      | Python apps           |
+        | MSAL Node        | Node.js               |
+        | MSAL Android/iOS | Mobile apps           |
+
+    -> So, You can use it in: Spring Boot (Java), React frontend, Microservices, Mobile apps
+    -> Difference between Public vs Confidential client:
+        | Feature        | Public Client | Confidential Client |
+        | -------------- | ------------- | ------------------- |
+        | Secret Storage | ❌ Not safe    | ✅ Safe              |
+        | Runs on        | User device   | Server              |
+        | Flow Type      | User-based    | App-based           |
+        | Example        | React App     | Spring Boot API     |
+
+    -> IDEAL AUTHENTICATION FLOW (AZURE AD + ANGULAR + SPRING BOOT)
+
+        -> Step 1: User Opens Angular Application
+            -> Angular app is a Public Client (cannot store secrets securely)
+            -> MSAL library is already initialized
+            -> Important: At this stage, NO PKCE values are generated yet
+
+        -> Step 2: User Clicks Login
+            -> Angular uses MSAL (Microsoft Authentication Library) login method. Example: msalService.loginRedirect()
+
+        -> Step 3: MSAL Generates PKCE Values (INTERNALLY)
+            -> MSAL automatically generates:
+                -> code_verifier  (random secure string)
+                -> code_challenge = HASH(code_verifier)
+            -> Important:
+                -> Developer does NOT write this logic manually
+                -> MSAL handles it internally
+
+        -> Step 4: Redirect to Azure AD
+            -> MSAL sends request to Azure AD with: client_id, redirect_uri, scope, code_challenge
+            -> Angular exchanges this code for Access Token (via MSAL)
+
+        -> Step 5: User Authentication (Azure AD)
+            -> User enters credentials
+            ->  Azure AD validates identity
+
+        -> Step 6: Authorization Code Returned
+            ->  Azure AD redirects back to Angular with: Authorization Code
+
+        -> Step 7: Token Exchange (PKCE Verification Happens Here)
+            -> MSAL sends request to Azure AD with: Authorization Code & ORIGINAL code_verifier ✅
+            -> Azure AD:
+                -> Hashes code_verifier again
+                -> Compares with earlier code_challenge
+                IF MATCH:
+                   -> Access Token issued ✅
+                ELSE:
+                   -> Request rejected ❌
+
+        -> Step 8: Access Token Received
+            -> Angular gets Access Token (with user claims)
+            -> Token contains:
+                -> User ID (sub)
+                -> Username
+                -> Roles / Permissions
+                -> Expiry time
+
+        -> Step 9: Angular Calls Spring Boot API
+            -> Sends request with: Authorization: Bearer <Access_Token>
+            -> Important:
+                -> No need of user_key in header
+                -> Token itself contains user information
+
+        -> step 10: Spring Boot Backend (Resource Server)
+            -> Validates token using Azure AD public keys
+            -> Extracts user details from token claims
+
+        -> Step 11: Authorization in Backend
+            -> Based on:
+                -> Roles
+                -> Permissions
+                -> Claims inside token
+
+        -> Step 12: (Optional - Microservices Case)
+        ---------------------------------------
+        -> If API1 calls API2, API1 cannot directly forward same token came from public client because Token audience (aud) is meant for API1. API2 will reject it
+            -> So, API1 Initiates OBO Flow
+                -> API1 sends request to Azure AD with:
+                    -> Its own client_id & client_secret
+                    -> Incoming User Token
+                    -> Requested scope for API2
+                -> Azure AD Issues New Token
+                    -> Returns a NEW Access Token
+                    -> Important Point:
+                        -> This token represents: "API1 calling API2 ON BEHALF OF USER"
+                        -> Token contains: User identity & API2 as audience
+                -> Now API1 Calls API2 with new token: Authorization: Bearer <OBO_Access_Token>
+                -> API2 Validates Token: It will verify:
+                    -> Token is valid
+                    -> Audience = API2
+                    -> User identity exists
+                -> API2 Processes Request
+                    -> Applies authorization based on: User roles & Permissions
+           -> KEY POINTS:
+              -----------
+              -> Original token is NOT reused ❌
+              -> New token is generated for downstream API ✅
+              -> User context is preserved ✅
+              -> Secure microservice communication ✅
+
+              -> Think like this:
+                  User → gives permission to API1
+                  API1 → asks Azure AD: "Can I call API2 on behalf of this user?"
+                  Azure AD → gives new token
+
+        -> FLOW SUMMARY:
+
+            Angular (MSAL)
+               ↓
+            Azure AD (Login + Token Issuance)
+               ↓
+            Access Token (contains USER identity)
+               ↓
+            Spring Boot API (Validates + Authorizes)
+
+=> MSAL CLIENT APPLICATION INITIALIZATION
+    -> Before using MSAL, we must initialize a client application
+    -> MSAL provides builders to configure applications easily
+
+    -> TWO TYPES OF CLIENT BUILDERS:
+        -> PublicClientApplicationBuilder
+        -> ConfidentialClientApplicationBuilder
+
+    -> STEP 1: APP REGISTRATION (AZURE AD)
+        -> Before initialization, app must be registered in Azure AD
+        -> You will get:
+            -> client_id (Application ID) -> Unique identifier (GUID)
+            -> tenant_id (Directory ID) -> Identifies your organization (tenant)
+            -> authority (Identity Provider URL) -> Example: https://login.microsoftonline.com/{tenant_id}
+            -> client_secret / certificate (ONLY for confidential client)
+            -> redirect_uri -> Where Azure AD sends token after login
+
+    -> STEP 2: INITIALIZE APPLICATION (USING BUILDERS)
+        -> PUBLIC CLIENT (Angular, Mobile, Desktop)
+            -> Cannot store secrets
+            -> Example: IPublicClientApplication app = PublicClientApplicationBuilder.Create(clientId).Build();
+            -> Important:
+                -> No client_secret used
+                -> Used for user-based login (Authorization Code + PKCE)
+        -> CONFIDENTIAL CLIENT (Spring Boot, Backend APIs)
+            -> Can securely store secrets
+            -> Example: IConfidentialClientApplication app = ConfidentialClientApplicationBuilder
+                                .Create(clientId)
+                                .WithClientSecret(clientSecret)
+                                .WithRedirectUri("https://myapp.azurewebsites.net")
+                                .Build();
+            -> Important:
+                -> Uses client_secret OR certificate
+                -> Used for:
+                    -> Client Credentials Flow
+                    -> On-Behalf-Of Flow
+
+    -> STEP 3: IMPORTANT MODIFIERS (.With METHODS)
+        -> .WithAuthority():
+            -> Defines Azure AD authority (tenant + cloud)
+            -> Example: .WithAuthority(AzureCloudInstance.AzurePublic, tenantId)
+        -> .WithRedirectUri()
+            -> Where response is sent after login
+            -> Example: .WithRedirectUri("http://localhost")
+        -> .WithClientId()
+            -> Override client ID if needed
+        -> .WithTenantId()
+            -> Specify tenant explicitly
+        -> Logging & Debugging: Used for Troubleshooting authentication issues
+            -> .WithLogging()
+            -> .WithDebugLoggingCallback()
+
+    -> STEP 4: CONFIDENTIAL CLIENT SPECIAL OPTIONS
+        -> .WithClientSecret(string secret)
+        -> .WithCertificate(X509Certificate2 cert)
+        -> Important Point: You can use only one Client-secret or certificate. If both used → MSAL throws exception
+
+================================================! SHARED ACCESS SIGNATURE (SAS) – AZURE STORAGE !======================
+
+=> Definition: SAS (Shared Access Signature) is a secure URL that provides limited access to Azure Storage resources WITHOUT exposing account keys
+    -> It is basically: URI + SAS Token
+    -> Example: https://storageaccount.blob.core.windows.net/container/file.jpg?SAS_TOKEN
+        -> https://medicalrecords.blob.core.windows.net/patient-images/patient-116139-nq8z7f.jpg?sp=r&st=2020-01-20T11:42:32Z&se=2020-01-20T19:42:32Z&spr=https&sv=2019-02-02&sr=b&sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D
+        -> Split into:
+        -> Resource URI: https://storageaccount.blob.core.windows.net/container/file.jpg
+            -> https://medicalrecords.blob.core.windows.net/patient-images/patient-116139-nq8z7f.jpg?
+        -> SAS Token: Contains permissions + expiry + signature
+            ->  sp=r&st=2020-01-20T11:42:32Z&se=2020-01-20T19:42:32Z&spr=https&sv=2019-02-02&sr=b&sig=SrW1HZ5Nb6MbRzTbXCaPm%2BJiSEn15tC91Y4umMPwVZs%3D
+    -> HOW SAS WORKS:
+        -> Client uses SAS URL to access resource
+        -> Azure Storage verifies:
+            -> Signature (sig)
+            -> Expiry time
+            -> Permissions
+        -> IF valid:
+              -> Access granted ✅
+           ELSE:
+              -> Access denied ❌
+
+    -> TYPES OF SAS:
+        -> USER DELEGATION SAS (RECOMMENDED ✅)
+            -> Secured using Azure AD (Microsoft Entra ID)
+            -> No storage account key needed
+            -> Used for:
+                -> Blob Storage
+                -> Data Lake
+            -> BEST SECURITY ✅
+
+        -> SERVICE SAS
+            -> Secured using Storage Account Key
+            -> Used for: Blob, Queue, Table & File Storage
+
+        -> ACCOUNT SAS
+            -> Secured using Storage Account Key
+            -> Works across multiple services
+            -> More powerful but less secure
+
+    -> SAS TOKEN COMPONENTS:
+        -> Example: sp=r&st=...&se=...&sv=...&sr=b&sig=...
+            -> sp (Permissions)
+                -> r: read
+                -> w: write
+                -> d: delete
+                -> l: list
+                -> Example:
+                    sp=r  (read only)
+                    sp=acdlrw (full access)
+
+            -> st (Start Time): When access begins
+            -> se (Expiry Time): After expiry → access automatically revoked
+            -> sr (Resource Type): b = blob, c = container
+            -> sig (Signature): Cryptographic signature. Generated using: Account key OR Azure AD credentials
+                -> Used by Azure to validate request
+
+        -> Scenario:
+            -> Spring Boot backend generates SAS URL
+            -> Angular frontend directly accesses Blob Storage
+
+        -> Flow:
+            Spring Boot
+               ↓
+            Generate SAS URL
+               ↓
+            Send to Angular
+               ↓
+            Angular uploads/downloads file directly from Azure Storage
+
+    -> WHEN & HOW TO USE SAS (REAL-WORLD DESIGN PATTERNS)
+        -> Use SAS when you want to give LIMITED, TEMPORARY access to storage to clients who do NOT have direct permissions
+        -> SCENARIO 1: FRONT-END PROXY (TRADITIONAL APPROACH)
+            -> Client sends request to backend
+            -> Backend Authenticates user and Validates business logic
+            -> Backend uploads/downloads file on behalf of client
+            -> ADVANTAGES:
+                -> Full control over: Validation, Security, Business rules
+
+        -> SCENARIO 2: SAS PROVIDER (RECOMMENDED APPROACH ✅)
+            -> Step 1: Client calls backend
+            -> Step 2: Backend Authenticates user and Generates SAS URL
+            -> Step 3: Client directly: Uploads / Downloads file from Azure Storage
+            -> Advantage:
+                -> High performance ✅
+                -> Scalable ✅
+                -> Reduced backend load ✅
+            -> Disadvantage
+                -> Limited control after SAS is issued ⚠️
+
+        -> SCENARIO 3: HYBRID APPROACH (BEST PRACTICE 🔥)
+            -> Flow
+                -> Critical data → via Backend (validation required)
+                -> Large files → via SAS (direct access)
+            -> USE CASE:
+                -> Validate metadata via backend
+                -> Upload actual file via SAS
+
+        -> SPECIAL CASE: SAS REQUIRED (COPY OPERATIONS)
+            -> Blob → Blob (Different Storage Accounts): SAS REQUIRED for source ✅
+            -> File → File (Different Storage Accounts): SAS REQUIRED for source ✅
+            -> Optional: SAS can also be used for destination
+
+        -> KEY DECISION RULE:
+            IF:
+            -> Small data + strict validation needed
+               -> Use Backend Proxy
+
+            IF:
+            -> Large files / high traffic
+               -> Use SAS ✅
+
+    -> STORED ACCESS POLICY (SAS ADVANCED CONTROL)
+        -> Stored Access Policy is a server-side configuration that controls SAS tokens
+        -> It allows grouping and managing multiple SAS tokens centrally
+        -> Works ONLY with Service SAS (not with User Delegation SAS)
+        -> Problem with normal SAS:
+            -> Once SAS is generated, it cannot be changed and Cannot revoke easily
+        -> Solution:
+            -> Stored Access Policy provides: Central control & Ability to modify/revoke SAS even after issuing ✅
+
+        -> Supported Resource:
+            -> Blob Containers
+            -> File Shares
+            -> Queues
+            -> Tables
+
+        -> HOW IT WORKS:
+            -> Create Stored Access Policy on container/resource
+            -> Generate SAS token referencing this policy (using policy ID)
+            -> Client uses SAS token
+            -> Important:
+                -> SAS does NOT directly store permissions
+                -> It refers to Stored Access Policy
+
+        -> Structure:
+            -> Stored Access Policy contains:
+                -> Signed Identifier (policy name / ID)
+                -> Permissions (r, w, d, l, etc.)
+                -> Start Time
+                -> Expiry Time
+            -> SAS Token contains: Policy Identifier (instead of direct permissions)
+            -> Key Rule: You cannot define same parameter in BOTH places
+                -> Example: IF permissions defined in policy: Do NOT define in SAS token
+            -> Advantage:
+                -> Centralized Control : Manage multiple SAS tokens from one place
+                -> Easy Revocatio: Revoke all SAS by modifying/deleting policy
+                -> Dynamic Updates: Change permissions without regenerating SAS
+            -> MODIFY / REVOKE POLICY:
+                -> Modify Policy:
+                    -> Change permissions / expiry time
+                    -> Affects ALL associated SAS immediately
+                -> Revoke Policy::
+                    -> Option 1: Delete Policy
+                    -> Option 2: Change expiry to past
+                    -> Option 3: Change policy identifier (breaks link)
+            -> Important Point:
+                -> Policy changes may take ~30 seconds to reflect
+                -> During this time: Requests may fail (403 Forbidden)
+
+        -> Scenario: Backend generates SAS for multiple users
+            -> Without Policy: Cannot revoke individual access easily
+            -> With Policy: Assign SAS to a policy like:  "user-upload-policy"
+            -> If needed: Disable uploads by modifying policy
+
+        -> Flow:
+            Spring Boot
+               ↓
+            Create Stored Access Policy
+               ↓
+            Generate SAS (linked to policy)
+               ↓
+            Send to Angular
+               ↓
+            Angular uses SAS
+
+============================================================! Microsoft Graph !==========================================
+
+=> Microsoft Graph is a unified API platform that provides access to microsoft 365 data and services using a single endpoint
+    -> It is a RESTful web API that allows applications to access Microsoft Cloud service resources such as users, emails, files, and more.
+    -> Normally if you want data:
+        -> Emails → Outlook API
+        -> Files → OneDrive API
+        -> Users → Azure AD API
+    -> Different APIs = more complexity. Microsoft Graph solves this: One API,One Endpoint and access everything.
+    -> It act as a gateway to:
+        -> Users
+        -> Emails
+        -> Files
+        -> Calendars
+        -> Devices
+        -> Security data
+    -> Main endpoint: https://graph.microsoft.com
+    -> All requests go through this single endpoint
+    -> What you can access:
+        -> User Profiles
+        -> Outlook emails & calendar
+        -> OneDrive files
+        -> Teams data
+        -> Azure AD (Microsoft Entra ID) data
+        -> Security & compliance data
+    -> How it works:
+        -> Step 1: Application authenticates using Azure AD (MSAL)
+        -> Step 2: Receives Access Token
+        -> Step 3: Calls Microsoft Graph API. Example: GET https://graph.microsoft.com/v1.0/users
+        -> Step 4: Microsoft Graph validates token
+        -> Step 5: Returns requested data
+    -> What Data You Can Access: Using Microsoft Graph, you can access:
+        -> User Info
+        -> Emails (Outlook)
+        -> Files (OneDrive / SharePoint)
+        -> Teams messages
+        -> Calendar events
+        -> Devices
+        -> Security data
+    -> CORE COMPONENTS:
+        -> MICROSOFT GRAPH API: This is main thing you use Rest API having single endpoint: https://graph.microsoft.com
+            -> It is used in Angular, Spring Boot, Any Backend
+        -> Microsoft Graph Connectors(Outside → Microsoft):
+            -> It means bringing external data into Microsoft 365 so that Microsoft Search can show everything in one place
+            -> Example: Data from Google Drive, Data from Jira, Data from Salesforce
+        -> Microsoft Graph Data Connect(Microsoft → Azure Data Stores):
+            -> It means exporting large data from Microsoft
+            -> Example: Move email data → Azure Data Lake
+            -> Use in analytics / AI
+            -> Important: It is used for bulk data. It is more secure and scalable.
+
+    -> Trick to remember:
+        | Component    | Direction            | Purpose     |
+        | ------------ | -------------------- | ----------- |
+        | Graph API    | App ↔ Microsoft      | Fetch data  |
+        | Connectors   | External → Microsoft | Import data |
+        | Data Connect | Microsoft → Azure    | Export data |
+
+    -> Intuition: Without Graph ---> Many APIs, With Graph ---> One API
+
+    -> Query Microsoft Graph by using REST
+        -> CORE CONCEPT:
+            -> Microsoft Graph follows REST principles
+            -> Uses HTTP methods to perform operations
+            -> Uses JSON format for request and response
+
+        -> BASE URL STRUCTURE:
+            -> {HTTP Method} https://graph.microsoft.com/{version}/{resource}?{query-parameters}
+            -> Example: GET https://graph.microsoft.com/v1.0/me
+
+        -> REQUEST COMPONENTS:
+            -> HTTP METHOD: Defines the action to perform on the resource. Methods Supported:
+                GET     -> Read data
+                POST    -> Create resource / perform action
+                PATCH   -> Update partial resource
+                PUT     -> Replace entire resource
+                DELETE  -> Remove resource
+                -> Important:
+                    -> GET & DELETE → No request body required
+                    -> POST, PATCH, PUT → Require JSON request body
+
+            -> VERSION: Defines which version of API is used
+                -> Available Version:
+                    -> v1.0 (Stable / Production Ready): Should be used in production applications
+                    -> beta (Preview / Experimental): May contain breaking changes.Use only for testing and development
+
+            -> Resource: Represents the entity you want to access
+                -> Example: me (current logged-in user), users, groups, messages
+
+            -> RELATIONSHIPS: Resources can be connected
+                -> Example: me/messages   (user emails),  me/drive   (user files)
+
+            -> Actions: Some resource support actions. Example: me/sendMail
+            -> QUERY PARAMETERS: Used to customize API response
+
+        -> RESPONSE COMPONENTS:
+            -> STATUS CODE: Indicates success or failure
+                200 -> Success
+                201 -> Created
+                400 -> Bad Request
+                401 -> Unauthorized
+                403 -> Forbidden
+                404 -> Not Found
+            -> RESPONSE BODY: Contains requested data (JSON format). May be empty for some operations
+            -> PAGINATION (@odata.nextLink):
+                -> Used when response contains large data
+                -> Microsoft Graph returns partial data
+                -> Provides nextLink to fetch remaining data
+                -> Example: @odata.nextLink: "https://graph.microsoft.com/..."
+
+        -> NAMESPACE CONCEPT:
+            -> Most Microsoft Graph APIs belong to: microsoft.graph
+            -> Some APIs belong to sub-namespaces
+            -> Example: microsoft.graph.callRecords
+            -> Important: Unless specified, assume APIs are under microsoft.graph
+
+        -> PERMISSIONS:
+            -> Each API requires specific permissions (scopes). Example User.read, Mail.read, Files.read
+            -> Important: Read operations need lower permissions but Write operations need higher permissions
+
+        -> END-TO-END FLOW:
+            -> Step 1: Register application in Azure AD
+            -> Step 2: Authenticate user using MSAL
+            -> Step 3: Obtain Access Token
+            -> Step 4: Call Microsoft Graph API
+            -> Step 5: Graph validates token & permissions
+            -> Step 6: Returns response
