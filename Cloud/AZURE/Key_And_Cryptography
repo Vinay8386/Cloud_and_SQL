@@ -1,0 +1,198 @@
+=> What is a Key: A key is a value used in cryptography to encrypt and decrypt data or to sign and verify information securely.
+
+=> What is Cryptography
+    -> Cryptography can refer to any approach that hides real information, using codes, to prevent reading by unauthorized parties.
+    -> Cryptography can protect:
+        -> Information at rest, such as data on hard drives
+        -> Electronic communication between multiple parties
+        -> Information in use
+    -> Example:
+        -> Password = mySecret123
+        -> After cryptography (encryption): Encrypted = XyZ@89#kLm!
+        -> Only someone with the correct key can convert it back.
+        -> For example, suppose communication between two parties is secured using cryptographic principles.
+           The sender’s message is typically known as the “Plaintext.” It is transformed into an unreadable format called Ciphertext using the encryption key.
+           When the receiver gets the messages, the Ciphertext is transformed into plaintext using the decryption key.
+
+    -> Cipher:
+        -> A cipher is an algorithm used to perform encryption and decryption.
+        -> It transforms plaintext (readable data) into ciphertext (unreadable data) and vice versa.
+        -> Encryption cipher: Converts plaintext → ciphertext
+        -> Decryption cipher: Converts ciphertext → plaintext
+        -> Examples:
+            -> AES (symmetric cipher)
+            -> RSA (asymmetric cipher)
+
+    -> Cryptography concept
+        -> Encryption Keys
+            -> Keys are values used in cryptographic algorithms to encrypt and decrypt data.
+            -> Types:
+                -> Symmetric key: Same key used for encryption and decryption
+                -> Asymmetric keys:
+                    -> Public key: Used for encryption or verification
+                    -> Private key: Used for decryption or signing
+
+        -> Hashes
+            -> A hash is a fixed-length output (fingerprint) generated from input data using a hash function.
+            -> It is one-way (cannot be reversed to original data).
+            -> Used for:
+                -> Data integrity verification
+            -> Example:
+                -> SHA-256, SHA-3
+
+        -> Digital Signature
+            -> A digital signature is created by signing the hash of data using a private key.
+            -> It ensures:
+                -> Authentication (who sent the data)
+                -> Integrity (data not changed)
+                -> Non-repudiation (sender cannot deny)
+            -> Process:
+                -> Sender hashes the data
+                -> Signs the hash using private key
+                -> Receiver verifies using public key
+
+    -> Types of Cryptography: There are three types of cryptography:
+        -> symmetric-key (single key for both encryption and decryption, efficient for bulk data) and asymmetric-key (public/private key pairs for secure key exchange and digital signatures), with hash functions ensuring data integrity.
+
+        -> Symmetric Cryptography: The same key is used for both encryption and decryption. This key is generated using secure random generation techniques and is used with algorithms like AES, ensuring it is strong and difficult to guess.
+            -> AES (Advanced Encryption Standard): The standard algorithm used worldwide for securing sensitive data in browsers, applications, and cloud storage (e.g., AES-128, AES-256).
+            -> DES/3DES (Data Encryption Standard): An older algorithm, largely replaced by AES, with 3DES applying DES three times for extra security.
+            -> Blowfish / Twofish: Fast, open-source block ciphers commonly used in software encryption.
+
+        -> Asymmetric Cryptography: Two keys are used — Public key (for encryption or verification) and Private key (for decryption or signing). These keys are generated using cryptographic algorithms such as RSA or ECC, ensuring they are unique and difficult to break.
+            -> Key Vault supports both Symmetric (indirect usage) as well as Asymmetric (RSA, EC)
+            -> RSA (Rivest-Shamir-Adleman): Commonly used in digital certificates and SSL/TLS for secure web browsing.
+            -> ECC (Elliptic Curve Cryptography): Offers stronger security with smaller key sizes compared to RSA, making it efficient for mobile devices and smart cards.
+            -> Diffie-Hellman (DH): A protocol allowing two parties to securely exchange secret keys over an insecure channel.
+
+        -> Hash Functions (One-way cryptographic signature)
+            -> While working with above encryption method, different technique are used to help safeguard your data and ne technique is known as hashing.
+            -> Hash functions compute a fixed-length hash value or a “fingerprint” on the plain text message.
+            -> Hash functions are designed to minimize collisions, but not guaranteed unique
+            -> Hash functions are keyless, but in practice they are often combined with keys (HMAC) for security.
+            -> Hash functions help ensure data integrity between communicating parties.
+            -> The sender sends the message along with its hash. The receiver recalculates the hash of the received message and compares it with the received hash. If both match, the data integrity is verified.
+            -> SHA-256 / SHA-3: Used to create unique digital signatures (hashes) of data, critical for verifying file integrity.
+            -> MD5: A older, faster hash algorithm commonly used to verify data integrity, though it is considered less secure against collisions today.
+            -> Is hashing alone secure?
+                -> No, hashing alone does not prevent tampering because an attacker can modify both the data and hash. To ensure security, hashing is combined with digital signatures or HMAC.
+                -> Sender → Hash → Send (Data + Hash)
+                   Receiver → Recalculate Hash → Compare
+
+        -> Hybrid encryption
+            -> In addition to the three major cryptography types, hybrid encryption is used to secure data and communications.
+            -> Hybrid encryption combines public-key cryptography with symmetric encryption.
+
+            -> Process:
+                -> A random symmetric key is generated.
+                -> The actual data/message is encrypted using this symmetric key.
+                -> The symmetric key is then encrypted using the recipient’s public key.
+                -> The sender sends:
+                    -> Encrypted data
+                    -> Encrypted symmetric key
+
+            -> At the receiver side:
+                -> The receiver uses their private key to decrypt the symmetric key.
+                -> Then uses the decrypted symmetric key to decrypt the actual data.
+
+            -> Hybrid encryption ensures both:
+                -> Performance (fast encryption using symmetric key)
+                -> Security (secure key exchange using asymmetric encryption)
+
+            -> Since a new random symmetric key is generated for each session, the same message will produce different ciphertext each time, increasing security.
+
+        -> Post-Quantum Algorithms (Future-Proof Cryptography)
+            -> CRYSTALS-Kyber/Dilithium: New standards designed by NIST to resist future attacks from quantum computers.
+
+    -> Key principles of cryptography: Let’s now turn to the principles that underpin cryptography.
+        -> Confidentiality:
+            -> Confidentiality agreements have rules and guidelines to keep the information secure and private.
+            -> Confidentiality must be protected using techniques like encryption.
+            ->  It ensures that only authorized people can access the information at certain places — and it restricts access to other unauthorized parties.
+        -> Authentication(verifying identity)
+            -> The process of confirming that the person who sent a specific message is the sender of that message.
+            -> This principle ensures the receiver receives the message from a sender who is permitted to do so.
+            -> Authentication method include: Password, Tokens, Certificates, Biometric
+        -> Encryption
+            -> Encryption is the process of transforming information into an unreadable format using an encryption algorithm to protect the privacy of the information.
+            -> In symmetric encryption → sender & receiver both have key but In asymmetric → private key holder decrypts.
+        -> Data integrity
+            -> The data should be consistent and accurate without any alterations while in transit from the sender to the receiver.
+            -> Data integrity ensures that no manipulation has been done to the data during its lifecycle using techniques like cryptographic hashing.
+        -> Non-repudiation
+            -> The non-repudiation principle ensures that the message sender cannot repudiate the authenticity of his signature using techniques like digital signatures.
+            -> It means sender send a message, sender signs it digitally and later sender cannot say: “I didn’t send this”.
+            -> This is where cryptography comes in using digital signatures:
+                -> Sender uses private key to sign
+                -> Receiver uses public key to verify
+                -> If signature is valid → message is authentic, Sender cannot deny it.
+                -> Non-repudiation is achieved using Cryptography, Keys (public/private), Digital signatures
+                -> In Azure Key Vault, Private keys are stored securely and used to create digital signatures to ensure Authenticity, Integrity, Non-repudiation.
+        -> Key management
+            -> Key management is the process of maintaining cryptographic keys.
+            -> It includes tasks like key distribution, generation, rotation, etc.
+            -> Key management is vital to ensuring the maximum security of a cryptography system as its security heavily relies on cryptographic keys.
+
+    -> COMPLETE CRYPTOGRAPHY FLOW
+        SENDER SIDE
+        ----------------------------------------------------
+
+        1. Plaintext (Original Data)
+           ↓
+        2. Hash Function (Integrity)
+           → Hash Value (Fingerprint)
+           ↓
+        3. Digital Signature (Non-repudiation + Authentication)
+           → Sign hash using Sender’s PRIVATE KEY
+           ↓
+        4. Combine:
+           → Data + Digital Signature
+           ↓
+        5. Generate Symmetric Key (Session Key)
+           ↓
+        6. Encrypt Data (Confidentiality)
+           → Using Symmetric Key (FAST)
+           ↓
+        7. Encrypt Symmetric Key
+           → Using Receiver’s PUBLIC KEY (SECURE)
+           ↓
+        8. Send:
+           → Encrypted Data
+           → Encrypted Symmetric Key
+
+        ----------------------------------------------------
+
+        RECEIVER SIDE
+        ----------------------------------------------------
+
+        9. Receive:
+           → Encrypted Data
+           → Encrypted Symmetric Key
+           ↓
+        10. Decrypt Symmetric Key
+            → Using Receiver’s PRIVATE KEY
+            ↓
+        11. Decrypt Data
+            → Using Symmetric Key
+            ↓
+        12. Extract:
+            → Original Data
+            → Digital Signature
+            ↓
+        13. Hash the Received Data
+            → Generate New Hash
+            ↓
+        14. Verify Signature
+            → Use Sender’s PUBLIC KEY to verify signature
+            → Get Original Hash
+            ↓
+        15. Compare Hashes:
+            → Calculated Hash == Received Hash ?
+
+                ✔ YES → Data is valid, authentic, untampered
+                ❌ NO → Data is corrupted or tampered
+
+=> Transport Layer Security (TLS)
+    -> It is a cryptographic protocol that secures data transmitted over networks, commonly enabling HTTPS to prevent eavesdropping and tampering.
+    -> As the secure successor to SSL, it provides authentication, data integrity, and encryption using a handshake process.
+    -> TLS 1.3 is the latest version, offering improved speed and security

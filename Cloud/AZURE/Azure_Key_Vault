@@ -1,0 +1,788 @@
+=> Azure Key Vault
+    -> Azure Key Vault is a secure storage service to keep:
+        -> Secrets (passwords, API keys, connection strings)
+        -> Cryptographic keys
+        -> Certificates
+    -> A highly secure locker in the cloud where you store sensitive data instead of hardcoding it in your application.
+    -> Problem Without Key Vault
+        -> Bad Practice: String dbPassword = "mySuperSecret123";
+        -> Code gets pushed to GitHub → secret exposed
+        -> Anyone in team can see it. Rotation is difficult and security is high
+    -> Solution with Azure Key Vault
+        -> Store secrets in Key Vault instead. String dbPassword = getSecretFromKeyVault("db-password");
+        -> Secret is NOT in code and access controlled via identity
+        -> Centralized management
+
+=> Core Concepts
+    -> Vault: A container that holds all secrets/keys/certificates. Example: Vault Name: my-app-vault
+    -> Secrets: Plain sensitive values. Example: DB password, API key, JWT secret
+    -> Keys: Used for encryption/decryption. Used when You want control over cryptographic operations
+    -> Certificates: Used for SSL/TLS, Secure communication
+    -> Access Control
+        -> Access Policies: Grant permissions manually
+        -> RBAC (Recommended): Uses Azure Active Directory
+        -> Example roles: Key Vault Reader, Key Vault Secrets User
+    -> Real-Life Flow
+        -> App runs in Azure (VM / App Service)
+        -> App uses Managed Identity
+        -> Identity is granted access to Key Vault
+        -> App requests secret
+        -> Key Vault verifies identity
+        -> Returns secret securely
+    -> Managed Identity: Azure_Authentication_&_Authorization
+    -> Architecture Diagram
+        Spring Boot App
+              |
+              | (Managed Identity)
+              ↓
+        Azure AD (Authentication)
+              ↓
+        Azure Key Vault
+              ↓
+        Secrets returned securely
+
+=> Two Types of Key Vault Containers
+    -> Azure Key Vault actually provides two different offerings:
+        -> Vaults (General Purpose): This is what most people use by default. Support:
+            -> Secrets
+            -> Certificates
+            -> Keys (both software + HSM-backed)
+        -> Managed HSM(Hardware Security Module cluster) Pools:
+            -> It is a Dedicated Hardware Security Module cluster, which supports:
+                -> Only HSM-backed keys
+                -> And doesn't support secret, certificates
+                -> This is Ultra-secure, compliance-level encryption key storage
+
+=> Azure Key Vault pillars:
+    -> There are three main pillars of Azure Key Vault:
+        -> Secrets Management: It store sensitive value securely.
+            -> Examples: DB passwords, API keys, OAuth client secrets
+            -> Benefits: No hardcoding, Access control via Azure Active Directory, Easy rotation
+            -> Use case: Fetch DB password at runtime instead of hardcoding it inside application.
+        -> Key Management: It is used for encryption control.
+            -> Example: Encrypting customer data, Disk encryption keys
+            -> You can create key, rotate key, disable key
+            -> You don't store data in Key Vault, you store keys that protect data.
+        -> Certificate Management: Manage SSL/TLS certificates
+            -> Example: HTTPS certificates for your app
+            -> Internal secure communication
+            -> Features: Auto-renewal, Integration with Azure services
+            -> Real world: Instead of manually uploading certificates, Key Vault manages lifecycle.
+
+=> Service Tiers
+    -> Azure Key Vault has 2 pricing tiers:
+        -> Standard Tier: Uses software-based encryption. Features:
+            -> Secrets
+            -> Certificates
+            -> Software-protected keys
+            -> Suitable for normal applications, startups and in most microservices.
+        -> Premium Tier: Uses Hardware Security Modules (HSM)
+            -> It will add HSM-backed keys and Higher security compliance (FIPS 140-2 Level 2)
+            -> It is suitable for Banking apps, Government systems, Highly sensitive data
+
+        -> Standard vs Premium
+            | Feature    | Standard | Premium   |
+            | ---------- | -------- | --------- |
+            | Encryption | Software | HSM 🔒    |
+            | Cost       | Lower 💰 | Higher 💸 |
+            | HSM Keys   | ❌       | ✅        |
+            | Compliance | Basic    | High      |
+
+=> Key Benefits of Azure Key Vault
+    -> Centralized Application Secrets: Store secrets centrally and access via URI
+        -> Instead of doing String dbPassword = "hardcoded123"; do String dbPassword = keyVault.getSecret("db-password");
+        -> All secrets stored in one place (Key Vault), app don't store secret and just fetch when needed
+        -> Your applications can securely access the information they need by using URIs. These URIs allow the applications to retrieve specific versions of a secret.
+            URI: https://myvault.vault.azure.net/secrets/db-password
+        -> URI alone is NOT enough — app must be authenticated via Microsoft Entra ID
+
+    -> Securely Store Secrets and Keys: Before accessing the Key Vault, Authentication + Authorization required
+        -> Step 1: Authentication: Before doing anything with Key Vault, you must authenticate
+            -> Before accessing secrets: Key Vault must know WHO you are. This is done using Microsoft Entra ID
+            -> There are three way to authenticate:
+                -> Managed Identity (BEST PRACTICE ✅): Your app gets a built-in identity from Azure
+                -> Service Principal + Certificate (NOT Recommended ⚠️): You create App identity(Service Principal) and certificate(used like password)
+                    -> App use certificate to authenticate. Azure verify the certificate and access granted.
+                    -> Problem here is you must store certificate and rotate manually.
+                    -> Risk: If certificate expire app break and if certificate compromised, security break.
+                -> Service Principal + Secret (WORST OPTION ❌): This is traditional approach(clientId + clientSecret)
+
+                | Method           | Security | Rotation  | Recommendation |
+                | ---------------- | -------- | --------- | -------------- |
+                | Managed Identity | 🔒🔒🔒   | Automatic | ✅ BEST         |
+                | SP + Certificate | 🔒🔒     | Manual    | ⚠️ OK          |
+                | SP + Secret      | 🔒       | Hard      | ❌ Avoid        |
+
+        -> Step 2: Authorization: What are you allowed to do. There are two ways:
+            -> RBAC (Recommended): Depends on role like Admin, developer...etc.
+            -> Access Policy (Old way): Direct permission inside vault. It is less flexible.
+        -> Security Level:
+            -> Standard → software-based
+            -> Premium → HSM (hardware security)
+
+    -> Monitor Access and Use(Logging + monitoring):
+        -> You can easily track when who/what/when can accessed secret
+        -> You can also see logs:
+            -> Storage account → save logs
+            -> Event Hub → stream logs
+            -> Azure Monitor → analyze logs
+        -> Real use Case: If someone accesses DB password at 2 AM → you can track it
+
+    -> Simplified Administration(Lifecycle + scaling + replication)
+        -> No need to manage HSM manually. Azure handles: Hardware security, Maintenance
+        -> Automatic Scaling: If your app suddenly needs 1000 secret request/sec, Azure handle it.
+        -> High Availability: Your data is Replicated automatically and available if region fails.
+        -> Admin tool: You can manage Key Vault via Azure Portal, CLI, PowerShell
+        -> Certificate Automation: If using SSL certificates: Auto-renewal & Auto-deployment
+
+=> Encryption of Data in Transit
+    -> “Data in transit” = Data moving between your application and Azure Key Vault
+    -> Example: Your Spring Boot app → calls Key Vault → gets secret
+    -> Microsoft says Key Vault enforces TLS(Transport Layer Security)
+        -> Simply meaning all communication happens over secure HTTPS(App  ───(TLS/HTTPS)───> Key Vault)
+        -> TLS Provides:
+            | Feature        | Meaning                                    |
+            | -------------- | ------------------------------------------ |
+            | Authentication | You are talking to real Azure (not hacker) |
+            | Privacy        | Data is encrypted 🔐                       |
+            | Integrity      | Data is not modified                       |
+
+        -> What Happens Internally
+            -> TLS uses Hybrid Encryption
+                -> Asymmetric encryption (RSA) → secure key exchange
+                -> Symmetric encryption (AES) → fast data transfer
+    -> Azure Key Vault also uses Perfect Forward Secrecy(PFS) so that each session uses unique keys, preventing decryption of past communications.
+        | Cryptography Concept      | Where Used Here |
+        | ------------------------- | --------------- |
+        | Hybrid Encryption         | TLS internally  |
+        | Asymmetric Keys           | Key exchange    |
+        | Symmetric Keys            | Data encryption |
+        | Integrity                 | TLS ensures     |
+        | Authentication            | TLS certificate |
+        | Confidentiality           | Encryption      |
+
+=> Azure Key Vault Best Practices
+    -> Use separate key vaults:
+        -> Recommended to use one vault per application per environment.
+        -> Example:
+            -> Development
+            -> Pre-Production
+            -> Production
+        -> This helps:
+            -> Avoid sharing secrets across environments
+            -> Reduce impact in case of security breach
+
+    -> Control access to your vault:
+        -> Key Vault stores sensitive and business-critical data.
+        -> Access should be restricted to only authorized users and applications.
+        -> Use:
+            -> Role-Based Access Control (RBAC)
+            -> Managed Identity (recommended)
+
+    -> Backup:
+        -> Regularly take backups of your Key Vault data.
+        -> Especially during:
+            -> Create
+            -> Update
+            -> Delete operations
+        -> Helps in recovery in case of accidental loss
+
+    -> Logging:
+        -> Enable logging and monitoring for Key Vault.
+        -> Track:
+            -> Who accessed the vault
+            -> When access happened
+            -> What operation was performed
+        -> Configure alerts for suspicious activity
+
+    -> Recovery options:
+        -> Enable Soft Delete:
+            -> Allows recovery of deleted secrets
+        -> Enable Purge Protection:
+            -> Prevents permanent deletion before retention period
+        -> Helps protect against accidental or malicious deletion
+
+=> Authenticate to Azure Key Vault
+    -> Authentication Overview:
+        -> Azure Key Vault uses Microsoft Entra ID for authentication.
+        -> It verifies the identity of a security principal before allowing access.
+
+    -> Security Principal:
+        -> A security principal is any identity that can request access to Azure resources.
+        -> Types:
+            -> Users:
+                -> Real people with accounts in Microsoft Entra ID
+            -> Groups:
+                -> Collection of users
+                -> Permissions assigned to group apply to all members
+            -> Service Principals:
+                -> Represents applications or services
+                -> Acts like a user identity for apps
+
+    -> Service Principal Creation Methods:
+        -> Use Managed Identity (Recommended):
+            -> Azure automatically creates and manages the service principal
+            -> No need to store credentials in application
+            -> Supports services like:
+                -> Azure App Service
+                -> Azure Functions
+                -> Virtual Machines
+            -> Recommended to use:
+                -> System-assigned managed identity
+        -> Register Application Manually:
+            -> App is registered in Microsoft Entra ID
+            -> Creates:
+                -> Application object (global identity)
+                -> Service principal (used within tenant)
+            -> Requires manual credential management (secret/certificate)
+
+    -> Authentication in Application Code:
+        -> Azure Key Vault SDK uses Azure Identity library
+        -> Provides unified authentication across environments
+        -> Same code works for:
+            -> Local development
+            -> Azure deployment
+
+        -> Supported SDKs:
+            -> .NET
+            -> Python
+            -> Java
+            -> JavaScript
+
+    -> Authentication using REST API:
+        -> Access token must be passed in HTTP header:
+            Authorization: Bearer <access_token>
+        -> Example:
+            -> PUT /keys/MYKEY?api-version=<api_version>
+            -> Authorization: Bearer <access_token>
+        -> If token is missing or invalid:
+            -> HTTP 401 Unauthorized error is returned
+        -> Response includes WWW-Authenticate header:
+            -> Contains:
+                -> authorization:
+                    -> OAuth2 authorization endpoint to get token
+                -> resource:
+                    -> Target resource (https://vault.azure.net)
+
+    -> Key Points:
+        -> Authentication proves "Who you are"
+        -> Authorization (RBAC/Policy) defines "What you can access"
+        -> Managed Identity is best practice for secure and seamless authentication
+
+=> Azure App Configuration Service
+    -> Overview:
+        -> Azure App Configuration is a service used to centrally manage application settings and feature flags.
+        -> It helps manage configurations for distributed applications running in cloud environments.
+        -> Avoids issues caused by scattered configuration across multiple services.
+
+    -> Purpose:
+        -> Store all application settings in one centralized place
+        -> Secure and control access to configuration data
+
+    -> Key Benefits:
+        -> Fully managed service:
+            -> Can be set up quickly without infrastructure management
+        -> Flexible key representation:
+            -> Supports different formats and mappings for configuration keys
+        -> Labeling (Tagging):
+            -> Assign labels to differentiate configurations
+            -> Example:
+                -> dev, test, prod
+        -> Point-in-time replay:
+            -> Retrieve configuration from a previous state/version
+        -> Feature flag management:
+            -> Enable/disable features without code change
+            -> Dedicated UI available
+        -> Configuration comparison:
+            -> Compare different configurations across environments
+        -> Security:
+            -> Supports Managed Identity for secure access
+            -> Encryption:
+                -> At rest
+                -> In transit
+        -> Integration:
+            -> Works with popular frameworks and languages
+
+    -> Relationship with Azure Key Vault:
+        -> App Configuration:
+            -> Stores application settings (non-sensitive)
+        -> Azure Key Vault:
+            -> Stores secrets (passwords, keys, certificates)
+        -> Both services are used together in real-world applications
+
+    -> Use Cases:
+        -> Centralized configuration management:
+            -> Manage settings across environments and regions
+        -> Dynamic configuration updates:
+            -> Change settings without redeploying application
+        -> Feature flags:
+            -> Enable or disable features in real-time
+
+    -> How to Use:
+        -> Connect using client libraries based on language/framework:
+            -> .NET / ASP.NET Core:
+                -> App Configuration provider for .NET
+            -> Java (Spring):
+                -> App Configuration provider for Spring Cloud
+            -> JavaScript / Node.js:
+                -> App Configuration provider for JavaScript
+            -> Python:
+                -> App Configuration provider for Python
+            -> Others:
+                -> Use REST API
+
+    -> Key Points:
+        -> App Configuration manages settings, not secrets
+        -> Use with Azure Key Vault for complete configuration + secret management
+        -> Supports dynamic updates and feature toggling
+
+-> Azure App Configuration: Key-Value Pairs
+
+    -> Overview:
+        -> Azure App Configuration stores configuration data as key-value pairs.
+        -> Key = identifier (name)
+        -> Value = actual configuration data
+
+    -> Keys:
+        -> Keys act as identifiers to store and retrieve values.
+        -> Hierarchical Structure:
+            -> Keys can be organized using delimiters like:
+                -> :
+                -> /
+            -> Example:
+                -> AppName:Service1:ApiEndpoint
+                -> AppName:Service2:ApiEndpoint
+        -> Important Points:
+            -> App Configuration treats keys as a single string (no parsing of hierarchy)
+            -> Keys are case-sensitive:
+                -> app1 ≠ App1
+            -> Keys are Unicode strings
+        -> Restrictions:
+            -> Cannot use characters:
+                -> *
+                -> ,
+                -> \
+            -> To use reserved characters:
+                -> Escape using \
+        -> Size Limit:
+            -> Total size of key + value + attributes ≤ 10,000 characters
+
+    -> Key Naming Design:
+        -> Two approaches:
+            -> Flat structure
+            -> Hierarchical structure (recommended)
+        -> Advantages of hierarchical:
+            -> Easier readability
+            -> Better organization
+            -> Easy querying using patterns
+
+    -> Labels:
+        -> Labels differentiate key-values with the same key
+        -> Example:
+            -> Key = AppName:DbEndpoint, Label = Test
+            -> Key = AppName:DbEndpoint, Label = Production
+        -> Default:
+            -> No label = \0 (null label)
+        -> Use Cases:
+            -> Environment separation:
+                -> Dev / Test / Prod
+            -> Versioning
+            -> Feature variations
+
+    -> Versioning:
+        -> App Configuration does NOT provide automatic versioning
+        -> Use labels to manage versions
+        -> Example:
+            -> Label = v1.0
+            -> Label = v2.0
+            -> Label = commit-id
+
+    -> Query Key-Values:
+        -> Each key-value is uniquely identified by:
+            -> Key + Label
+        -> Query using patterns:
+            -> Retrieve group of configurations based on hierarchy
+
+    -> Values:
+        -> Values are Unicode strings
+        -> Can store any type of configuration data
+        -> Content Type (Optional):
+            -> Metadata describing value format
+            -> Example:
+                -> JSON
+                -> XML
+
+    -> Security:
+        -> Data is encrypted:
+            -> At rest
+            -> In transit
+        -> Important:
+            -> App Configuration is NOT for secrets
+            -> Use Azure Key Vault for sensitive data
+
+    -> Key Points:
+        -> Key = Name, Value = Data
+        -> Labels = Differentiation (env, version)
+        -> Hierarchical keys = better organization
+        -> Not a replacement for Key Vault
+
+=> Manage Application Features (Feature Flags)
+    -> Overview:
+        -> Feature management allows enabling/disabling features without redeploying code.
+        -> Uses feature flags (toggles) to control feature behavior dynamically.
+
+    -> Feature Flags:
+        -> Definition: A feature flag is a boolean variable (ON/OFF).
+                       The feature flag also has an associated code block.
+                       The state of the feature flag triggers whether the code block runs or not.
+        -> Behavior:
+            -> ON (true)  → Feature code executes
+            -> OFF (false) → Feature code is skipped
+        -> Example:
+            -> if (featureFlag) {
+                   // run feature
+               }
+        -> Can be:
+            -> Static:
+                -> featureFlag = true
+            -> Dynamic:
+                -> featureFlag = isBetaUser()
+
+    -> Core Components:
+        -> Application:
+            -> Contains feature flag logic in code
+        -> Feature Flag Repository:
+            -> Stores feature flags and their states
+            -> Example:
+                -> Azure App Configuration (central storage)
+
+    -> Feature Manager:
+        -> Responsible for managing feature flags lifecycle
+        -> Provides:
+            -> Evaluation of flags
+            -> Caching
+            -> Dynamic updates
+
+    -> Filters:
+        -> Definition: Rules to decide when a feature should be enabled
+        -> Examples:
+            -> User group (beta users)
+            -> Device type (mobile/desktop)
+            -> Location (India/US)
+            -> Time-based (only during sale)
+        -> Behavior:
+            -> Multiple filters can be applied
+            -> Evaluated in order
+            -> First matching filter → feature ON
+            -> If none match → feature OFF
+
+    -> Feature Flag Declaration:
+        -> Each feature flag contains:
+            -> Name
+            -> Filters (optional)
+        -> Example (JSON):
+            -> FeatureA:
+                -> true (always ON)
+            -> FeatureB:
+                -> false (always OFF)
+            -> FeatureC:
+                -> EnabledFor:
+                    -> Percentage = 50%
+                        -> Enabled for 50% users
+
+    -> Feature Flag Repository:
+        -> Feature flags should be externalized (not hardcoded)
+        -> Stored in centralized system
+        -> Benefits:
+            -> No code change required
+            -> No redeployment needed
+            -> Real-time control
+        -> Azure App Configuration:
+            -> Acts as central repository
+            -> Manage flags easily
+            -> Integrated with applications via SDK
+
+    -> Key Points:
+        -> Feature flags = control feature rollout dynamically
+        -> Enables A/B testing, gradual rollout
+        -> Decouples deployment from release
+        -> Use App Configuration for centralized management
+
+=> Securing Application Configuration Data (Azure App Configuration)
+
+    -> Overview:
+        -> Azure App Configuration provides multiple ways to secure configuration data.
+        -> Key methods:
+            -> Customer-Managed Keys (CMK)
+            -> Private Endpoints
+            -> Managed Identity
+
+    -> Encrypt Configuration Data using Customer-Managed Keys (CMK):
+        -> Default Behavior:
+            -> Azure App Configuration encrypts data at rest using AES-256 encryption.
+            -> Encryption key is:
+                -> Automatically created
+                -> Managed by Microsoft
+
+        -> What is Customer-Managed Key (CMK)?
+            -> Instead of Microsoft managing the encryption key, you manage the key yourself using Azure Key Vault.
+
+        -> Why use CMK?
+            -> More control over encryption keys
+            -> Can rotate keys manually
+            -> Can revoke access if needed
+            -> Required in high-security environments
+
+    -> How CMK Works (Step-by-Step Flow):
+
+        -> Step 1:
+            -> Azure App Configuration has its own internal encryption key.
+
+        -> Step 2:
+            -> You enable Customer-Managed Key feature.
+
+        -> Step 3:
+            -> A Managed Identity is assigned to App Configuration.
+
+        -> Step 4:
+            -> Managed Identity authenticates with Microsoft Entra ID.
+
+        -> Step 5:
+            -> App Configuration calls Azure Key Vault.
+
+        -> Step 6:
+            -> Key Vault performs "Key Wrapping":
+                -> Encrypts (wraps) the App Configuration encryption key
+
+        -> Step 7:
+            -> Wrapped (encrypted) key is stored securely
+
+        -> Step 8:
+            -> When needed:
+                -> Key Vault "unwraps" (decrypts) the key
+                -> App Configuration uses it to encrypt/decrypt data
+
+        -> Step 9:
+            -> Unwrapped key is cached for 1 hour
+            -> After that:
+                -> It is refreshed again from Key Vault
+
+    -> Key Concepts:
+
+        -> AES-256 Encryption:
+            -> Strong encryption algorithm used for securing data at rest
+
+        -> Key Wrapping:
+            -> Encrypting one key using another key
+
+        -> Managed Identity:
+            -> Secure identity used to access Key Vault without credentials
+
+        -> Key Vault:
+            -> Stores and manages encryption keys securely
+
+    -> Customer-Managed Key (CMK) Flow Diagram
+                         ┌──────────────────────────────┐
+                         │   Your Application           │
+                         └─────────────┬────────────────┘
+                                       │
+                                       │ (1) Store / Read Config
+                                       ▼
+                         ┌──────────────────────────────┐
+                         │ Azure App Configuration      │
+                         │                              │
+                         │  (2) Encrypt Data using      │
+                         │      Internal Key (Key A)    │
+                         └─────────────┬────────────────┘
+                                       │
+                                       │ (3) Needs to secure Key A
+                                       ▼
+                         ┌──────────────────────────────┐
+                         │ Managed Identity             │
+                         │ (No username/password)       │
+                         └─────────────┬────────────────┘
+                                       │
+                                       │ (4) Authenticate
+                                       ▼
+                ┌──────────────────────────────────────────────┐
+                │ Microsoft Entra ID                           │
+                │ (Identity Verification)                      │
+                └─────────────┬────────────────────────────────┘
+                              │
+                              │ (5) Access Token
+                              ▼
+                ┌──────────────────────────────────────────────┐
+                │ Azure Key Vault                              │
+                │                                              │
+                │  (6) Key B (Customer Managed Key)            │
+                │                                              │
+                │  Wrap Key A  → Encrypt Key A                 │
+                │  Unwrap Key A → Decrypt Key A                │
+                └─────────────┬────────────────────────────────┘
+                              │
+                              │ (7) Wrapped Key A stored
+                              ▼
+                ┌──────────────────────────────────────────────┐
+                │ Azure App Configuration                      │
+                │                                              │
+                │  (8) Unwrapped Key cached (1 hour)           │
+                │  (9) Used to encrypt/decrypt data            │
+                └──────────────────────────────────────────────┘
+        -> Step:
+           Step 1 → Data encrypted using Key A
+           Step 2 → Key A protected using Key B (CMK in Key Vault) or Key A is wrapped (encrypted) using Key B (Customer-Managed Key in Key Vault)
+           Step 3 → Managed Identity used to access Key Vault
+
+    -> Important Points:
+
+        -> Data is always encrypted at rest
+        -> CMK gives control over encryption keys
+        -> Managed Identity ensures secure communication
+        -> Key Vault is used for key management
+        -> Key is cached temporarily for performance
+
+    -> Simple Flow Summary:
+
+        -> Data → Encrypted using internal key
+        -> Internal key → Encrypted (wrapped) using Key Vault key
+        -> Managed Identity → Used to access Key Vault securely
+
+=> Enable Customer-Managed Key (CMK) in Azure App Configuration
+
+    -> Overview:
+        -> Customer-Managed Key (CMK) allows you to control encryption keys using Azure Key Vault.
+        -> Azure App Configuration uses this key to secure its internal encryption key.
+
+    -> Required Components:
+
+        -> Azure App Configuration:
+            -> Must be Standard tier
+            -> CMK is not supported in Free tier
+        -> Azure Key Vault:
+            -> Must have:
+                -> Soft-delete enabled
+                -> Purge protection enabled
+            -> Ensures keys cannot be permanently deleted accidentally
+        -> Key inside Key Vault:
+            -> Type:
+                -> RSA or RSA-HSM
+            -> Conditions:
+                -> Key must be enabled
+                -> Key must not be expired
+                -> Must support operations:
+                    -> Wrap Key
+                    -> Unwrap Key
+
+    -> Configuration Steps:
+
+        -> Step 1: Assign Managed Identity
+            -> Enable Managed Identity for App Configuration instance
+            -> This identity will be used to access Key Vault securely
+        -> Step 2: Grant Permissions in Key Vault
+            -> Provide access to the Managed Identity
+            -> Required permissions:
+                -> GET:
+                    -> To read key metadata
+                -> WRAP:
+                    -> To encrypt (wrap) the internal key
+                -> UNWRAP:
+                    -> To decrypt (unwrap) the internal key
+
+    -> Flow After Setup:
+        -> App Configuration → Uses Managed Identity
+        -> Managed Identity → Authenticates via Entra ID
+        -> Access Key Vault → Uses Key (CMK)
+        -> Wrap/Unwrap internal encryption key
+        -> Encrypt/Decrypt configuration data
+
+    -> Key Points:
+        -> CMK gives full control over encryption keys
+        -> Managed Identity avoids storing credentials
+        -> Key Vault enforces strong security (soft delete + purge protection)
+        -> Proper permissions are mandatory for key operations
+
+=> Use Private Endpoints for Azure App Configuration
+
+    -> Overview:
+        -> Private Endpoint allows secure access to Azure App Configuration over a private network.
+        -> It avoids exposing the service to the public internet.
+
+    -> What is Private Endpoint?
+        -> A private endpoint is a private IP address from your Virtual Network (VNet)
+        -> It is assigned to your App Configuration instance
+        -> Communication happens using Azure's internal network (Microsoft backbone)
+
+    -> How it Works:
+
+        -> Step 1:
+            -> Private Endpoint is created inside your Virtual Network
+
+        -> Step 2:
+            -> App Configuration gets a private IP address
+
+        -> Step 3:
+            -> Application connects using this private IP
+
+        -> Step 4:
+            -> Traffic flows:
+                -> Within VNet
+                -> Through Microsoft backbone network
+                -> Not over public internet
+
+    -> Security Benefits:
+
+        -> Block Public Access:
+            -> Disable public endpoint
+            -> Only allow private network access
+
+        -> Data Protection:
+            -> Traffic never goes to internet
+            -> Reduced risk of interception
+
+        -> Network Isolation:
+            -> Service becomes accessible only inside your VNet
+
+    -> Connectivity Options:
+
+        -> From Azure Resources:
+            -> Apps inside same VNet can directly access App Configuration
+
+        -> From On-Premises:
+            -> Connect via:
+                -> VPN
+                -> ExpressRoute (private peering)
+
+    -> Key Points:
+
+        -> Private Endpoint = Private IP for Azure service
+        -> Uses Microsoft internal network
+        -> Eliminates public internet exposure
+        -> Works with firewall rules for strict access control
+
+=> Managed Identity (Azure App Configuration Context)
+    -> Purpose:
+        -> Used by App Configuration to securely access other Azure services (e.g., Key Vault)
+        -> No need to store or manage credentials (client secret/certificate)
+
+    -> Key Usage:
+        -> Authenticate with Microsoft Entra ID
+        -> Access Key Vault for:
+            -> Key wrapping (CMK)
+            -> Secret retrieval
+
+    -> Types:
+        -> System-Assigned Identity:
+            -> Linked to App Configuration instance
+            -> Auto-created and deleted with resource
+            -> Only one per resource
+        -> User-Assigned Identity:
+            -> Separate Azure resource
+            -> Can be shared across multiple resources
+            -> Multiple identities can be assigned
+
+    -> Required for:
+        -> Customer-Managed Keys (CMK)
+        -> Secure service-to-service communication
+
+    -> Key Point:
+        -> Managed Identity = Secure, passwordless authentication mechanism
