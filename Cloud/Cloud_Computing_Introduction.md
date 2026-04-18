@@ -352,6 +352,8 @@ These extend far beyond what a single computer can offer, changing the way we wo
 
 # Types of Cloud Service Development:
 
+---
+
 ## 1. SaaS (Software as a Service):
 
 Let's break down Software as a Service (SaaS) in a way that's easy to understand, using Microsoft/Azure-related examples:
@@ -370,7 +372,7 @@ Imagine a giant library in the cloud where instead of books, there are computer 
 
 - **One Program, Many Users:** The same application is shared across thousands/millions of users securely.
 
-- **Web API:** These services often expose APIs so applications can integrate with them (for example, Microsoft Graph API for Microsoft 365).
+- **Web API:** You interact with the program through something called a Web API. Think of this as the library's catalog system - it helps you find and use what you need.
 
 ---
 
@@ -399,7 +401,7 @@ One potential challenge with SaaS is that you need a reliable internet connectio
 
 ### Summary:
 
-In summary, SaaS is a way of delivering software over the internet, where users pay for access rather than ownership, and can use the software from anywhere. In the Microsoft ecosystem, services like Microsoft 365 and Teams are classic examples of SaaS, showing how cloud computing enables modern collaboration and productivity.
+In summary, SaaS is a way of delivering software over the internet, where users pay for access rather than ownership, and can use the software from anywhere with an internet connection. It's a key part of how cloud computing is changing the way we work and collaborate online.
 
 ---
 
