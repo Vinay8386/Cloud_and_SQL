@@ -231,3 +231,124 @@ While the cloud offers many advantages, it also comes with important considerati
 - Collaboration tools
 
 These extend far beyond what a single computer can offer, changing the way we work, learn, and interact in our increasingly connected world.
+
+
+# ☁️ Cloud Computing vs 🌐 Web 2.0
+
+---
+
+## 🔹 1. Core Idea
+
+### ☁️ Cloud Computing
+- A **technology model** for delivering computing resources over the internet.
+- Provides:
+  - Servers
+  - Storage
+  - Databases
+  - Networking
+- Users **rent resources instead of owning hardware**
+
+**Examples:**
+- Amazon Web Services (AWS)
+- Microsoft Azure
+- Google Cloud Platform (GCP)
+
+---
+
+### 🌐 Web 2.0
+- An **evolution of the web** focused on:
+  - User interaction
+  - Content creation
+  - Collaboration
+- Users are **contributors**, not just consumers
+
+**Examples:**
+- Facebook
+- YouTube
+- Twitter
+
+---
+
+## 🔹 2. Simple Analogy
+
+- **Cloud Computing = Electricity ⚡**
+  - Provides power (infrastructure)
+
+- **Web 2.0 = Appliances 📺**
+  - Use that power to deliver value
+
+👉 Web 2.0 apps often run on Cloud infrastructure
+
+---
+
+## 🔹 3. Key Differences
+
+| Feature    | Cloud Computing              | Web 2.0                   |
+|------------|------------------------------|---------------------------|
+| Type       | Technology / Infrastructure  | Web Concept / Experience  |
+| Focus      | Resource delivery            | User interaction          |
+| Users      | Developers, IT teams         | General users             |
+| Examples   | AWS, Azure                   | Social media, blogs       |
+| Dependency | Independent                  | Often depends on cloud    |
+
+---
+
+## 🔹 4. Architecture View (Interview Important)
+
+### Cloud Computing Provides:
+- Virtual Machines (VMs)
+- Storage Systems
+- Databases
+- APIs
+
+### Web 2.0 Uses:
+- Dynamic web pages
+- AJAX / JavaScript
+- REST APIs
+- Real-time updates
+
+### Flow:
+
+- User → Web 2.0 Application → Cloud Infrastructure
+
+
+---
+
+## 🔹 5. Key Technologies
+
+### Cloud Computing:
+- Virtualization
+- Containers (Docker, Kubernetes)
+- Distributed systems
+
+### Web 2.0:
+- JavaScript
+- AJAX
+- REST APIs
+
+---
+
+## 🔹 6. Relationship
+
+✔ Web 2.0 applications are hosted on cloud platforms  
+✔ Cloud provides scalability for Web 2.0 apps  
+
+**Example:**
+- Netflix runs on AWS
+
+---
+
+## 🔹 7. One-Line Difference (Interview Ready)
+
+> **Cloud Computing = Where things run**  
+> **Web 2.0 = How users interact with things**
+
+---
+
+## 🔹 8. Quick Revision
+
+- Cloud = Backend Infrastructure  
+- Web 2.0 = Frontend + User Experience  
+- Web 2.0 apps depend on cloud for scalability  
+
+---
