@@ -366,7 +366,7 @@ Imagine a giant library in the cloud where instead of books, there are computer 
 
 - **The Program Lives Online:** Instead of installing software on your computer, it's hosted on the cloud by providers like :contentReference[oaicite:0]{index=0} and accessed via browser or app.
 
-- **Pay-as-you-go:** Rather than buying the software outright, you pay for using it (subscription model), like :contentReference[oaicite:1]{index=1}.
+- **Pay-as-you-go:** Rather than buying the software outright, you pay for using it (subscription model), like Microsoft 365 subscription
 
 - **Access Anywhere:** You can use the software from any device with internet access—laptop, mobile, tablet.
 
@@ -384,9 +384,7 @@ The big advantage of SaaS is that you don't need to worry about maintaining or u
 
 ### Some real-world examples of SaaS include:
 
-- :contentReference[oaicite:2]{index=2} (Word, Excel, Outlook online)  
-- :contentReference[oaicite:3]{index=3} for storing and sharing files  
-- :contentReference[oaicite:4]{index=4} for communication and meetings  
+- Word, Excel, Outlook online   
 
 ---
 

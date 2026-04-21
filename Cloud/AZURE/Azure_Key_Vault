@@ -786,3 +786,128 @@
 
     -> Key Point:
         -> Managed Identity = Secure, passwordless authentication mechanism
+
+-> Azure API Management (APIM)
+
+    -> Overview:
+        -> Azure API Management is a service to manage, secure, publish, and monitor APIs.
+        -> Helps in building a complete API ecosystem:
+            -> Security
+            -> Analytics
+            -> Developer access
+
+    -> Core Concept:
+        -> API:
+            -> Contains one or more operations (endpoints)
+
+        -> Product:
+            -> Collection of APIs
+            -> Developers subscribe to products to use APIs
+
+    -> Main Components:
+
+        -> API Gateway:
+            -> Entry point for all API requests
+            -> Responsibilities:
+                -> Route requests to backend services
+                -> Validate API keys / authentication
+                -> Apply rate limiting and quotas
+                -> Transform request/response (XML ↔ JSON)
+                -> Cache responses
+                -> Generate logs and metrics
+
+        -> Management Plane:
+            -> Admin interface to manage APIs
+            -> Used for:
+                -> Configure API Management service
+                -> Define or import APIs
+                -> Create products
+                -> Apply policies (rate limit, transform)
+                -> Monitor analytics
+                -> Manage users
+
+        -> Developer Portal:
+            -> UI for developers to use APIs
+            -> Features:
+                -> View API documentation
+                -> Test APIs (interactive console)
+                -> Subscribe to products
+                -> Get API keys
+                -> Track usage
+
+    -> Products:
+
+        -> Definition:
+            -> Group of APIs exposed to developers
+
+        -> Types:
+            -> Open:
+                -> No subscription required
+
+            -> Protected:
+                -> Requires subscription (API key)
+
+        -> Features:
+            -> Title, description, terms of use
+            -> Subscription approval:
+                -> Manual (admin approval)
+                -> Automatic
+
+    -> Groups:
+
+        -> Purpose:
+            -> Control access to products
+
+        -> System Groups:
+
+            -> Administrators:
+                -> Manage APIs and APIM instance
+
+            -> Developers:
+                -> Authenticated users who consume APIs
+
+            -> Guests:
+                -> Unauthenticated users (read-only access)
+
+        -> Custom Groups:
+            -> Can be created by admin
+            -> Can integrate with Entra ID groups
+
+    -> Developers:
+
+        -> Represents user accounts in APIM
+        -> Can:
+            -> Join via portal or invitation
+            -> Belong to groups
+            -> Subscribe to products
+            -> Get API keys
+
+    -> Policies:
+
+        -> Definition:
+            -> Rules applied on API requests/responses
+
+        -> Common Use Cases:
+            -> Rate limiting
+            -> Request/response transformation
+            -> Authentication/authorization
+            -> Caching
+
+        -> Execution:
+            -> Policies run sequentially
+
+        -> Scope Levels:
+            -> Global (all APIs)
+            -> Product level
+            -> API level
+            -> Operation level
+
+        -> Policy Expressions:
+            -> Used for dynamic logic inside policies
+
+    -> Key Flow:
+
+        -> Developer → Subscribes to Product
+        -> Gets API Key
+        -> Calls API via Gateway
+        -> Gateway applies policies → forwards to backend

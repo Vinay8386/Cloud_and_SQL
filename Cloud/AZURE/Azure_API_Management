@@ -1,0 +1,224 @@
+=> Azure API Management (APIM)
+
+    -> Overview:
+        -> Azure API Management is a fully managed service provided by Microsoft that helps organizations create, publish, secure, and monitor APIs in a structured way.
+        -> In simple terms: APIM acts like a middle layer (gateway) between Clients (apps, users, developers) and Backend services (your actual APIs, microservices, databases).
+        -> Why Do We Need API Management:
+            -> Imagine you built multiple APIs Login API, Payment API, Order API.
+            -> If you expose them directly:
+                -> No proper security
+                -> No rate control
+                -> No monitoring
+                -> No central access point
+            -> That’s where APIM helps. APIM solves these problems:
+                -> Secures APIs (API keys, OAuth, JWT)
+                -> Tracks usage (analytics, logs)
+                -> Controls traffic (rate limiting, throttling)
+                -> Provides developer onboarding (portal)
+
+    -> Core Concept in APIM:
+        -> API(One API = Many operations): An API is a collection of operations (endpoints). Example:
+            -> /getUser
+            -> /createOrder
+            -> /makePayment
+
+        -> Product: A Product is a bundle (collection) of APIs. Developers don’t directly access APIs, They subscribe to a Product.
+            -> Example: Product: E-commerce APIs. It includes:
+                -> Order API
+                -> Payment API
+                -> User API
+            -> Type of Product:
+                -> Open Product: In this no subscription will be required and anyone can use APIs
+                -> Protected Product: It require subscription and needs API keys
+
+    -> Main Components:
+        -> API Gateway:
+            -> Entry point for all API requests. When a client calls an API:
+                -> Request first goes to API Gateway
+                -> Gateway processes it
+                -> Then forward it to backend
+            -> Responsibilities of API Gateway:
+                -> Route requests to backend services
+                -> Validate API keys / authentication
+                -> Apply rate limiting and quotas
+                -> Transform request/response (XML ↔ JSON)
+                -> Cache responses
+                -> Generate logs and metrics
+
+        -> Management Plane:
+            -> Admin interface to manage APIs. This is used by admins (you) to configure APIM.
+            -> Used for:
+                -> Configure API Management service
+                -> Create or import APIs
+                -> Create products
+                -> Apply policies (rate limit, transform)
+                -> Monitor analytics
+                -> Manage users
+
+        -> Developer Portal:
+            -> UI for developers to use APIs. This is for external developers (API consumers)
+            -> Features:
+                -> View API documentation
+                -> Test APIs (interactive console)
+                -> Subscribe to products
+                -> Get API keys
+                -> Track usage
+                -> Think of it like self service website for developer.
+
+        -> Products: Refer Core Concept in APIM
+
+        -> Groups: Groups are used for access control.
+            -> System Groups:
+                -> Administrators:
+                    -> Manage APIs and APIM instance. Full control over APIM
+                -> Developers:
+                    -> Authenticated users who consume APIs or Registered users who use APIs
+                -> Guests:
+                    -> Unauthenticated users (read-only access)
+            -> Custom Groups:
+                -> Can be created by admin
+                -> Can integrate with Entra ID groups
+
+        -> Developers:
+            -> Represents user accounts in APIM
+            -> Can:
+                -> Join via portal or invitation
+                -> Belong to groups
+                -> Subscribe to products
+                -> Get API keys
+
+        -> Policies:
+            -> Definition:
+                -> Rules applied on API requests/responses
+            -> Common Use Cases:
+                -> Rate limiting
+                -> Request/response transformation
+                -> Authentication/authorization
+                -> Caching
+
+            -> Execution:
+                -> Policies run sequentially
+
+            -> Scope Levels:
+                -> Global (all APIs)
+                -> Product level
+                -> API level
+                -> Operation level
+
+            -> Policy Expressions:
+                -> Used for dynamic logic inside policies
+
+        -> Key Flow:
+            -> Developer subscribes to a Product
+            -> Gets an API Key
+            -> Calls API via Gateway
+            -> Request hit API Gateway.
+            -> Gateway validate the request and applies policies
+            -> Request goes to backend service.
+            -> Response comes via Gateway
+            -> gateway may transform/cache response
+            -> Final response sent to the client.
+
+=> API Management (3scale-style Understanding)
+    -> High-Level Architecture:
+        -> Product = Entry Layer (what developers see and subscribe to)
+        -> Backend = Actual API implementation (your service)
+        -> Policies = Control & security rules
+        -> Audience = Who can access
+    -> Flow:
+        Product
+           ├── Policies (CORS, Security, Rate Limit)
+           ├── Backend(s) (Actual APIs)
+           ├── Mapping Rules (Routing logic)
+           └── Audience (Access control)
+
+        Developer
+           ↓
+        Subscribes to Product
+           ↓
+        Gets API Key
+           ↓
+        Calls API
+           ↓
+        Gateway applies:
+           - Policies
+           - Mapping Rules
+           ↓
+        Request goes to Backend
+
+    -> Comparison with Azure APIM
+        | 3scale Concept | Azure Equivalent     |
+        | -------------- | -------------------- |
+        | Product        | Product              |
+        | Backend        | Backend/API          |
+        | Mapping Rules  | Routing + Policies   |
+        | Audience       | Groups + Products    |
+        | Policies       | Policies (XML-based) |
+
+=> Azure API Management (APIM)
+
+    -> API Gateway (Data Plane / Runtime):
+
+        -> Definition:
+            -> API Gateway is the core component responsible for handling all API requests.
+            -> It acts as a reverse proxy between client and backend services.
+            -> Also known as Data Plane or Runtime.
+
+        -> Key Responsibility:
+            -> Receives client request
+            -> Applies policies (security, rate limit, transformation)
+            -> Routes request to correct backend service
+            -> Sends response back to client
+            -> Collects logs and telemetry
+
+    -> Problem Without API Gateway:
+
+        -> If clients directly call backend services:
+
+            -> Complex Client Code:
+                -> Client must track multiple endpoints
+                -> Must handle failures manually
+
+            -> Tight Coupling:
+                -> Client depends on backend structure
+                -> If backend changes -> client must change
+
+            -> Multiple Calls for Single Operation:
+                -> One request may require calling multiple services
+
+            -> Repeated Responsibilities:
+                -> Each service must handle:
+                    -> Authentication
+                    -> SSL termination
+                    -> Rate limiting
+
+            -> Security Risk:
+                -> Each service is exposed publicly
+                -> Increases attack surface
+
+    -> How API Gateway Solves These Problems:
+
+        -> Acts as single entry point for all requests
+        -> Decouples client from backend services
+        -> Handles cross-cutting concerns:
+            -> Authentication
+            -> SSL termination
+            -> Rate limiting
+            -> Logging and monitoring
+
+    -> Managed vs Self-Hosted Gateway:
+
+        -> Managed Gateway:
+            -> Default gateway provided by Azure
+            -> Deployed in Azure cloud
+            -> All API traffic flows through Azure
+            -> Used when backend is in cloud or accessible via internet
+
+        -> Self-Hosted Gateway:
+            -> Container-based gateway (Docker supported)
+            -> Can run on:
+                -> On-premise servers
+                -> Other cloud providers
+            -> Used in hybrid or multi-cloud scenarios
+            -> Still managed from central APIM instance
+
