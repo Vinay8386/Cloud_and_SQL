@@ -1,0 +1,1315 @@
+=> Key Terminology:
+    -> Event: What happened
+    -> Event Source: Where event took place
+    -> Topic: The endpoint where publishers send events
+    -> Event Subscriptions: The endpoint or built-in mechanism to route events, sometimes to more than one handler.
+    -> Event Handler: The app or service reacting to the event.
+
+=> Azure Event Grid
+
+    -> Overview:
+        -> Azure Event Grid is a fully managed event-based (Pub/Sub) messaging service.
+        -> Used to build event-driven architectures.
+        -> Supports:
+            -> HTTP (for apps/services)
+            -> MQTT (for IoT devices)
+
+        -> Enables:
+            -> Application integration
+            -> Real-time event processing
+            -> Serverless architectures
+
+    -> Core Concept (Pub/Sub Model):
+
+        -> Publisher → Sends events
+        -> Event Grid → Routes events
+        -> Subscriber → Receives events
+
+    -> Key Concepts:
+
+        -> Publisher:
+            -> Source that sends events
+            -> Can be:
+                -> Azure services (Storage, IoT Hub)
+                -> Custom applications
+                -> External systems (partners)
+
+        -> Event:
+            -> A small piece of data describing something that happened
+            -> Contains:
+                -> Source
+                -> Time
+                -> Unique ID
+                -> Event-specific data
+
+        -> Event Source:
+            -> Where the event is generated
+            -> Examples:
+                -> Blob Storage → Blob created event
+                -> IoT Hub → Device event
+                -> Custom app → Custom event
+
+        -> Topics:
+            -> Logical channel to store and organize events
+
+            -> Types:
+                -> System Topics:
+                    -> Built-in (Azure services)
+                    -> Not visible in your subscription
+
+                -> Custom Topics:
+                    -> Created by user
+                    -> Used for custom applications
+
+                -> Partner Topics:
+                    -> Used for third-party integrations
+
+        -> Event Subscription:
+            -> Defines which events you want to receive
+            -> Includes:
+                -> Endpoint (where event is sent)
+                -> Filters (event type, subject)
+                -> Expiration (optional)
+
+        -> Event Handler:
+            -> Destination that processes events
+            -> Examples:
+                -> Azure Functions
+                -> Logic Apps
+                -> Webhooks
+                -> Storage Queue
+
+            -> Behavior:
+                -> Retries until success (e.g., HTTP 200 OK)
+
+    -> Event Format:
+
+        -> Uses CloudEvents 1.0 standard
+        -> JSON format
+        -> Includes metadata + actual data
+
+    -> Delivery Modes:
+
+        -> Push Model:
+            -> Event Grid sends events to subscriber automatically
+
+        -> Pull Model:
+            -> Subscriber reads events from Event Grid
+
+    -> Security:
+
+        -> Uses Microsoft Entra ID for authentication
+        -> Managed Identity can be used for secure access
+        -> RBAC roles control permissions
+
+    -> Key Flow:
+
+        -> Event Source → Publishes Event
+        -> Event → Stored in Topic
+        -> Subscription → Filters Event
+        -> Event Grid → Sends to Handler
+        -> Handler → Processes Event
+
+    -> Key Points:
+
+        -> Highly scalable and serverless
+        -> Supports filtering and routing
+        -> Near real-time event delivery
+
+=> Azure Event Grid: Event Schemas
+
+    -> Overview:
+        -> Event Grid supports two types of schemas:
+            -> Event Grid Schema (default)
+            -> CloudEvents Schema (standard/open format)
+
+        -> Schema defines:
+            -> Structure/format of an event (JSON)
+
+    -> Event Structure (General):
+
+        -> Events are sent as:
+            -> Array of events
+
+        -> Size Limits:
+            -> Max size per event = 1 MB
+            -> Max size per array = 1 MB
+            -> > 1 MB → Error (413 Payload Too Large)
+
+        -> Billing:
+            -> Charged per 64 KB
+            -> Example:
+                -> 130 KB event = counted as 3 operations
+
+    -> Event Grid Schema (Default):
+
+        -> Common Properties (Top-Level):
+
+            -> topic:
+                -> Resource path of event source
+
+            -> subject:
+                -> Path or identifier of event (used for filtering)
+
+            -> eventType:
+                -> Type of event (e.g., BlobCreated)
+
+            -> eventTime:
+                -> Time when event occurred (UTC)
+
+            -> id:
+                -> Unique identifier for event
+
+            -> data:
+                -> Actual event data (custom per service)
+
+            -> dataVersion:
+                -> Version of data schema
+
+            -> metadataVersion:
+                -> Version of event metadata (fixed by Event Grid)
+    -> Example:
+        [
+          {
+            "topic": string,
+            "subject": string,
+            "id": string,
+            "eventType": string,
+            "eventTime": string,
+            "data":{
+              object-unique-to-each-publisher
+            },
+            "dataVersion": string,
+            "metadataVersion": string
+          }
+        ]
+
+    -> Important Notes:
+
+        -> All events share same top-level structure
+        -> Only "data" field changes based on event source
+        -> Subject is very important for filtering
+
+    -> Subject Design (Best Practice):
+
+        -> Use hierarchical format:
+            -> Example: /A/B/C
+
+        -> Benefits:
+            -> Easy filtering
+            -> Flexible routing
+
+        -> Example:
+            -> /blobServices/default/containers/container1/blobs/file.txt
+
+        -> Filtering:
+            -> /A → broad filtering
+            -> /A/B → more specific filtering
+
+    -> CloudEvents Schema:
+
+        -> Open standard (Cloud Native Computing Foundation)
+        -> Used for interoperability across platforms
+
+        -> Key Fields:
+
+            -> specversion:
+                -> Version of CloudEvents spec
+
+            -> type:
+                -> Event type
+
+            -> source:
+                -> Origin of event
+
+            -> id:
+                -> Unique event ID
+
+            -> time:
+                -> Event time
+
+            -> subject:
+                -> Event subject/path
+
+            -> data:
+                -> Actual payload
+
+            -> dataschema:
+                -> Schema reference
+    -> Example:
+        {
+            "specversion": "1.0",
+            "type": "Microsoft.Storage.BlobCreated",
+            "source": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account}",
+            "id": "9aeb0fdf-c01e-0131-0922-9eb54906e209",
+            "time": "2019-11-18T15:13:39.4589254Z",
+            "subject": "blobServices/default/containers/{storage-container}/blobs/{new-file}",
+            "dataschema": "#",
+            "data": {
+                "api": "PutBlockList",
+                "clientRequestId": "4c5dd7fb-2c48-4a27-bb30-5361b5de920a",
+                "requestId": "9aeb0fdf-c01e-0131-0922-9eb549000000",
+                "eTag": "0x8D76C39E4407333",
+                "contentType": "image/png",
+                "contentLength": 30699,
+                "blobType": "BlockBlob",
+                "url": "https://gridtesting.blob.core.windows.net/testcontainer/{new-file}",
+                "sequencer": "000000000000000000000000000099240000000000c41c18",
+                "storageDiagnostics": {
+                    "batchId": "681fe319-3006-00a8-0022-9e7cde000000"
+                }
+            }
+        }
+
+    -> Event Grid vs CloudEvents:
+
+        -> Event Grid Schema:
+            -> Azure-specific
+            -> Default format
+
+        -> CloudEvents Schema:
+            -> Standard format
+            -> Better for cross-platform integration
+
+    -> Content-Type Header:
+
+        -> Event Grid:
+            -> application/json
+
+        -> CloudEvents:
+            -> application/cloudevents+json
+
+    -> Key Points:
+
+        -> Event = metadata + actual data
+        -> "data" field varies per service
+        -> Subject helps in filtering
+        -> CloudEvents improves interoperability
+
+=> Azure Event Grid: Event Delivery & Durability
+
+    -> Overview:
+        -> Event Grid provides durable delivery of events
+        -> Guarantee:
+            -> At-least-once delivery (event may be delivered multiple times)
+
+        -> Note:
+            -> Event order is NOT guaranteed
+
+    -> Delivery Behavior:
+
+        -> Event Grid sends:
+            -> One event at a time (default)
+            -> Payload is an array with single event
+
+        -> If delivery fails:
+            -> Event Grid retries delivery
+
+    -> Retry Mechanism:
+
+        -> Default:
+            -> Immediate attempt
+            -> Then retries using exponential backoff
+
+        -> Timeout:
+            -> Waits 30 seconds for response
+            -> If no response → retry scheduled
+
+        -> If endpoint responds within 3 minutes:
+            -> Event removed from retry queue (best effort)
+            -> Duplicate delivery still possible
+
+    -> No Retry Cases (Important):
+
+        -> Retry does NOT happen for:
+
+            -> Azure Resources:
+                -> 400 (Bad Request)
+                -> 413 (Payload Too Large)
+
+            -> Webhooks:
+                -> 400, 413, 401 (Unauthorized)
+
+        -> Behavior:
+            -> If Dead-letter enabled → event stored
+            -> Else → event dropped ❌
+
+    -> Retry Policy (Configurable):
+
+        -> Max Delivery Attempts:
+            -> Range: 1 to 30
+            -> Default: 30
+
+        -> Time-To-Live (TTL):
+            -> Range: 1 to 1440 minutes
+            -> Default: 1440 minutes (24 hours)
+
+        -> Event is dropped if:
+            -> Max attempts reached OR TTL expired
+
+    -> Dead-Lettering:
+
+        -> Definition:
+            -> Store undelivered events in Storage Account
+
+        -> Trigger Conditions:
+            -> Retry attempts exceeded
+            -> TTL expired
+            -> Certain errors (400, 413)
+
+        -> Notes:
+            -> Must be manually enabled
+            -> Requires Storage Account + container
+            -> If storage unavailable for 4 hours → event dropped
+
+    -> Delayed Delivery:
+
+        -> If endpoint keeps failing:
+            -> Event Grid delays further delivery
+
+        -> Purpose:
+            -> Prevent overload of unhealthy systems
+
+        -> Delay can increase up to several hours
+
+    -> Output Batching:
+
+        -> Purpose:
+            -> Improve performance for high volume
+
+        -> Settings:
+
+            -> Max Events per Batch:
+                -> Range: 1 to 5000
+
+            -> Preferred Batch Size:
+                -> Defined in KB
+
+        -> Notes:
+            -> Batching is optional (disabled by default)
+            -> Events are not delayed just to form batch
+
+    -> Custom Delivery Headers:
+
+        -> You can add custom HTTP headers
+        -> Max:
+            -> 10 headers
+            -> Each ≤ 4096 bytes
+
+        -> Used for:
+            -> Authentication
+            -> Custom routing
+
+    -> Key Points:
+
+        -> At-least-once delivery → duplicates possible
+        -> No guarantee of order
+        -> Retry + Dead-letter = reliability
+        -> Configure retry policy as per requirement
+
+=> Azure Event Grid: Access Control (RBAC)
+
+    -> Overview:
+        -> Event Grid uses Azure RBAC to control access
+        -> Controls who can:
+            -> Create topics
+            -> Manage subscriptions
+            -> Send events
+
+    -> Built-in Roles:
+
+        -> Event Grid Subscription Reader:
+            -> Read event subscriptions only
+
+        -> Event Grid Subscription Contributor:
+            -> Create, update, delete event subscriptions
+
+        -> Event Grid Contributor:
+            -> Full control over Event Grid resources
+            -> Can create/manage topics
+
+        -> Event Grid Data Sender:
+            -> Can publish/send events to topics
+
+    -> Key Understanding:
+
+        -> Subscription roles:
+            -> Only manage subscriptions
+            -> Cannot create topics
+
+        -> Contributor role:
+            -> Full resource-level control
+
+    -> Permissions for Event Subscription:
+
+        -> Required Permission:
+            -> Microsoft.EventGrid/EventSubscriptions/Write
+
+        -> Why required?
+            -> To create a new event subscription
+            -> Prevent unauthorized event routing
+
+    -> Based on Topic Type:
+
+        -> System Topic:
+            -> Permission required on:
+                -> Event Source Resource
+
+            -> Resource Format:
+                -> /subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/{resource-provider}/{resource-type}/{resource-name}
+
+            -> Example:
+                -> Storage Account
+                -> IoT Hub
+
+            -> Meaning:
+                -> You need access on the actual Azure resource generating events
+
+        -> Custom Topic:
+            -> Permission required on:
+                -> Event Grid Topic
+
+            -> Resource Format:
+                -> /subscriptions/{subscription-id}/resourceGroups/{resource-group-name}/providers/Microsoft.EventGrid/topics/{topic-name}
+
+            -> Meaning:
+                -> You need access directly on the Event Grid topic
+
+    -> Key Points:
+
+        -> RBAC controls access at resource level
+        -> Permission required depends on topic type
+        -> Write permission needed to create subscription
+
+=> Receive Events using Webhooks (Azure Event Grid)
+
+    -> What is a Webhook?
+
+        -> A webhook is an HTTP endpoint (URL) that receives events via HTTP POST request
+        -> Event Grid sends event data to this endpoint when an event occurs
+
+        -> Simple Meaning:
+            -> "Event happens → HTTP call is triggered automatically"
+
+    -> How Webhook Works:
+
+        -> Step 1:
+            -> Event occurs (Publisher)
+
+        -> Step 2:
+            -> Event Grid receives event
+
+        -> Step 3:
+            -> Event Grid sends HTTP POST request
+
+        -> Step 4:
+            -> Webhook endpoint receives event data
+
+    -> Use Cases:
+
+        -> Trigger custom backend logic
+        -> Integrate with external systems
+        -> Real-time notifications
+        -> Example:
+            -> File uploaded → Call API → Send email
+            -> Order created → Notify external service
+
+    -> Supported Services (Auto Validation):
+
+        -> Azure handles validation automatically for:
+            -> Azure Functions (Event Grid Trigger)
+            -> Azure Logic Apps
+            -> Azure Automation
+
+    -> Endpoint Validation (Important):
+
+        -> Why validation needed?
+            -> To verify endpoint ownership
+            -> Prevent malicious event flooding
+
+    -> Validation Methods:
+
+        -> 1. Synchronous Handshake:
+
+            -> Event Grid sends:
+                -> Validation Event (with validationCode)
+
+            -> Your endpoint must:
+                -> Read validationCode
+                -> Return same code in response
+
+            -> Requirement:
+                -> Must respond immediately
+
+        -> 2. Asynchronous Handshake:
+
+            -> Used when:
+                -> Endpoint cannot respond immediately (e.g., third-party tools)
+
+            -> Event Grid sends:
+                -> validationUrl
+
+            -> You must:
+                -> Perform GET request on validationUrl
+
+            -> Conditions:
+                -> Valid only for 5 minutes
+                -> Subscription state = AwaitingManualAction
+
+            -> If not completed:
+                -> Subscription = Failed ❌
+
+    -> HTTP Requirements:
+
+        -> Endpoint must return:
+            -> HTTP 200 OK
+
+        -> Otherwise:
+            -> Validation fails
+
+    -> Important Notes:
+
+        -> Event Grid sends events via HTTP POST
+        -> Validation is mandatory before receiving events
+        -> Self-signed certificates are NOT supported
+        -> Use valid SSL certificate (CA-signed)
+
+    -> Key Points:
+
+        -> Webhook = Event receiver (HTTP endpoint)
+        -> Used for real-time integrations
+        -> Validation ensures security
+
+=> Filter Events (Azure Event Grid)
+
+    -> Why Filtering?
+
+        -> Not all events are useful
+        -> Filtering allows you to receive only required events
+        -> Reduces unnecessary processing and cost
+
+    -> Types of Filtering:
+
+        -> 1. Event Type Filtering
+        -> 2. Subject Filtering
+        -> 3. Advanced Filtering
+
+    ----------------------------------------------------
+
+    -> 1. Event Type Filtering
+
+        -> By default:
+            -> All event types are sent to subscriber
+
+        -> You can filter:
+            -> Only specific event types
+
+        -> Example:
+            -> Only want success events, not delete events
+
+        -> Syntax:
+
+            "filter": {
+              "includedEventTypes": [
+                "Microsoft.Resources.ResourceWriteFailure",
+                "Microsoft.Resources.ResourceWriteSuccess"
+              ]
+            }
+
+        -> Special Case:
+            -> "All" → Receive all event types
+
+    ----------------------------------------------------
+
+    -> 2. Subject Filtering
+
+        -> Used for simple string-based filtering
+
+        -> Based on:
+            -> subjectBeginsWith
+            -> subjectEndsWith
+
+        -> Example Use Case:
+            -> Only .txt files
+            -> Only specific container
+
+        -> Syntax:
+
+            "filter": {
+              "subjectBeginsWith": "/blobServices/default/containers/mycontainer/log",
+              "subjectEndsWith": ".jpg"
+            }
+
+        -> Example Meaning:
+            -> Only events from "mycontainer/log"
+            -> Only files ending with ".jpg"
+
+    ----------------------------------------------------
+
+    -> 3. Advanced Filtering
+
+        -> Used for complex conditions
+
+        -> Allows filtering on:
+            -> Event data fields
+            -> Subject
+            -> Custom values
+
+        -> Components:
+
+            -> operatorType:
+                -> Type of comparison
+                -> Example:
+                    -> NumberGreaterThan
+                    -> StringContains
+                    -> BooleanEquals
+
+            -> key:
+                -> Field in event data
+                -> Example:
+                    -> Data.Key1
+                    -> Subject
+
+            -> value / values:
+                -> Value to compare
+
+        -> Syntax:
+
+            "filter": {
+              "advancedFilters": [
+                {
+                  "operatorType": "NumberGreaterThanOrEquals",
+                  "key": "Data.Key1",
+                  "value": 5
+                },
+                {
+                  "operatorType": "StringContains",
+                  "key": "Subject",
+                  "values": ["container1", "container2"]
+                }
+              ]
+            }
+
+        -> Example Meaning:
+
+            -> First condition:
+                -> Data.Key1 >= 5
+
+            -> Second condition:
+                -> Subject contains "container1" OR "container2"
+
+    ----------------------------------------------------
+
+    -> Key Points:
+
+        -> Event Type → Filter based on event name
+        -> Subject → Filter based on path/string
+        -> Advanced → Filter based on data values
+
+        -> Filters help:
+            -> Reduce unwanted events
+            -> Improve performance
+            -> Save cost
+
+=> Azure Event Hubs
+
+    -> What is Event Hubs?
+
+        -> Azure Event Hubs is a cloud-based data streaming platform
+        -> It can handle millions of events per second with low latency
+        -> Used for real-time data ingestion and processing
+
+        -> Simple Meaning:
+            -> "Collect and process huge streams of data in real-time"
+
+    -> Use Cases:
+
+        -> IoT data ingestion (device telemetry)
+        -> Application logs & monitoring
+        -> Real-time analytics
+        -> Clickstream data (user activity tracking)
+
+    ----------------------------------------------------
+
+    -> Key Features:
+
+        -> High Throughput:
+            -> Can process millions of events per second
+
+        -> Low Latency:
+            -> Near real-time processing
+
+        -> Scalable:
+            -> Uses partitions to scale
+
+        -> Kafka Compatible:
+            -> Can run Apache Kafka apps without code change
+
+        -> Protocol Support:
+            -> AMQP, Kafka, HTTPS
+
+    ----------------------------------------------------
+
+    -> Key Concepts:
+
+        -> 1. Producer
+
+            -> Sends data/events to Event Hub
+            -> Example:
+                -> IoT device
+                -> Application logs
+
+        -> 2. Namespace
+
+            -> Container for Event Hubs
+            -> Used for:
+                -> Security
+                -> Scaling
+                -> Configuration
+
+        -> 3. Event Hub / Kafka Topic
+
+            -> Logical stream of events
+            -> Acts like:
+                -> Append-only log
+
+        -> 4. Partitions
+
+            -> Used for scalability
+            -> More partitions = more parallel processing
+
+            -> Analogy:
+                -> Multiple lanes on highway 🚗
+
+        -> 5. Consumer
+
+            -> Reads events from Event Hub
+            -> Maintains its own offset (position)
+
+        -> 6. Consumer Group
+
+            -> Group of consumers
+            -> Each group reads data independently
+
+            -> Benefit:
+                -> Multiple applications can read same data
+
+    ----------------------------------------------------
+
+    -> Important Concepts:
+
+        -> Offset:
+
+            -> Position of consumer in event stream
+            -> Helps track which events are read
+
+        -> Partitioned Model:
+
+            -> Data is distributed across partitions
+            -> Enables parallel processing
+
+    ----------------------------------------------------
+
+    -> Advanced Features:
+
+        -> Apache Kafka Support:
+
+            -> Run Kafka apps directly on Event Hubs
+            -> No need to manage Kafka clusters
+
+        -> Schema Registry:
+
+            -> Central place to store event schemas
+            -> Ensures consistent data format
+
+        -> Stream Analytics Integration:
+
+            -> Real-time processing using:
+                -> Drag & drop (no code)
+                -> SQL-like queries
+
+    ----------------------------------------------------
+
+    -> Flow (End-to-End):
+
+        Producer → Event Hub → Partition → Consumer Group → Consumer
+
+    ----------------------------------------------------
+
+    -> Key Points:
+
+        -> Event Hubs = Big data streaming service
+        -> Handles high volume real-time data
+        -> Supports multiple consumers
+        -> Scalable using partitions
+
+=> Event Hubs Capture
+
+    -> What is Event Hubs Capture?
+
+        -> Event Hubs Capture is a feature of Azure Event Hubs
+        -> It automatically stores streaming data into storage
+
+        -> Supported Storage:
+            -> Azure Blob Storage
+            -> Azure Data Lake Storage
+
+        -> Simple Meaning:
+            -> "Automatically save streaming data into storage without writing code"
+
+    ----------------------------------------------------
+
+    -> Why Capture is used?
+
+        -> To store real-time streaming data
+        -> To enable batch processing later
+        -> To build hybrid systems (real-time + batch)
+
+        -> Example:
+            -> IoT data → stored in Blob → later analyzed in Spark
+
+    ----------------------------------------------------
+
+    -> How Event Hubs Capture Works?
+
+        -> Event Hub acts like a buffer (temporary storage)
+
+        -> Flow:
+
+            Producer → Event Hub → Capture → Blob Storage / Data Lake
+
+        -> Key idea:
+            -> Data is continuously collected and stored automatically
+
+    ----------------------------------------------------
+
+    -> Partition-based Storage Model
+
+        -> Event Hubs is partitioned
+
+        -> Each partition:
+            -> Captures data independently
+            -> Stores its own output file
+
+        -> Benefit:
+            -> Parallel processing
+            -> High scalability
+
+    ----------------------------------------------------
+
+    -> Capture Windowing
+
+        -> Capture is controlled using time or size window
+
+        -> Example:
+            -> Every 5 minutes OR 100 MB data
+
+        -> First trigger wins policy:
+            -> Whichever condition hits first triggers capture
+
+        -> Output format:
+            -> Data written as files (block blobs)
+
+    ----------------------------------------------------
+
+    -> File Naming Convention:
+
+        -> Format:
+
+        {Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}
+
+        -> Example:
+
+        https://storage.blob.core.windows.net/container/
+        mynamespace/myeventhub/0/2017/12/08/03/03/17.avro
+
+    ----------------------------------------------------
+
+    -> Data Format Used:
+
+        -> Apache Avro format
+
+        -> Why Avro?
+
+            -> Compact (small size)
+            -> Fast processing
+            -> Binary format
+            -> Includes schema with data
+
+    ----------------------------------------------------
+
+    -> Scaling Concept:
+
+        -> Event Hubs uses Throughput Units (TU)
+
+        -> Each TU provides:
+
+            -> 1 MB/sec ingestion (~1000 events/sec)
+            -> 2 MB/sec egress
+
+        -> Scaling options:
+
+            -> Increase TUs manually
+            -> Auto-inflate (auto scaling)
+
+    ----------------------------------------------------
+
+    -> Important Behavior:
+
+        -> Capture runs automatically once enabled
+
+        -> No manual trigger required
+
+        -> If no data arrives:
+            -> Empty files are created
+
+        -> Purpose of empty files:
+            -> Maintain processing consistency in batch systems
+
+    ----------------------------------------------------
+
+    -> Key Benefits:
+
+        -> No code required for storage
+        -> Real-time + batch processing support
+        -> Automatic scaling
+        -> Works with big data tools (Spark, Data Factory)
+
+=> Scale Your Event Processing Application (Azure Event Hubs)
+
+    -> Why Scaling is Needed?
+
+        -> Event Hubs can receive millions of events per second
+        -> One consumer is not enough to process all data
+        -> So we need multiple consumer instances
+
+    ----------------------------------------------------
+
+    -> Core Concept: Partitioned Consumer Model
+
+        -> Event Hub data is split into partitions
+        -> Each partition is processed independently
+
+        -> Key Idea:
+            -> One partition → One active consumer at a time
+
+        -> Benefit:
+            -> Parallel processing
+            -> High scalability
+            -> No contention between consumers
+
+    ----------------------------------------------------
+
+    -> Older vs New SDKs:
+
+        -> Old Model:
+            -> EventProcessorHost
+
+        -> New Model (Recommended):
+
+            -> .NET / Java:
+                -> EventProcessorClient
+
+            -> Python / JavaScript:
+                -> EventHubConsumerClient
+
+    ----------------------------------------------------
+
+    -> Real-Life Scenario Example:
+
+        -> 100,000 homes with sensors
+        -> Each sensor sends events every minute
+
+        -> Event Hub:
+            -> 16 partitions
+
+        -> Consumer App:
+            -> Reads data
+            -> Aggregates it
+            -> Stores in Blob Storage
+            -> Shows on dashboard
+
+    ----------------------------------------------------
+
+    -> Requirements in Distributed Consumer System:
+
+        -> 1. Scale
+
+            -> Add multiple consumer instances
+            -> Each instance processes few partitions
+
+        -> 2. Load Balancing
+
+            -> If traffic increases:
+                -> Add more consumers
+
+            -> System automatically redistributes partitions
+
+        -> 3. Failure Handling (Resilience)
+
+            -> If consumer crashes:
+                -> Another consumer takes over its partitions
+
+            -> Processing continues from last saved position
+
+        -> 4. Event Processing
+
+            -> Consume event
+            -> Process data
+            -> Store / transform / route
+
+    ----------------------------------------------------
+
+    -> Event Processor Client (Managed Solution)
+
+        -> Provided by Azure SDK
+        -> Handles:
+            -> Load balancing
+            -> Partition assignment
+            -> Failover
+            -> Coordination
+
+    ----------------------------------------------------
+
+    -> Partition Ownership Tracking
+
+        -> Each consumer has a unique ID
+
+        -> How it works:
+
+            -> Consumers write ownership info to checkpoint store
+            -> All consumers read this shared store
+            -> System decides partition distribution
+
+        -> Result:
+            -> Even load distribution across consumers
+
+    ----------------------------------------------------
+
+    -> Checkpointing
+
+        -> What is Checkpoint?
+
+            -> Saving last processed event position (offset)
+
+        -> Why needed?
+
+            -> If consumer fails
+            -> Another consumer resumes from same position
+
+        -> Flow:
+
+            Event → Process → Save Offset (Checkpoint)
+
+        -> Benefits:
+
+            -> No data loss
+            -> Resume processing safely
+            -> Fault tolerance
+
+    ----------------------------------------------------
+
+    -> Receive Event Behavior:
+
+        -> Each event processed one by one per partition
+        -> Sequential processing per partition
+
+        -> Across partitions:
+            -> Parallel processing allowed
+
+    ----------------------------------------------------
+
+    -> Thread Safety:
+
+        -> Same partition:
+            -> Sequential execution
+
+        -> Different partitions:
+            -> Parallel execution
+
+        -> Shared data:
+            -> Must be synchronized manually
+
+    ----------------------------------------------------
+
+    -> Performance Best Practices:
+
+        -> Keep processing fast
+        -> Avoid heavy logic inside event handler
+        -> Use multiple consumer groups if needed
+
+        -> Example:
+            -> Group 1 → Storage
+            -> Group 2 → Analytics
+
+    ----------------------------------------------------
+
+    -> Key Summary:
+
+        -> Event Hubs scales using partitions
+        -> Consumers scale horizontally
+        -> Checkpoint ensures recovery
+        -> SDK handles load balancing automatically
+
+=> Control Access to Events (Azure Event Hubs)
+
+    -> Why Access Control is Needed?
+
+        -> Event Hubs handles sensitive streaming data
+        -> We must ensure only authorized users/apps can:
+            -> Send events
+            -> Receive events
+            -> Manage resources
+
+    ----------------------------------------------------
+
+    -> Authentication & Authorization Methods:
+
+        -> 1. Microsoft Entra ID (Recommended)
+        -> 2. Shared Access Signatures (SAS)
+
+    ----------------------------------------------------
+
+    -> 1. Azure RBAC Roles (Using Entra ID)
+
+        -> Event Hubs supports built-in roles:
+
+            -> Azure Event Hubs Data Owner
+                -> Full access (send + receive + manage)
+
+            -> Azure Event Hubs Data Sender
+                -> Only send events
+
+            -> Azure Event Hubs Data Receiver
+                -> Only receive/read events
+
+    ----------------------------------------------------
+
+    -> Access using Managed Identity
+
+        -> Managed Identity is linked to Azure resource
+
+        -> Flow:
+
+            App (Managed Identity)
+                ↓
+            Azure Role Assignment (RBAC)
+                ↓
+            Event Hubs Access Granted
+
+        -> Benefit:
+            -> No credentials stored in code
+            -> Secure & automatic authentication
+
+    ----------------------------------------------------
+
+    -> Access using Microsoft Identity Platform (OAuth)
+
+        -> Instead of storing secrets:
+
+            -> App requests access token from Entra ID
+            -> Entra ID authenticates user/app
+            -> Returns OAuth 2.0 access token
+
+        -> App uses token to access Event Hubs
+
+        -> Key Benefit:
+            -> No passwords or keys in code
+
+    ----------------------------------------------------
+
+    -> 2. Shared Access Signatures (SAS)
+
+        -> What is SAS?
+
+            -> A token-based authentication method
+            -> Grants limited access to Event Hubs
+
+        -> Key Concept:
+
+            -> Each client gets a token
+            -> Token defines what it can do (send/receive)
+
+        -> Publisher Concept:
+
+            -> Event Hub uses "publisher per client"
+            -> Each publisher has a unique token
+
+        -> Important:
+
+            -> Client can only send to its assigned publisher
+            -> Cannot access other publishers
+
+    ----------------------------------------------------
+
+    -> SAS Security Model:
+
+        -> Tokens are signed using shared key
+        -> Clients do NOT know the key
+        -> Prevents fake token creation
+
+        -> Tokens:
+            -> Have expiry time
+            -> Are reusable until expiration
+
+    ----------------------------------------------------
+
+    -> SAS for Consumers:
+
+        -> Used for reading events
+
+        -> Requires permissions:
+
+            -> Listen OR Manage rights
+
+        -> Scope levels:
+
+            -> Namespace level
+            -> Event Hub level
+
+        -> Important limitation:
+
+            -> SAS is NOT per consumer group
+            -> It applies at entity level only
+
+    ----------------------------------------------------
+
+    -> Consumer Groups Security:
+
+        -> Permissions apply to:
+            -> Entire Event Hub or Namespace
+
+        -> Not individually per consumer group
+
+    ----------------------------------------------------
+
+    -> Key Comparison:
+
+        -> Entra ID (Recommended):
+            -> Secure
+            -> No secrets
+            -> RBAC based
+
+        -> SAS:
+            -> Token based
+            -> Less secure than Entra ID
+            -> Uses shared keys
+
+    ----------------------------------------------------
+
+    -> Key Takeaways:
+
+        -> Event Hubs security = Entra ID + SAS
+        -> RBAC controls access using roles
+        -> Managed identity removes need for secrets
+        -> SAS uses tokens signed with shared key
+
+=> Inspect Event Hubs
+    -> Many Event Hubs operations take place within the scope of a specific partition.
+    -> Because Event Hubs owns the partitions, their names are assigned at the time of creation.
+    -> To understand what partitions are available, you query the Event Hubs using one of the Event Hubs clients.
+    -> Example Client:
+        -> EventHubProducerClient
+        -> EventHubConsumerClient
+        -> EventProcessorClient
+    -> These client allow you to get partition IDs. read events, publish events and process events in scalable way.
