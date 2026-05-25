@@ -1,0 +1,915 @@
+=> Azure Queue Messaging Services
+
+    -> Azure supports two queue mechanisms
+        - Azure Service Bus Queues
+        - Azure Storage Queues
+
+    -> Purpose of Queues
+        - Used for asynchronous communication between applications/services
+        - Helps in decoupling producer and consumer systems
+        - Improves scalability and reliability
+        - Useful when one service is slow, busy, or temporarily unavailable
+
+    -> Basic Queue Flow
+        - Producer sends message to queue
+        - Queue stores message temporarily
+        - Consumer processes message later
+
+        Example:
+            Producer ---> Queue ---> Consumer
+
+    -> Azure Service Bus Queues
+        - Part of Azure Messaging Infrastructure
+        - Supports:
+            - Queuing
+            - Publish/Subscribe
+            - Advanced integration patterns
+        - Designed for enterprise-level messaging
+        - Can integrate applications across:
+            - Different communication protocols
+            - Different trust domains
+            - Different network environments
+            - Different data contracts
+
+    -> Features of Service Bus Queues
+        - Supports advanced messaging patterns
+        - FIFO support
+        - Dead-letter queues
+        - Transactions support
+        - Duplicate detection
+        - Sessions support
+        - Reliable message delivery
+
+    -> Use Cases of Service Bus Queues
+        - Microservices communication
+        - Enterprise application integration
+        - Financial transactions
+        - Order processing systems
+        - Event-driven architectures
+
+    -> Azure Storage Queues
+        - Part of Azure Storage Infrastructure
+        - Designed for simple and highly scalable messaging
+        - Stores large numbers of messages
+        - Accessible globally using:
+            - HTTP
+            - HTTPS
+
+    -> Features of Storage Queues
+        - Very high scalability
+        - Cost-effective
+        - Can contain millions of messages
+        - Simple queue implementation
+        - Suitable for background processing
+
+    -> Common Use Cases of Storage Queues
+        - Background jobs
+        - Async task processing
+        - Workload buffering
+        - Logging systems
+        - Image/video processing pipelines
+
+    -> Key Difference Between Both
+
+        Service Bus Queue
+            - Advanced enterprise messaging
+            - Rich messaging features
+            - More reliable and intelligent routing
+            - Higher cost
+
+        Storage Queue
+            - Simple message storage
+            - Massive scalability
+            - Cheaper solution
+            - Limited advanced features
+
+    -> Module Learning Objectives
+        - Choose appropriate Azure queue mechanism
+        - Understand Service Bus messaging entities
+        - Send and receive messages using .NET
+        - Understand Azure Queue Storage components
+        - Create and manage Azure Storage Queues using .NET
+
+=> Choose a Message Queue Solution
+
+    -> Azure provides two queue solutions
+        - Service Bus Queues
+        - Storage Queues
+
+    -> Selection depends on
+        - Application requirements
+        - Message size
+        - Ordering guarantees
+        - Reliability needs
+        - Transaction support
+        - Scalability requirements
+
+    -> Consider Using Service Bus Queues
+
+        -> No polling requirement
+            - Service Bus supports long polling
+            - Messages can be received without continuously checking the queue
+            - Uses TCP-based protocols
+
+        -> FIFO Message Ordering
+            - Supports guaranteed First-In-First-Out delivery
+            - Messages are processed in exact sending order
+
+            Example:
+                Message1 -> Message2 -> Message3
+                Consumer receives in same order
+
+        -> Duplicate Detection
+            - Automatically detects duplicate messages
+            - Prevents processing same message multiple times
+
+        -> Parallel Long-Running Streams
+            - Messages can be grouped using Session ID
+            - Each consumer processes one stream/session
+
+            Example:
+                Session A -> Consumer 1
+                Session B -> Consumer 2
+
+            - Useful for ordered workflow processing
+
+        -> Transaction Support
+            - Supports transactional behavior
+            - Multiple operations can succeed/fail together atomically
+
+            Example:
+                - Send message
+                - Update database
+                - Complete together
+
+        -> Large Message Support
+            - Suitable for messages larger than 64 KB
+            - Supports:
+                - Up to 256 KB
+                - Up to 1 MB depending on tier
+                - Up to 100 MB in advanced scenarios
+
+        -> Role-Based Access Control
+            - Supports different permissions for:
+                - Senders
+                - Receivers
+            - Improves security management
+
+    -> Common Use Cases of Service Bus Queues
+        - Enterprise applications
+        - Banking systems
+        - Order processing
+        - Financial transactions
+        - Workflow orchestration
+        - Microservices communication
+
+    -> Consider Using Storage Queues
+
+        -> Very Large Queue Storage
+            - Suitable when queue stores more than 80 GB of messages
+            - Supports massive scalability
+
+        -> Message Processing Progress Tracking
+            - Workers can track processing state
+            - Helpful during worker crashes/failures
+
+            Example:
+                - Worker processes 50%
+                - Worker crashes
+                - Another worker resumes from saved progress
+
+        -> Transaction Logging
+            - Supports server-side logs
+            - Tracks all queue transactions
+            - Useful for monitoring and auditing
+
+    -> Common Use Cases of Storage Queues
+        - Background jobs
+        - Batch processing
+        - Logging systems
+        - Video/Image processing
+        - Large-scale async processing
+
+    -> Quick Decision Guide
+
+        Use Service Bus Queue When:
+            - FIFO ordering is required
+            - Transactions are needed
+            - Duplicate detection is needed
+            - Enterprise messaging is required
+            - Advanced features are needed
+
+        Use Storage Queue When:
+            - Massive storage is required
+            - Simple queueing is enough
+            - Very high scalability is needed
+            - Cost-effective solution is preferred
+
+=> Explore Azure Service Bus
+
+    -> What is Azure Service Bus?
+        - Fully managed enterprise message broker
+        - Supports:
+            - Message Queues
+            - Publish-Subscribe Topics
+        - Used to decouple applications and services
+        - Enables reliable asynchronous communication
+
+    -> Purpose of Service Bus
+        - Transfer data between applications/services
+        - Improve:
+            - Reliability
+            - Scalability
+            - Fault tolerance
+        - Producer and consumer do not need to be online simultaneously
+
+    -> What is a Message?
+        - A message is a container of data + metadata
+        - Contains business/application data
+
+        Message Structure:
+            - Metadata
+            - Payload/Data
+
+        Supported Data Formats:
+            - JSON
+            - XML
+            - Apache Avro
+            - Plain Text
+
+    -> Common Messaging Scenarios
+
+        -> Business Messaging
+            - Transfer:
+                - Sales orders
+                - Purchase orders
+                - Journals
+                - Inventory updates
+
+        -> Application Decoupling
+            - Applications communicate asynchronously
+            - Reduces dependency between services
+
+        -> Topics and Subscriptions
+            - Supports 1:N communication
+            - One publisher can send messages to multiple subscribers
+
+            Example:
+                Publisher
+                    -> Subscriber A
+                    -> Subscriber B
+                    -> Subscriber C
+
+        -> Message Sessions
+            - Maintains ordered processing of related messages
+            - Useful in workflows requiring FIFO behavior
+
+    -> Service Bus Pricing Tiers
+
+        -> Basic Tier
+            - Suitable for simple messaging
+            - Low throughput
+            - Minimal features
+            - Supports only queues
+            - Topics/subscriptions not supported
+
+        -> Standard Tier
+            - Suitable for:
+                - Development
+                - Testing
+                - Low throughput production
+            - Supports:
+                - Queues
+                - Topics
+                - Subscriptions
+            - Variable latency possible
+
+        -> Premium Tier
+            - Designed for mission-critical production systems
+            - High throughput
+            - Predictable performance
+            - CPU & memory isolation
+            - Advanced enterprise features
+            - Supports messages up to 100 MB
+
+    -> Tier Comparison
+
+        Basic Tier
+            - Low throughput
+            - Queue only
+            - No transactions
+            - No sessions
+
+        Standard Tier
+            - Variable throughput
+            - Topics supported
+            - Transactions supported
+            - Sessions supported
+
+        Premium Tier
+            - High throughput
+            - Predictable latency
+            - Scaling support
+            - Advanced enterprise features
+
+    -> Advanced Features of Service Bus
+
+        -> Message Sessions
+            - Provides FIFO guarantee
+            - Related messages processed in order
+            - Supports exclusive stream handling
+
+        -> Autoforwarding
+            - Automatically forwards messages
+            - Queue/subscription can forward to another queue/topic
+
+        -> Dead-Letter Queue (DLQ)
+            - Stores failed or undeliverable messages
+            - Useful for debugging and retry handling
+
+            Example:
+                Invalid Message
+                    -> Dead Letter Queue
+
+        -> Scheduled Delivery
+            - Delays message processing until a specified time
+
+            Example:
+                Process order after 2 hours
+
+        -> Message Deferral
+            - Temporarily postpones processing of a message
+            - Message remains inside queue
+
+        -> Transactions
+            - Multiple operations execute atomically
+            - Either all succeed or all fail
+
+        -> Filtering and Actions
+            - Subscribers can filter messages
+            - Receive only required messages
+
+            Example:
+                Subscriber A -> Only Orders
+                Subscriber B -> Only Payments
+
+        -> Auto Delete on Idle
+            - Automatically deletes unused queues
+            - Minimum idle duration:
+                - 5 minutes
+
+        -> Duplicate Detection
+            - Prevents duplicate message processing
+            - Useful during retry operations
+
+        -> Security Protocols
+            - Supports:
+                - SAS (Shared Access Signature)
+                - RBAC (Role-Based Access Control)
+                - Managed Identities
+
+        -> Geo-Disaster Recovery
+            - Supports failover to another region/datacenter
+            - Ensures business continuity during outages
+
+        -> Protocol Support
+            - AMQP 1.0
+            - HTTP/REST
+
+    -> AMQP Protocol
+
+        -> AMQP Full Form
+            - Advanced Message Queuing Protocol
+
+        -> Characteristics
+            - Open ISO/IEC standard
+            - Enables interoperability between messaging systems
+
+        -> Compatible Brokers
+            - ActiveMQ
+            - RabbitMQ
+            - Azure Service Bus
+
+    -> JMS Compliance
+        - Service Bus Premium supports:
+            - Java/Jakarta EE JMS 2.0 API
+
+    -> Client Libraries Available
+
+        - .NET
+        - Java
+        - Java JMS 2.0
+        - JavaScript
+        - TypeScript
+        - Python
+
+    -> Key Benefits of Azure Service Bus
+        - Enterprise-grade messaging
+        - Reliable communication
+        - FIFO support
+        - Dead-letter handling
+        - Transactions support
+        - High scalability
+        - Advanced security
+        - Disaster recovery support
+
+=> Discover Service Bus Queues, Topics, and Subscriptions
+
+    -> Core Messaging Entities in Azure Service Bus
+        - Queues
+        - Topics
+        - Subscriptions
+        - Rules and Actions
+
+====================================================================================================
+=> Service Bus Queues
+
+    -> What is a Queue?
+        - Provides FIFO (First In First Out) message delivery
+        - One or more competing consumers can process messages
+        - Only one consumer processes each message
+
+        Example:
+            Producer ---> Queue ---> One Consumer
+
+    -> FIFO Behavior
+        - Messages are processed in the same order they are added
+
+        Example:
+            Added:
+                Message1
+                Message2
+                Message3
+
+            Received:
+                Message1
+                Message2
+                Message3
+
+    -> Durable Message Storage
+        - Messages are stored safely inside queue
+        - Producer and consumer do not need to run simultaneously
+
+        Example:
+            - Producer sends message at 10 AM
+            - Consumer processes message at 11 AM
+
+    -> Loose Coupling
+        - Producer and consumer are independent
+        - Changes in consumer do not affect producer
+
+        Benefits:
+            - Easier upgrades
+            - Better maintainability
+            - Better scalability
+
+    -> Load Leveling
+
+        -> Problem
+            - System traffic varies over time
+            - Consumers may not handle peak traffic directly
+
+        -> Solution
+            - Queue acts as a buffer
+
+        Example:
+            High Traffic
+                -> Messages stored in queue
+                -> Consumers process gradually
+
+        -> Benefit
+            - Consumer handles average load instead of peak load
+
+    -> Queue Creation Methods
+        - Azure Portal
+        - PowerShell
+        - Azure CLI
+        - ARM Templates
+
+    -> Supported Client Languages
+        - C#
+        - Java
+        - Python
+        - JavaScript
+
+====================================================================================================
+=> Service Bus Receive Modes
+
+    -> Two Receive Modes
+        - Receive and Delete
+        - Peek Lock
+
+----------------------------------------------------------------------------------------------------
+=> Receive and Delete Mode
+
+    -> Working
+        - Service Bus immediately marks message as consumed
+        - Message is removed before processing completes
+
+        Flow:
+            Receive Request
+                -> Message Deleted
+                -> Message Returned to Consumer
+
+    -> Advantage
+        - Simple and fast
+
+    -> Risk
+        - Message loss possible during failure
+
+        Example:
+            - Consumer receives message
+            - Application crashes before processing
+            - Message already deleted
+            - Message permanently lost
+
+    -> Best Use Cases
+        - Non-critical processing
+        - Logging
+        - Temporary notifications
+
+----------------------------------------------------------------------------------------------------
+=> Peek Lock Mode
+
+    -> Working
+        - Message is first locked
+        - Other consumers cannot access it
+        - Message removed only after successful processing
+
+        Flow:
+            Receive Message
+                -> Lock Message
+                -> Process Message
+                -> Complete Message
+                -> Delete Message
+
+    -> Advantage
+        - Prevents message loss
+        - Safer processing model
+
+    -> Abandon Scenario
+        - Consumer can abandon message
+        - Message becomes available again
+
+        Example:
+            Processing Failed
+                -> Abandon Message
+                -> Queue Unlocks Message
+                -> Another Consumer Processes It
+
+    -> Lock Timeout
+        - Lock exists only for limited duration
+        - If processing exceeds timeout:
+            - Message becomes available again
+
+    -> Best Use Cases
+        - Critical business operations
+        - Payment processing
+        - Order processing
+        - Banking systems
+
+====================================================================================================
+=> Topics and Subscriptions
+
+    -> Purpose
+        - Supports Publish-Subscribe (Pub/Sub) model
+        - Enables one-to-many communication
+
+    -> Queue vs Topic
+
+        Queue:
+            - One message -> One consumer
+
+        Topic:
+            - One message -> Multiple subscribers
+
+    -> Publish Subscribe Architecture
+
+        Example:
+
+                Publisher
+                    |
+                  Topic
+                /   |   \
+               /    |    \
+         SubscriptionA
+         SubscriptionB
+         SubscriptionC
+
+    -> How It Works
+        - Publisher sends message to topic
+        - Topic distributes copies to subscriptions
+        - Consumers read from subscriptions
+
+    -> Subscription
+        - Acts like a virtual queue
+        - Stores copy of topic messages
+
+    -> Benefits
+        - Massive scalability
+        - Multiple services can consume same event
+        - Better event-driven architecture
+
+    -> Supported Patterns
+        - Competing Consumers
+        - Temporal Decoupling
+        - Load Leveling
+        - Load Balancing
+
+====================================================================================================
+=> Rules and Actions
+
+    -> Purpose
+        - Allows selective message processing
+        - Different subscribers can receive different messages
+
+    -> Message Filtering
+        - Subscriptions can filter messages using properties
+
+        Example:
+            OrderType = Electronics
+            StoreName = DelhiStore
+
+    -> Filter Types
+        - System Properties
+            Example:
+                - Label
+
+        - Custom Application Properties
+            Example:
+                - StoreName
+                - OrderType
+
+    -> SQL Filter Expressions
+        - Used to define filtering conditions
+
+        Example:
+            StoreName = 'DelhiStore'
+
+    -> Actions
+        - Modify message properties during filtering
+
+    -> Important Point
+        - If no SQL filter exists:
+            - Action applies to all messages
+
+====================================================================================================
+=> Real-World Example of Topics and Filters
+
+    -> Scenario
+        - E-commerce application
+
+    -> Publisher
+        - Sends all order events to topic
+
+    -> Subscriptions
+
+        Electronics Subscription
+            - Receives only electronics orders
+
+        Grocery Subscription
+            - Receives only grocery orders
+
+        Payment Subscription
+            - Receives only payment-related events
+
+====================================================================================================
+=> Key Concepts Summary
+
+    Queue
+        - One-to-one communication
+        - FIFO supported
+        - Load leveling
+
+    Topic
+        - One-to-many communication
+        - Publish-subscribe model
+
+    Subscription
+        - Virtual queue attached to topic
+        - Receives copies of messages
+
+    Peek Lock
+        - Safe message processing
+        - Prevents data loss
+
+    Receive and Delete
+        - Faster but risky
+        - Message removed immediately
+
+    Rules and Actions
+        - Message filtering and customization
+
+=> Explore Azure Queue Storage
+
+    -> What is Azure Queue Storage?
+        - Azure Queue Storage is a service for storing large numbers of messages
+        - Used for asynchronous communication between applications/services
+        - Commonly used for background processing
+
+    -> Purpose of Azure Queue Storage
+        - Create backlog of work
+        - Process tasks asynchronously
+        - Decouple producer and consumer applications
+        - Improve scalability and reliability
+
+    -> Communication Protocols
+        - Accessible globally using:
+            - HTTP
+            - HTTPS
+
+        - Access requires authenticated requests
+
+    -> Message Characteristics
+        - Maximum message size:
+            - 64 KB
+
+        - Queue can contain:
+            - Millions of messages
+
+        - Total storage depends on:
+            - Storage account capacity
+
+====================================================================================================
+=> Components of Azure Queue Storage
+
+    -> Main Components
+        - Storage Account
+        - Queue
+        - Message
+        - Queue URL
+
+----------------------------------------------------------------------------------------------------
+=> Storage Account
+
+    -> Definition
+        - Main Azure resource that contains storage services
+        - All Queue Storage operations occur inside storage account
+
+    -> Purpose
+        - Provides access control
+        - Stores queues and messages
+        - Defines total storage capacity
+
+    -> Important Point
+        - Without storage account, queues cannot exist
+
+----------------------------------------------------------------------------------------------------
+=> Queue
+
+    -> Definition
+        - Queue stores collection of messages
+
+    -> Purpose
+        - Temporarily stores work/tasks until processed
+
+    -> Important Rules
+        - All messages must belong to a queue
+        - Queue name must be lowercase
+
+        Valid Example:
+            imagesqueue
+
+        Invalid Example:
+            ImagesQueue
+
+    -> Queue Behavior
+        - Producer adds messages
+        - Consumer retrieves and processes messages
+
+----------------------------------------------------------------------------------------------------
+=> Message
+
+    -> Definition
+        - Unit of data stored inside queue
+
+    -> Message Content
+        - Can contain any format of data
+
+        Examples:
+            - JSON
+            - XML
+            - Plain Text
+
+    -> Maximum Size
+        - Up to 64 KB
+
+    -> Time-To-Live (TTL)
+
+        -> Before Version 2017-07-29
+            - Maximum TTL:
+                - 7 days
+
+        -> Version 2017-07-29 or Later
+            - TTL can be:
+                - Any positive value
+                - -1 (Never expire)
+
+        -> Default TTL
+            - 7 days
+
+----------------------------------------------------------------------------------------------------
+=> Queue URL Format
+
+    -> Queue Address Format
+
+        https://<storage-account>.queue.core.windows.net/<queue-name>
+
+    -> Example
+
+        https://myaccount.queue.core.windows.net/images-to-download
+
+    -> URL Parts
+
+        https://
+            - Secure communication protocol
+
+        myaccount
+            - Storage account name
+
+        queue.core.windows.net
+            - Azure Queue Storage endpoint
+
+        images-to-download
+            - Queue name
+
+====================================================================================================
+=> Queue Storage Workflow
+
+    -> Step 1
+        - Producer sends message to queue
+
+    -> Step 2
+        - Queue stores message safely
+
+    -> Step 3
+        - Consumer retrieves message later
+
+    -> Step 4
+        - Consumer processes task asynchronously
+
+    Example:
+
+        Producer
+            -> Queue Storage
+                -> Worker/Consumer
+
+====================================================================================================
+=> Real-World Use Cases
+
+    -> Background Job Processing
+        Example:
+            - Sending emails
+            - Notification processing
+
+    -> Image/Video Processing
+        Example:
+            - Upload image
+            - Queue stores processing request
+            - Worker resizes image
+
+    -> Order Processing
+        Example:
+            - User places order
+            - Queue stores order task
+            - Worker processes payment/shipping
+
+    -> Logging Systems
+        - Applications push logs into queue
+        - Background workers process logs later
+
+====================================================================================================
+=> Advantages of Azure Queue Storage
+
+    -> Massive Scalability
+        - Supports millions of messages
+
+    -> Cost Effective
+        - Cheaper than advanced messaging systems
+
+    -> Simple Architecture
+        - Easy to implement
+
+    -> Reliable Storage
+        - Messages stored durably
+
+    -> Asynchronous Processing
+        - Producer and consumer work independently
+
+====================================================================================================
+=> Azure Queue Storage vs Service Bus Queue
+
+    Azure Queue Storage
+        - Simple messaging
+        - Massive scalability
+        - Lower cost
+        - 64 KB message size
+        - Basic queue features
+
+    Azure Service Bus
+        - Enterprise messaging
+        - Advanced features
+        - FIFO guarantee
+        - Transactions support
+        - Topics & subscriptions support
+

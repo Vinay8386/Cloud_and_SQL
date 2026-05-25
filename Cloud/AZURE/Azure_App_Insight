@@ -1,0 +1,1170 @@
+=> Explore Application Insights
+
+    -> What is Application Insights?
+        - Application Insights is an Application Performance Monitoring (APM) service
+        - It is an extension of Azure Monitor
+        - Used to monitor application performance, availability, and usage
+
+    -> Purpose of Application Insights
+
+        -> Proactive Monitoring
+            - Understand application performance before issues occur
+            - Detect failures and anomalies early
+
+        -> Reactive Monitoring
+            - Investigate incidents after failures occur
+            - Analyze logs, traces, and telemetry
+
+    -> Main Benefits
+        - Performance monitoring
+        - Failure detection
+        - Distributed tracing
+        - User behavior analysis
+        - Real-time monitoring
+        - Application diagnostics
+
+====================================================================================================
+=> What Application Insights Collects
+
+    -> Metrics Data
+        - Numerical performance data
+
+        Examples:
+            - CPU usage
+            - Memory usage
+            - Request count
+
+    -> Telemetry Data
+        - Application activity information
+
+        Examples:
+            - Requests
+            - Dependencies
+            - Exceptions
+            - User interactions
+
+    -> Trace Logging Data
+        - Detailed application logs
+        - Helps debug issues
+
+====================================================================================================
+=> Trace Logging
+
+    -> Purpose
+        - Records detailed execution information
+
+    -> Important Feature
+        - Trace logs correlate with telemetry
+
+        Example:
+            Request
+                -> Exception
+                -> Dependency call
+                -> Trace log
+
+    -> Advantage
+        - Provides complete debugging visibility
+
+    -> Easy Integration
+        - Existing logging frameworks usually do not require major changes
+        - Only log destination configuration is needed
+
+====================================================================================================
+=> Application Insights Features
+
+----------------------------------------------------------------------------------------------------
+=> Live Metrics
+
+    -> Purpose
+        - Monitor application activity in real time
+
+    -> Advantage
+        - No impact on host environment
+
+    -> Example
+        - Observe live request count and failures
+
+----------------------------------------------------------------------------------------------------
+=> Availability Monitoring
+
+    -> Also Called
+        - Synthetic Transaction Monitoring
+
+    -> Purpose
+        - Continuously tests application endpoints
+
+    -> Checks
+        - Availability
+        - Responsiveness
+        - Uptime
+
+    -> Example
+        - Ping website every 5 minutes
+
+----------------------------------------------------------------------------------------------------
+=> GitHub / Azure DevOps Integration
+
+    -> Purpose
+        - Create work items directly from telemetry/issues
+
+    -> Benefit
+        - Faster incident tracking
+
+----------------------------------------------------------------------------------------------------
+=> Usage Monitoring
+
+    -> Purpose
+        - Understand user behavior
+
+    -> Tracks
+        - Popular features
+        - User interaction patterns
+        - Feature usage frequency
+
+----------------------------------------------------------------------------------------------------
+=> Smart Detection
+
+    -> Purpose
+        - Automatically detects anomalies and failures
+
+    -> Uses
+        - Telemetry analysis
+        - AI/ML-based monitoring
+
+    -> Example
+        - Sudden increase in failures
+
+----------------------------------------------------------------------------------------------------
+=> Application Map
+
+    -> Purpose
+        - Visual overview of application architecture
+
+    -> Shows
+        - Services
+        - Dependencies
+        - Health status
+        - Response times
+
+    -> Benefit
+        - Quickly identify failing component
+
+----------------------------------------------------------------------------------------------------
+=> Distributed Tracing
+
+    -> Purpose
+        - Track complete execution flow across services
+
+    -> Useful In
+        - Microservices architecture
+
+    -> Example
+
+        User Request
+            -> API Gateway
+                -> Order Service
+                    -> Payment Service
+                        -> Database
+
+====================================================================================================
+=> What Application Insights Monitors
+
+----------------------------------------------------------------------------------------------------
+=> Request Metrics
+
+    -> Tracks
+        - Request rate
+        - Response time
+        - Failure rate
+
+    -> Helps Identify
+        - Popular pages
+        - Peak traffic timings
+        - Slow endpoints
+
+----------------------------------------------------------------------------------------------------
+=> Dependency Monitoring
+
+    -> Tracks external dependencies
+
+        Examples:
+            - Database
+            - REST APIs
+            - External services
+
+    -> Metrics
+        - Response time
+        - Failure rate
+        - Dependency latency
+
+----------------------------------------------------------------------------------------------------
+=> Exception Monitoring
+
+    -> Tracks application exceptions
+
+    -> Features
+        - Stack trace analysis
+        - Exception aggregation
+        - Request correlation
+
+    -> Covers
+        - Server exceptions
+        - Browser exceptions
+
+----------------------------------------------------------------------------------------------------
+=> Page View Monitoring
+
+    -> Tracks
+        - Page visits
+        - Page load performance
+
+----------------------------------------------------------------------------------------------------
+=> AJAX Monitoring
+
+    -> Tracks
+        - AJAX request count
+        - Response time
+        - Failures
+
+----------------------------------------------------------------------------------------------------
+=> User and Session Monitoring
+
+    -> Tracks
+        - Active users
+        - User sessions
+        - Session duration
+
+----------------------------------------------------------------------------------------------------
+=> Server Performance Counters
+
+    -> Tracks server resources
+
+        Examples:
+            - CPU usage
+            - Memory usage
+            - Network usage
+
+----------------------------------------------------------------------------------------------------
+=> Docker and Azure Host Diagnostics
+
+    -> Tracks
+        - Container diagnostics
+        - Host machine health
+
+----------------------------------------------------------------------------------------------------
+=> Diagnostic Trace Logs
+
+    -> Purpose
+        - Correlate logs with requests and failures
+
+----------------------------------------------------------------------------------------------------
+=> Custom Events and Metrics
+
+    -> Developers can create custom telemetry
+
+    -> Examples
+        - Items sold
+        - Payments completed
+        - Games won
+
+====================================================================================================
+=> Getting Started with Application Insights
+
+    -> Hosted Inside
+        - Microsoft Azure
+
+    -> Pricing
+        - Free to start
+        - Pay when application usage grows significantly
+
+====================================================================================================
+=> Ways to Enable Application Insights
+
+----------------------------------------------------------------------------------------------------
+=> Runtime Instrumentation
+
+    -> Purpose
+        - Enable monitoring without code changes
+
+    -> Best For
+        - Already deployed applications
+
+----------------------------------------------------------------------------------------------------
+=> Development-Time Instrumentation
+
+    -> Purpose
+        - Add telemetry directly in code
+
+    -> Advantage
+        - Custom telemetry collection
+
+----------------------------------------------------------------------------------------------------
+=> Client-Side Monitoring
+
+    -> Monitors
+        - Page views
+        - AJAX calls
+        - Browser telemetry
+
+----------------------------------------------------------------------------------------------------
+=> Mobile App Monitoring
+
+    -> Integrated Using
+        - Visual Studio App Center
+
+----------------------------------------------------------------------------------------------------
+=> Availability Tests
+
+    -> Purpose
+        - Periodically test website availability
+
+    -> Example
+        - Ping website from Azure servers
+
+====================================================================================================
+=> Real-World Example
+
+    -> E-Commerce Application
+
+        Application Insights Tracks:
+            - Order API response time
+            - Payment failures
+            - Database latency
+            - User sessions
+            - Page load speed
+            - CPU and memory usage
+
+        If Failure Occurs:
+            - Smart Detection raises alert
+            - Distributed tracing identifies failing service
+            - Logs and exceptions help debugging
+
+====================================================================================================
+=> Important Interview Concepts
+
+    -> APM
+        - Application Performance Monitoring
+
+    -> Telemetry
+        - Application activity and health data
+
+    -> Distributed Tracing
+        - End-to-end request tracking
+
+    -> Live Metrics
+        - Real-time monitoring
+
+    -> Smart Detection
+        - Automatic anomaly detection
+
+    -> Application Map
+        - Visual architecture monitoring
+
+====================================================================================================
+=> Key Advantages of Application Insights
+
+    - Real-time monitoring
+    - End-to-end observability
+    - Failure analysis
+    - Performance optimization
+    - User behavior analytics
+    - Easy Azure integration
+    - Microservices tracing support
+
+====================================================================================================
+
+
+=> Discover Log-Based Metrics in Application Insights
+
+    -> What are Log-Based Metrics?
+        - Metrics used to analyze application health and performance
+        - Based on telemetry logs stored in Application Insights
+        - Internally translated into Kusto Query Language (KQL)
+
+    -> Types of Metrics in Application Insights
+
+        -> Log-Based Metrics
+            - Derived from stored telemetry events (logs)
+            - Uses KQL queries behind the scenes
+            - Highly detailed and flexible
+
+        -> Standard Metrics (Preaggregated Metrics)
+            - Stored as precomputed time series data
+            - Aggregated during data collection
+            - Optimized for performance
+
+====================================================================================================
+=> Key Difference Between Log-Based and Standard Metrics
+
+    -> Log-Based Metrics
+        - Query-time aggregation from raw events
+        - High dimensionality (more filtering options)
+        - Best for:
+            - Deep analysis
+            - Root cause investigation
+            - Ad-hoc diagnostics
+        - Slower compared to standard metrics
+
+    -> Standard Metrics (Preaggregated)
+        - Precomputed during data collection
+        - Stored as time-series data
+        - Best for:
+            - Dashboards
+            - Real-time monitoring
+            - Alerts
+        - Faster and more efficient
+
+====================================================================================================
+=> When to Use Which Metric?
+
+    -> Use Standard Metrics When:
+        - Building dashboards
+        - Configuring real-time alerts
+        - Need high performance queries
+        - Monitoring live system health
+
+    -> Use Log-Based Metrics When:
+        - Doing deep analysis
+        - Investigating failures
+        - Performing ad-hoc queries
+        - Need detailed dimensions
+
+====================================================================================================
+=> How Log-Based Metrics Work
+
+    -> Data Collection
+        - Application sends telemetry via:
+            - SDK (manual instrumentation)
+            - Auto-instrumentation
+
+    -> Storage Model
+        - All telemetry is stored as logs
+        - Metrics are derived from these logs using queries
+
+    -> Query Engine
+        - Uses Kusto Query Language (KQL)
+        - Enables advanced filtering and grouping
+
+    Example:
+        - Count requests to a specific URL
+        - Find number of unique users per endpoint
+        - Analyze exceptions per session
+
+====================================================================================================
+=> Benefits of Log-Based Metrics
+
+    -> High Analytical Power
+        - Deep visibility into application behavior
+        - Supports complex queries
+
+    -> Session-Level Insights
+        - Track user journey
+        - Correlate requests, exceptions, and dependencies
+
+    -> Diagnostic Strength
+        - Helps root cause analysis
+        - Shows full trace of failures
+
+====================================================================================================
+=> Challenge with Log-Based Metrics
+
+    -> High Data Volume
+        - Large applications generate massive telemetry
+
+    -> Cost & Performance Impact
+        - Storing all events increases cost
+        - Querying raw logs can be slower
+
+    -> Solution Techniques
+        - Sampling
+        - Filtering
+        - Data reduction
+
+    -> Trade-off
+        - Less data = less accuracy in log-based metrics
+
+====================================================================================================
+=> Preaggregated (Standard) Metrics
+
+    -> What They Are
+        - Metrics computed during data collection
+        - Stored as summarized time series
+
+    -> Key Advantage
+        - Faster query performance
+        - Lower resource usage
+
+    -> Best For
+        - Real-time dashboards
+        - Alerting systems
+        - High-frequency monitoring
+
+====================================================================================================
+=> SDK Behavior for Metrics
+
+    -> Modern SDKs (.NET 2.7+)
+        - Preaggregate metrics before sending
+        - Reduces data ingestion cost
+        - Improves efficiency
+
+    -> Custom Metrics
+        - Can be sent using GetMetric API
+        - Supports preaggregation
+
+    -> Older SDKs
+        - Send raw events
+        - Backend performs aggregation
+
+====================================================================================================
+=> Sampling Impact
+
+    -> Important Insight
+        - Ingestion sampling does NOT affect preaggregated metrics
+
+    -> Reason
+        - Aggregation happens before ingestion sampling
+
+    -> Benefit
+        - Ensures accuracy of standard metrics
+
+====================================================================================================
+=> Namespace Switching
+
+    -> Purpose
+        - Switch between metric types in Azure Portal
+
+    -> Options
+        - Log-based metrics namespace
+        - Standard metrics namespace
+
+    -> Tool Used
+        - Metrics Explorer
+
+====================================================================================================
+=> Real-World Example
+
+    -> E-Commerce Application
+
+        Log-Based Metrics Used For:
+            - Finding slow API calls
+            - Debugging payment failures
+            - Analyzing user sessions
+
+        Standard Metrics Used For:
+            - Dashboard showing request rate
+            - Real-time failure alerts
+            - CPU and memory monitoring
+
+====================================================================================================
+=> Key Interview Concepts
+
+    -> Log-Based Metrics
+        - Derived from logs using KQL
+
+    -> Standard Metrics
+        - Preaggregated time-series metrics
+
+    -> KQL
+        - Query language used for logs
+
+    -> Sampling
+        - Reduces telemetry volume
+
+    -> Preaggregation
+        - Improves performance and reduces cost
+
+====================================================================================================
+=> Final Summary
+
+    - Application Insights provides two metric types:
+        -> Log-Based (detailed, analytical)
+        -> Standard (fast, real-time)
+
+    - Best practice:
+        - Use Standard metrics for monitoring & alerts
+        - Use Log-based metrics for deep troubleshooting
+
+=> Instrument an App for Monitoring (Application Insights)
+
+    -> What is Instrumentation?
+        - Instrumentation means enabling an application to capture telemetry data
+        - Helps monitor:
+            - Performance
+            - Failures
+            - Usage patterns
+            - Dependencies
+
+====================================================================================================
+=> Two Ways to Instrument an Application
+
+    -> 1. Automatic Instrumentation (Autoinstrumentation)
+    -> 2. Manual Instrumentation
+
+====================================================================================================
+=> 1. Automatic Instrumentation (Autoinstrumentation)
+
+    -> Definition
+        - Enables telemetry collection without changing application code
+        - Configured externally (agent-based approach)
+
+    -> How it Works
+        - Monitoring agent runs alongside the application
+        - Automatically collects telemetry data
+
+    -> Advantages
+        - No code changes required
+        - Easy to enable
+        - Quick setup
+        - Ideal for existing applications
+
+    -> Limitations
+        - Less configurable
+        - Not supported in all languages/platforms
+        - Limited customization of telemetry
+
+    -> Best Use Cases
+        - Production applications
+        - Quick monitoring setup
+        - Legacy applications
+
+====================================================================================================
+=> 2. Manual Instrumentation
+
+    -> Definition
+        - Instrumenting application by writing code
+        - Uses SDK or OpenTelemetry APIs
+
+    -> How it Works
+        - Developer installs Application Insights SDK
+        - Adds telemetry code inside application
+
+    -> Advantages
+        - Full control over telemetry
+        - Highly customizable
+        - Supports custom events and metrics
+
+    -> Disadvantages
+        - Requires code changes
+        - Requires maintenance and SDK updates
+
+    -> When to Use Manual Instrumentation
+
+        -> Required Scenarios
+            - Need custom events and metrics
+            - Need fine control over telemetry flow
+            - Autoinstrumentation not supported for language/platform
+
+====================================================================================================
+=> Application Insights SDK Approach
+
+    -> What it Does
+        - Provides library to send telemetry to Application Insights
+
+    -> What You Need to Do
+        - Install SDK package
+        - Instrument:
+            - Web application
+            - Background services
+            - JavaScript frontend
+
+    -> Important Point
+        - Application does NOT need to be hosted in Azure
+        - Telemetry is sent using instrumentation key / connection string
+
+    -> Use Cases
+        - Custom business tracking
+        - Advanced telemetry control
+        - Fine-grained monitoring
+
+====================================================================================================
+=> OpenTelemetry Approach
+
+    -> What is OpenTelemetry?
+        - Open-source observability framework
+        - Created by combining OpenCensus + OpenTracing
+        - Standardized across cloud providers and APM tools
+
+    -> Microsoft Role
+        - Contributor and CNCF Platinum member
+        - Supports OpenTelemetry integration in Azure Monitor
+
+====================================================================================================
+=> Mapping: Application Insights vs OpenTelemetry
+
+    Application Insights            -> OpenTelemetry
+    ----------------------------------------------------------
+    Autocollectors                 -> Instrumentation libraries
+    Channel                        -> Exporter
+    Codeless / Agent-based         -> Autoinstrumentation
+    Traces                         -> Logs
+    Requests                       -> Server Spans
+    Dependencies                   -> Other Span Types
+    Operation ID                   -> Trace ID
+    Operation Parent ID            -> Span ID
+
+====================================================================================================
+=> Key Differences Between Approaches
+
+    -> Autoinstrumentation
+        - No code changes
+        - Fast setup
+        - Limited customization
+
+    -> Manual Instrumentation
+        - Requires code changes
+        - Highly flexible
+        - Supports custom telemetry
+
+    -> OpenTelemetry
+        - Standardized observability model
+        - Portable across platforms
+        - Future-oriented approach
+
+====================================================================================================
+=> Real-World Example
+
+    -> E-Commerce Application Monitoring
+
+        Autoinstrumentation captures:
+            - HTTP requests
+            - Response time
+            - Dependency calls
+
+        Manual instrumentation captures:
+            - "OrderPlaced" event
+            - "PaymentSuccess" custom metric
+            - Business-specific logs
+
+====================================================================================================
+=> When to Use What?
+
+    -> Use Autoinstrumentation When:
+        - You want quick setup
+        - You don’t want to modify code
+        - Standard monitoring is enough
+
+    -> Use Manual Instrumentation When:
+        - You need custom business telemetry
+        - You want full control
+        - You need advanced tracing or metrics
+
+    -> Use OpenTelemetry When:
+        - You want vendor-neutral observability
+        - You need cloud portability
+        - You are building modern distributed systems
+
+====================================================================================================
+=> Key Interview Concepts
+
+    -> Instrumentation
+        - Process of enabling telemetry collection
+
+    -> Autoinstrumentation
+        - Code-free monitoring setup
+
+    -> Manual Instrumentation
+        - SDK-based telemetry customization
+
+    -> OpenTelemetry
+        - Industry standard observability framework
+
+    -> Telemetry Types
+        - Logs
+        - Metrics
+        - Traces
+
+====================================================================================================
+=> Final Summary
+
+    - Instrumentation = enabling app monitoring
+    - Two approaches:
+        -> Automatic (easy, no code changes)
+        -> Manual (flexible, code-based)
+    - Modern trend:
+        -> OpenTelemetry integration for unified observability
+
+
+
+=> Select an Availability Test (Application Insights)
+
+    -> What are Availability Tests?
+        - Used to monitor web app or website uptime and responsiveness
+        - Application Insights sends HTTP/HTTPS requests at regular intervals
+        - Tests are executed from multiple locations worldwide
+        - No code changes required in the application
+
+====================================================================================================
+=> Purpose of Availability Tests
+
+    -> Monitor Application Health
+        - Check if application is reachable
+        - Measure response time
+        - Detect downtime or slow response
+
+    -> Test External Accessibility
+        - Works for:
+            - Websites
+            - Web apps
+            - REST APIs
+
+====================================================================================================
+=> Key Limit
+
+    -> Maximum Tests Allowed
+        - Up to 100 availability tests per Application Insights resource
+
+====================================================================================================
+=> Types of Availability Tests
+
+----------------------------------------------------------------------------------------------------
+=> 1. Standard Test
+
+    -> Definition
+        - Sends a single HTTP request to the endpoint
+        - Similar to legacy URL ping test but more advanced
+
+    -> What it Validates
+        - Endpoint availability
+        - Response time
+        - TLS/SSL certificate validity
+        - HTTP request types (GET, POST, HEAD, etc.)
+        - Custom headers
+        - Custom request data
+
+    -> Advantages
+        - More powerful than classic ping test
+        - Supports advanced validation options
+        - Suitable for production monitoring
+
+    -> Example Use Case
+        - Check if login API is reachable and secure
+
+----------------------------------------------------------------------------------------------------
+=> 2. Custom TrackAvailability Test
+
+    -> Definition
+        - Developer-created availability monitoring
+        - Uses TrackAvailability() method in code
+
+    -> How it Works
+        - Application runs custom test logic
+        - Sends results to Application Insights
+
+    -> Advantages
+        - Fully customizable
+        - Suitable for complex workflows
+        - Can test multi-step transactions
+
+    -> Example Use Case
+        - End-to-end checkout flow validation
+        - Multi-service dependency checks
+
+----------------------------------------------------------------------------------------------------
+=> 3. URL Ping Test (Classic)
+
+    -> Definition
+        - Legacy availability test type
+        - Sends simple HTTP request to endpoint
+
+    -> What it Checks
+        - Endpoint response
+        - Basic performance metrics
+
+    -> Limitations
+        - Less advanced than Standard test
+        - Being retired
+
+    -> Important Warning
+        - Retirement Date: September 30, 2026
+        - Existing URL ping tests will be removed
+        - Migration to Standard tests is required
+
+====================================================================================================
+=> Comparison of Availability Tests
+
+    Standard Test
+        - Modern replacement for ping test
+        - Supports SSL, headers, HTTP methods
+        - Recommended for most scenarios
+
+    Custom TrackAvailability
+        - Fully programmable
+        - Best for complex business workflows
+
+    URL Ping Test (Classic)
+        - Simple monitoring
+        - Deprecated and will be retired
+
+====================================================================================================
+=> Real-World Example
+
+    -> E-Commerce Application Monitoring
+
+        Standard Test:
+            - Check homepage availability
+            - Monitor API response time
+
+        Custom Test:
+            - Validate full checkout process
+            - Verify payment + order creation flow
+
+        URL Ping (Legacy):
+            - Simple homepage check (deprecated)
+
+====================================================================================================
+=> Key Benefits of Availability Tests
+
+    -> Global Monitoring
+        - Tests run from multiple geographic locations
+
+    -> No Code Changes Required
+        - Works with any public HTTP/HTTPS endpoint
+
+    -> Early Issue Detection
+        - Detect downtime or slow performance quickly
+
+    -> Alerting Support
+        - Can trigger alerts when failures occur
+
+====================================================================================================
+=> Important Interview Points
+
+    -> Availability Test
+        - Ensures application uptime and responsiveness
+
+    -> Standard Test
+        - Recommended modern availability test
+
+    -> TrackAvailability()
+        - Custom availability monitoring API
+
+    -> URL Ping Test
+        - Legacy feature, being retired in 2026
+
+====================================================================================================
+=> Final Summary
+
+    - Availability tests monitor uptime and performance
+    - Three types:
+        -> Standard Test (recommended)
+        -> Custom TrackAvailability Test (advanced use cases)
+        -> URL Ping Test (legacy, retiring)
+    - Best practice: use Standard or Custom tests for modern applications
+
+
+=> Troubleshoot App Performance using Application Map (Application Insights)
+
+    -> What is Application Map?
+        - A visual topology view of distributed applications
+        - Helps identify:
+            - Performance bottlenecks
+            - Failure hotspots
+            - Dependency issues across services
+
+====================================================================================================
+=> Purpose of Application Map
+
+    -> System-Wide Visibility
+        - Shows complete application architecture
+        - Displays interactions between components
+
+    -> Performance Troubleshooting
+        - Identifies slow services
+        - Detects failing dependencies
+        - Helps isolate root cause quickly
+
+====================================================================================================
+=> What Each Node Represents
+
+    -> Application Component
+        - Each node = one service or component
+        - Examples:
+            - Web API
+            - Microservice
+            - Background worker
+
+    -> Dependencies
+        - External services used by components
+        - Examples:
+            - SQL Database
+            - Event Hubs
+            - External APIs
+
+    -> Node Information Includes
+        - Health status (success/failure rate)
+        - Performance KPIs (response time, latency)
+        - Alert status
+
+====================================================================================================
+=> Key Concept: Components vs Dependencies
+
+    -> Components
+        - Independently deployable parts of application
+        - Have their own telemetry and code visibility
+        - Can be separate Application Insights resources
+
+        Example:
+            - Order Service
+            - Payment Service
+            - Inventory Service
+
+    -> Dependencies (Observed Services)
+        - External systems
+        - May not be owned by your team
+        - Limited or no internal telemetry access
+
+        Example:
+            - Azure SQL Database
+            - Event Hubs
+            - Third-party APIs
+
+====================================================================================================
+=> How Application Map Works
+
+    -> Step 1: Telemetry Collection
+        - Application Insights SDK collects dependency calls
+        - HTTP calls between services are tracked
+
+    -> Step 2: Component Discovery
+        - System detects connected services automatically
+        - Uses dependency relationships
+
+    -> Step 3: Map Generation
+        - Builds topology view of entire system
+        - Shows multi-level architecture
+
+====================================================================================================
+=> Progressive Discovery Process
+
+    -> Initial Load
+        - Map loads basic known components
+
+    -> Background Discovery
+        - System queries for additional services
+        - Expands map gradually
+
+    -> Update Map Components Button
+        - Refreshes map with newly discovered nodes
+        - Useful for complex systems
+
+====================================================================================================
+=> Cloud Role Name
+
+    -> What it is
+        - Identifier used to represent components in Application Map
+
+    -> Why it matters
+        - Determines how services are grouped in the map
+
+    -> Customization
+        - Can be manually set or overridden
+        - Helps improve clarity in complex architectures
+
+    Example:
+        cloud_role_name = "PaymentService"
+        cloud_role_name = "OrderAPI"
+
+====================================================================================================
+=> Multi-Level Topology View
+
+    -> Capabilities
+        - Shows end-to-end distributed architecture
+        - Supports large-scale systems with hundreds of components
+
+    -> Example Flow
+
+        User Request
+            -> API Gateway
+                -> Order Service
+                    -> Payment Service
+                        -> SQL Database
+
+====================================================================================================
+=> Navigation & Drill-Down
+
+    -> Click on Any Component
+        - View performance metrics
+        - See failure rates
+        - Analyze dependencies
+
+    -> Deep Diagnostics
+        - Redirects to:
+            - Application Insights logs
+            - Performance blade
+            - Failure analysis tools
+            - Azure diagnostics (SQL, etc.)
+
+====================================================================================================
+=> Integration with Azure Services
+
+    -> Supported Services
+        - Azure SQL Database
+        - App Services
+        - Event Hubs
+        - Other Azure resources
+
+    -> Benefits
+        - Direct navigation to service diagnostics
+        - Access to advisor recommendations
+        - Unified troubleshooting experience
+
+====================================================================================================
+=> Real-World Example
+
+    -> E-Commerce System
+
+        Application Map Shows:
+            - Web App (Frontend)
+            - Order Service
+            - Payment Service
+            - Inventory Service
+            - SQL Database
+
+        Problem Detection:
+            - Payment Service shows high latency
+            - Dependency call to SQL is slow
+            - Root cause identified quickly via map
+
+====================================================================================================
+=> Key Benefits of Application Map
+
+    -> End-to-End Visibility
+        - Full system topology view
+
+    -> Faster Root Cause Analysis
+        - Quickly identify failing service
+
+    -> Dependency Tracking
+        - Understand service interactions
+
+    -> Scalability Support
+        - Works for large distributed systems
+
+====================================================================================================
+=> Important Interview Concepts
+
+    -> Application Map
+        - Visual representation of distributed system
+
+    -> Component
+        - Deployable service unit with telemetry
+
+    -> Dependency
+        - External service used by component
+
+    -> Cloud Role Name
+        - Identifier for grouping services in map
+
+    -> Distributed Tracing
+        - Enables dependency mapping
+
+====================================================================================================
+=> Final Summary
+
+    - Application Map = Visual troubleshooting tool
+    - Helps analyze:
+        -> Performance bottlenecks
+        -> Failures
+        -> Service dependencies
+    - Works by collecting telemetry from Application Insights SDK
+    - Best tool for diagnosing distributed microservices systems
