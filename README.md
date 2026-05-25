@@ -29,16 +29,29 @@ This repository is organized into two main sections:
 
 ### AZURE (Microsoft Azure)
 - **Location**: `Cloud/AZURE/`
+- **Main Guide**: `Cloud/AZURE/README.md` - Comprehensive Azure services documentation with architecture patterns and best practices
 - **Topics Covered**:
-  - **Azure_App_Service.txt** - Azure App Service deployment, slots, and lifecycle management
-  - **Azure_Authentication_&_Authorization.txt** - Identity and access management in Azure
-  - **Azure_Blob_Storage.txt** - Object storage solutions and blob management
-  - **Azure_Containerize_solution.txt** - Containerization strategies and implementation
-  - **Azure_Cosmos_DB.txt** - Globally distributed database service
-  - **Azure_Function_Service.txt** - Serverless computing with Azure Functions
-  - **Azure_Key_Vault** - Secrets and cryptographic key management
-  - **Key_And_Cryptography** - Encryption and cryptographic concepts
-  - **Azure DevOps Services** - CI/CD pipeline, project planning, and deployment automation
+  - **Compute Services**: Azure App Service, Azure Functions
+  - **Storage & Databases**: Azure Blob Storage, Azure Cosmos DB
+  - **Security**: Azure Authentication & Authorization, Azure Key Vault, Encryption & Cryptography
+  - **Messaging & Events**: Azure Event Grid, Azure Message Queues
+  - **API Management**: Azure API Management for full lifecycle API governance
+  - **Monitoring**: Azure App Insights for application performance and diagnostics
+  - **Containerization**: Azure Containerize Solution for Docker and container deployment
+  - **DevOps**: CI/CD pipeline, project planning, and deployment automation
+- **Service Files**:
+  - `Azure_App_Service.txt` - Deployment slots, zero-downtime swaps, authentication behavior
+  - `Azure_Authentication_&_Authorization.txt` - Identity, RBAC, service principals, managed identities
+  - `Azure_Blob_Storage.txt` - Object storage, tiers, lifecycle management
+  - `Azure_Containerize_solution.txt` - Container strategies, image versioning, registry management
+  - `Azure_Cosmos_DB.txt` - Global distribution, consistency, multi-region replication
+  - `Azure_Function_Service.txt` - Serverless, event-driven, triggers, bindings
+  - `Azure_Key_Vault/` - Secrets, keys, certificates, access policies
+  - `Key_And_Cryptography/` - Cryptographic fundamentals, encryption patterns
+  - `Azure_Event_Grid/` - Event routing, subscriptions, dead-letter queues
+  - `Azure_Message_Queues/` - Service Bus queues, topics, messaging patterns
+  - `Azure_API_Management/` - API gateway, versioning, rate limiting, developer portal
+  - `Azure_App_Insight/` - Telemetry, performance metrics, diagnostics, distributed tracing
 
 ### GCP (Google Cloud Platform)
 - **Location**: `Cloud/GCP/`
@@ -69,8 +82,12 @@ This repository is organized into two main sections:
 
 ### For Cloud Computing Beginners:
 1. Start with `Cloud/Cloud_Basics.txt` to understand foundational concepts
-2. Explore platform-specific documentation (Azure, AWS, or GCP)
+2. Choose a cloud platform to focus on:
+   - **Azure**: Read `Cloud/AZURE/README.md` for comprehensive service overview
+   - **AWS**: Review `Cloud/AWS/`
+   - **GCP**: Review `Cloud/GCP/`
 3. Deep dive into specific services based on your use case
+4. Study integration patterns and best practices from your chosen platform's README
 
 ### For SQL Learners:
 1. Begin with `SQL/Basics` for fundamental concepts
@@ -82,10 +99,14 @@ This repository is organized into two main sections:
 ## 📖 Key Concepts by Cloud Provider
 
 ### Azure Features:
+Azure comprehensive documentation is available in [`Cloud/AZURE/README.md`](Cloud/AZURE/README.md) with:
 - **Compute**: App Services, Azure Functions, Kubernetes Service (AKS)
 - **Storage**: Blob Storage, Cosmos DB
-- **Security**: Key Vault, Authentication & Authorization
-- **DevOps**: Azure Pipelines, CI/CD automation
+- **Security**: Key Vault, Authentication & Authorization, Cryptography
+- **Messaging**: Event Grid, Service Bus Message Queues
+- **API Management**: Full lifecycle API gateway and governance
+- **Monitoring**: Application Insights for diagnostics and performance tracking
+- **DevOps**: Containerization strategies and deployment automation
 
 ### AWS Features:
 - **Compute**: EC2, ECS/EKS
@@ -112,7 +133,10 @@ Each topic file contains detailed explanations, diagrams, and examples. Start wi
 
 ### Quick Navigation:
 - Cloud fundamentals → `Cloud/Cloud_Basics.txt`
-- Azure services → `Cloud/AZURE/`
+- Azure services guide → `Cloud/AZURE/README.md`
+- Azure service details → `Cloud/AZURE/`
+- AWS services → `Cloud/AWS/`
+- GCP services → `Cloud/GCP/`
 - SQL basics → `SQL/Basics`
 - SQL JOINs → `SQL/Basic JOIN Practice`
 
