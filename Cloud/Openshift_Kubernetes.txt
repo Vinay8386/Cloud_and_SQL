@@ -16,6 +16,132 @@
 		e. Storing secrets & configs
 		f. Load balancing traffic
 	OpenShift internally uses Kubernetes as its core engine.
+
+
+=> Kubernetes Cluster/Architecture(Official documentation: https://kubernetes.io/docs/concepts/architecture/)
+      -> Collection of machines (nodes) working together to deploy, manage and scale containerized applications.
+      -> Consists of:
+            -> Control Plane (Master Node)
+            -> Worker Nodes
+
+      -> Formula:
+            Cluster = Control Plane + Worker Nodes
+
+=> Cloud Controller Manager (CCM)
+
+      -> Kubernetes Control Plane Component.
+
+      -> Used only when Kubernetes is running on Cloud Platforms:
+            -> AWS
+            -> Azure
+            -> GCP
+
+      -> Purpose:
+            -> Connect Kubernetes Cluster with Cloud Provider APIs.
+            -> Manage Cloud-Specific Resources.
+            -> Separate Cloud Logic from Core Kubernetes Logic.
+
+      -> Important:
+            If Kubernetes is running:
+                  -> On-Premises
+                  -> Local Machine
+                  -> Learning Environment
+
+            Then Cloud Controller Manager is NOT required.
+
+=> Why Cloud Controller Manager Required?
+
+      -> Kubernetes can manage Pods, Services and Deployments.
+      -> But Kubernetes does NOT know how to create Cloud Resources.
+
+      -> Examples:
+            -> Azure Load Balancer
+            -> AWS ELB / ALB
+            -> GCP Load Balancer
+            -> Cloud Routes
+            -> Cloud Networking Components
+
+      -> Cloud Controller Manager acts as a bridge between:
+
+            Kubernetes Cluster
+                     ↕
+            Cloud Provider APIs
+
+      -> Complete Flow:
+
+            Step-1:
+            Developer creates Service
+
+                  kind: Service
+                  type: LoadBalancer
+
+                     ↓
+
+            Step-2:
+            API Server stores Service information in etcd
+
+                     ↓
+
+            Step-3:
+            Cloud Controller Manager continuously watches cluster resources
+
+                     ↓
+
+            Step-4:
+            Cloud Controller Manager detects
+
+                  Service Type = LoadBalancer
+
+                     ↓
+
+            Step-5:
+            Cloud Controller Manager calls Azure API
+
+                     ↓
+
+            Step-6:
+            Azure creates Azure Load Balancer
+
+                  -> Public IP
+                  -> Backend Pool
+                  -> Health Check
+                  -> Routing Rules
+
+                     ↓
+
+            Step-7:
+            Azure returns Load Balancer details
+
+                     ↓
+
+            Step-8:
+            Cloud Controller Manager updates Kubernetes Service
+
+                     ↓
+
+            Step-9:
+            Service gets External/Public IP
+
+                     ↓
+
+            User
+               ↓
+            Azure Load Balancer
+               ↓
+            Kubernetes Service
+               ↓
+            Pods
+
+      -> Important:
+
+            Kubernetes does NOT directly create Cloud Resources.
+
+            Cloud Controller Manager is responsible for communicating with:
+                  -> Azure APIs
+                  -> AWS APIs
+                  -> GCP APIs
+
+            and creating required Cloud Resources.
 	
 => How Kubernetes, Cloud Provider(EKS, AKLS, GKE) and OpenShift is different with each other's.
 	Kubernetes (K8s) is just the core engine. If you install raw Kubernetes (Kubeadm, Kops, Minikube), you get:
