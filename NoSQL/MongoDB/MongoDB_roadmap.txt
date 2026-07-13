@@ -1,0 +1,166 @@
+=> MongoDB Roadmap
+
+    -> Phase 1 : MongoDB Basics ✅
+
+        -> Environment Setup ✅
+            -> Install MongoDB Community Server
+            -> Install MongoDB Compass
+            -> Connect to localhost:27017
+
+        -> Why MongoDB doesn't have Tables ✅
+            -> Rigid (Fixed) Schema
+            -> Why Documents instead of Tables
+            -> Schema Flexible vs Schema-less
+
+        -> Database → Collection → Document ✅
+            -> Database
+            -> Collection
+            -> Document
+            -> SQL vs MongoDB
+
+        -> Document & Field ✅
+            -> Document
+            -> Field
+            -> _id
+            -> ObjectId
+
+        -> CRUD - Insert ✅
+            -> Insert One Document
+
+        -> CRUD - Read (Basic) ✅
+            -> find()
+            -> findOne()
+            -> Filter
+            -> Equality Filter
+            -> Multiple Conditions (Implicit AND)
+
+    -> Phase 2 : CRUD Operations ⏳
+
+        -> Insert
+            -> Insert Many
+
+        -> Read
+            -> Comparison Operators ($gt, $lt, $gte, $lte, $eq, $ne)
+            -> Logical Operators ($and, $or, $not, $nor)
+            -> $in & $nin
+            -> Projection
+            -> Sorting
+            -> Limit
+            -> Skip
+            -> Count Documents
+            -> Distinct
+
+        -> Update
+            -> updateOne()
+            -> updateMany()
+            -> replaceOne()
+            -> $set
+            -> $unset
+            -> $inc
+            -> $rename
+            -> Upsert
+
+        -> Delete
+            -> deleteOne()
+            -> deleteMany()
+
+    -> Phase 3 : Data Types ⏳
+
+        -> BSON
+        -> ObjectId
+        -> String
+        -> Number
+        -> Boolean
+        -> Date
+        -> Array
+        -> Embedded Document
+        -> Null
+
+    -> Phase 4 : Arrays & Embedded Documents ⏳
+
+        -> Arrays
+        -> Nested Documents
+        -> Dot Notation
+        -> Array Operators
+        -> $elemMatch
+
+    -> Phase 5 : Indexing ⏳
+
+        -> Why Index?
+        -> B-Tree
+        -> Single Field Index
+        -> Compound Index
+        -> Multikey Index
+        -> Text Index
+        -> TTL Index
+        -> Unique Index
+        -> Explain Plan
+
+    -> Phase 6 : Aggregation Framework ⏳
+
+        -> Pipeline
+        -> $match
+        -> $project
+        -> $group
+        -> $sort
+        -> $limit
+        -> $skip
+        -> $count
+        -> $lookup
+        -> $unwind
+        -> $facet
+
+    -> Phase 7 : Data Modeling ⏳
+
+        -> Embedding
+        -> Referencing
+        -> One-to-One
+        -> One-to-Many
+        -> Many-to-Many
+        -> Schema Design
+
+    -> Phase 8 : Transactions ⏳
+
+        -> ACID
+        -> Session
+        -> Multi-Document Transaction
+        -> Commit
+        -> Rollback
+
+    -> Phase 9 : Replication ⏳
+
+        -> Primary
+        -> Secondary
+        -> Replica Set
+        -> Election
+        -> Failover
+        -> Read Preference
+        -> Write Concern
+
+    -> Phase 10 : Sharding ⏳
+
+        -> Sharding
+        -> Shard Key
+        -> Config Server
+        -> Mongos
+        -> Chunk Migration
+        -> Balancer
+
+    -> Phase 11 : Spring Boot Integration ⏳
+
+        -> Spring Data MongoDB
+        -> MongoRepository
+        -> CRUD APIs
+        -> Custom Queries
+        -> Pagination
+        -> Sorting
+        -> Aggregation APIs
+        -> Transactions
+        -> Indexes
+
+    -> Phase 12 : Interview Preparation ⏳
+
+        -> Interview Questions
+        -> Performance Tips
+        -> SQL vs MongoDB
+        -> Real-world Design Scenarios

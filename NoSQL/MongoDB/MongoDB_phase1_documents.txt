@@ -1,0 +1,344 @@
+=> Definition: MONGODB is a document database where you can store data in fifferent document format like JSON, BSON, XML
+    -> cross plateform
+    -> open source
+    -> Non-relational
+    -> Distributed
+    -> NoSQL
+    -> Document oriented data store
+    -> MongoDB is schema-flexible, not schema-less.
+    -> MongoDB allows each document to have its own structure.
+
+=> JSON 
+    -> It stand for JavaScript Object Notation
+    -> It is much expressive and provide the much needed ease to store and retrieve documents in their real form.
+    -> each JSON document should have a unique identifier (_id) similar to primary key in relational database.
+
+=> BSON 
+    -> It is binary form of JSON
+    -> It is open standard and consume les space as compared to text based JSON
+
+=> What is MongoDB Compass?
+    -> MongoDB Compass is a GUI (Graphical User Interface) for MongoDB. Think of it like this:
+        | Database   | Database Engine          | GUI Tool            |
+        | ---------- | ------------------------ | ------------------- |
+        | MySQL      | MySQL Server             | MySQL Workbench     |
+        | PostgreSQL | PostgreSQL Server        | pgAdmin             |
+        | MongoDB    | MongoDB Community Server | **MongoDB Compass** |
+
+    -> MongoDB Community Server → Actually stores your data.
+    -> MongoDB Compass → Lets you view and manage that data visually.
+
+    -> Why do we need Compass?
+        -> Without Compass, you can still use MongoDB through commands (mongosh).
+        -> With Compass, you can:
+            -> Create databases and collections.
+            -> Insert, update, and delete documents.
+            -> Run queries visually.
+            -> Create indexes.
+            -> View execution plans.
+            -> Explore data without remembering every command.
+
+        -> For automation and applications, developers usually use:
+            -> mongosh
+            -> Spring Boot
+            -> Java drivers
+            -> MongoDB APIs
+
+    -> Defauly MongoDB Server is localhost:27017. So first connect GUI with Server
+    -> Now, whenever you perform any action in Compass (create a database, insert data, delete data), Compass sends that request to the MongoDB Server, and the server stores or retrieves the data.
+
+=> Why MongoDB doesn't have Tables
+
+    -> What is Rigid (Fixed) Schema
+        -> In SQL, every row in a table must follow the same predefined structure (same columns).
+        -> If a new field is required, we need to modify the table schema.
+        -> The new column is added for every row, even if only a few records require it.
+        -> Rows that don't have a value for the new field store NULL.
+
+        Example:
+
+        Before:
+        | id | name | age | email |
+
+        After:
+        | id | name | age | email | instagram_id |
+        | 1  | Vinay | 27 | vinay@gmail.com | vinay_123 |
+        | 2  | Rahul | 30 | rahul@gmail.com | NULL |
+
+    -> Why MongoDB uses Documents instead of Tables
+        -> MongoDB stores data as Documents instead of rows.
+        -> Each Document can have a different structure.
+        -> New fields can be added only to the required Documents.
+        -> No schema modification is required when new fields are introduced.
+        -> Suitable for evolving and semi-structured data.
+
+        Example:
+
+        Document 1
+        {
+            "name": "Vinay",
+            "email": "vinay@gmail.com",
+            "instagramId": "vinay_123"
+        }
+
+        Document 2
+        {
+            "name": "Rahul",
+            "email": "rahul@gmail.com"
+        }
+
+    -> Is MongoDB Schema-less?
+        -> No.
+        -> MongoDB is Schema Flexible, not Schema-less.
+        -> Documents in the same Collection can have different fields.
+        -> Schema validation can still be applied if required.
+
+    -> Interview Answer
+        -> SQL databases use a rigid schema where every row follows the same structure.
+        -> MongoDB provides schema flexibility, allowing documents in the same Collection to have different fields without changing the schema.
+
+=> Database → Collection → Document
+
+    -> Database
+        -> A Database is the highest logical container in MongoDB.
+        -> It groups related Collections together.
+        -> It does not store Documents directly.
+        -> Generally, one application uses one Database.
+
+        Example:
+
+        ecommerce
+            ├── users
+            ├── products
+            ├── orders
+            ├── payments
+
+    -> Collection
+        -> A Collection is equivalent to a Table in SQL.
+        -> It stores related Documents.
+        -> Documents in the same Collection can have different fields.
+        -> Collections are created inside a Database.
+
+        Example:
+
+        Database : ecommerce
+
+        Collections:
+        -> users
+        -> products
+        -> orders
+        -> payments
+
+    -> Document
+        -> A Document is equivalent to a Row in SQL.
+        -> It stores data in BSON format (displayed as JSON in Compass and mongosh).
+        -> Each Document can have its own structure.
+        -> Documents are stored inside a Collection.
+
+        Example:
+
+        {
+            "name": "Vinay",
+            "age": 27,
+            "email": "vinay@gmail.com"
+        }
+
+        {
+            "name": "Rahul",
+            "age": 30
+        }
+
+    -> SQL vs MongoDB
+
+        SQL                    MongoDB
+        -----------------------------------------
+        Database      →         Database
+        Table         →         Collection
+        Row           →         Document
+        Column        →         Field
+
+    -> Important Points
+        -> Database is the parent of Collections.
+        -> Collection is the parent of Documents.
+        -> A Collection cannot exist without a Database.
+        -> A Document cannot exist without a Collection.
+        -> Similar entities should be stored in the same Collection.
+        -> Generally, one application uses one Database.
+
+    -> Interview Question
+        -> Can Documents inside the same Collection have different fields?
+            -> Yes.
+            -> MongoDB is Schema Flexible, so Documents in the same Collection can have different structures.
+        
+        -> Can we create an empty Database in MongoDB?
+            -> No.
+            -> A Database is created only when the first Collection (or data) is created.
+
+        -> Can Documents inside the same Collection have different fields?
+            -> Yes.
+            -> MongoDB is Schema Flexible, so Documents in the same Collection can have different structures.
+
+=> How MongoDB works
+    -> In MONGODB, A Database cannot exist without at least one Collection.
+    -> Because MongoDB creates a Database only when it has something to store.
+    -> An empty Database has no purpose. 
+    -> So while creating a Database, MongoDB asks: 
+        -> Database Name
+        -> First Collection Name
+
+=> Document & Field
+
+    -> Document
+        -> A Document is equivalent to a Row in SQL.
+        -> It stores data as key-value pairs.
+        -> Each Document can have a different structure.
+        -> Documents are stored inside a Collection.
+
+        Example:
+
+        {
+            "name": "Vinay",
+            "age": 27,
+            "email": "vinay@gmail.com"
+        }
+
+    -> Field
+        -> A Field is equivalent to a Column in SQL.
+        -> Each key inside a Document is called a Field.
+
+        Example:
+
+        {
+            "name": "Vinay",      -> Field
+            "age": 27,            -> Field
+            "email": "vinay@gmail.com" -> Field
+        }
+
+    -> _id Field
+        -> Every Document must have an _id field.
+        -> _id uniquely identifies a Document.
+        -> It is equivalent to the Primary Key in SQL.
+        -> If _id is not provided, MongoDB automatically generates one.
+        -> If _id is provided, MongoDB uses the given value.
+        -> Duplicate _id values are not allowed.
+
+    -> ObjectId
+        -> ObjectId is the default value generated by MongoDB for the _id field.
+        -> It is automatically generated when _id is not provided.
+
+=> Insert One Document
+
+    -> What is Insert One?
+        -> Used to insert a single Document into a Collection.
+
+    -> Important Points
+        -> MongoDB expects data in the form of a Document.
+        -> If _id is not provided, MongoDB automatically generates an ObjectId.
+        -> The generated _id uniquely identifies the Document.
+        -> The remaining Fields are stored exactly as provided.
+
+    -> Example
+
+        Input:
+
+        {
+            "name": "Vinay",
+            "age": 27,
+            "email": "vinay@gmail.com"
+        }
+
+        Stored in MongoDB:
+
+        {
+            "_id": ObjectId("..."),
+            "name": "Vinay",
+            "age": 27,
+            "email": "vinay@gmail.com"
+        }
+
+    -> Interview Question
+
+        -> Can two Documents have the same _id?
+            -> No.
+            -> _id is unique for every Document.
+
+        -> Can we insert a Document without _id?
+            -> Yes.
+            -> MongoDB automatically generates an ObjectId.
+
+=> Find Documents
+
+    -> find()
+        -> Used to retrieve all matching Documents from a Collection.
+        -> If no filter is provided, it returns all Documents.
+
+        Example:
+
+        db.users.find()
+
+    -> findOne()
+        -> Used to retrieve only the first matching Document.
+        -> Stops searching after finding the first matching Document.
+
+        Example:
+
+        db.users.findOne()
+
+    -> Difference between find() and findOne()
+
+        -> find()
+            -> Returns all matching Documents.
+            -> Used when multiple Documents are required.
+
+        -> findOne()
+            -> Returns only the first matching Document.
+            -> More efficient when only one Document is required.
+
+    -> Interview Question
+
+        -> Which is more efficient when only one Document is required: find() or findOne()?
+            -> findOne().
+            -> It stops searching after finding the first matching Document instead of returning all matching Documents.
+
+=> Find Documents using Filter
+
+    -> Filter
+        -> A Filter is used to retrieve Documents that match specific conditions.
+        -> A Filter is also a Document (JSON object).
+
+        Example:
+
+        {
+            "name": "Vinay"
+        }
+
+    -> Equality Filter
+        -> Used to retrieve Documents where a Field matches the given value.
+
+        Example:
+
+        db.users.find({
+            "name": "Vinay"
+        })
+
+    -> Multiple Conditions
+        -> Multiple Fields in the same Filter are treated as an implicit AND.
+        -> A Document is returned only if all conditions are satisfied.
+
+        Example:
+
+        {
+            "name": "Vinay",
+            "age": 35
+        }
+
+        Equivalent to:
+
+        name == "Vinay" AND age == 35
+
+    -> Interview Question
+
+        -> Is AND written explicitly for simple equality conditions?
+            -> No.
+            -> MongoDB automatically applies an implicit AND when multiple Fields are specified in the same Filter.
+

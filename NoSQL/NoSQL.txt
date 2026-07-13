@@ -1,0 +1,227 @@
+=> NoSQL(Not Only SQL)
+    -> NoSQL (originally meaning "non-relational" and commonly interpreted as "Not Only SQL") is a type of database designed to store, manage, and retrieve large volumes of unstructured or semi-structured data
+    -> NoSQL uses flexible schemas and alternative structures to store and manage data.
+
+=> Types of databases — NoSQL
+    -> There are four major types of NoSQL databases:
+        -> Document databases
+            -> Data is stored in the form of documents
+            -> Documents are usually stored in: JSON, BSON, XML
+            -> Each document contains: Key-Value pair, Nested objects, Arrays
+            -> Different documents can have different fields
+            -> Structured example:
+                
+                { 
+                    "id": 101, 
+                    "name": "Vinay", 
+                    "skills": ["Java", "Spring Boot"], 
+                    "address": { 
+                        "city": "Delhi", 
+                        "pincode": 110001 
+                    } 
+                }
+
+            -> Similar to storing complete user profile information inside one file/document.
+            -> Usecase:
+                -> E-commerce applications
+                -> User profiles
+                -> Content management systems
+                -> Product catalogs
+                -> Mobile applications
+            -> Advantages:
+                -> Flexible schemas
+                -> Easy to scale horizontally
+                -> Fast development
+                -> Good for semi-structured data
+            -> Disadvantage
+                -> Data duplication can happen
+                -> Complex joins are difficult
+            -> Popular Document Databases
+                -> MongoDB
+                -> CouchDB
+                -> Firebase Firestore
+        
+        -> Key-Value databases
+            -> Simplest type of NoSQL database
+            -> Data is stored as Key - Value. 
+            -> Similar to Java hashmap Key must be unique and value can be anythings
+            -> Structured example:
+                
+                Key: user101 
+                Value: { "name": "Vinay", "age": 25 }
+
+            -> Real Life Analogy:
+                -> Dictionary (Word → Meaning)
+                -> Java Map: (Key → Object)
+            -> Best Use Cases
+                -> Caching
+                -> Session management
+                -> Shopping Carts
+                -> Real-time recommendations
+                -> Gaming leaderboards
+            -> Advantages   
+                -> Extremly Fast
+                -> Simple Structured
+                -> High Performance
+            -> Disadvantage
+                -> Limited querying capability
+                -> Not suitable for complex relationship
+            -> Popular Key-Value Databases
+                -> Redis
+                -> Amazon DynamoDB
+                -> Riak
+        
+        -> Wide-Column stores
+            -> Data is stored in Rows, Dynamic Columns, Column families
+            -> Different rows can have different Columns
+            -> Optimized for Huge distributed datasets, Fast writes, Big data processing
+            -> Structured example:
+                
+                Row Key: 101 
+                
+                Name -> Vinay 
+                City -> Delhi 
+                Skill -> Java 
+                Experience -> 4 Years
+
+                -> Another row may contain completely different columns.
+
+            -> We can say it as wide column because one row may contain millions of columns.
+            -> Real Life Analogy:
+                -> Excel sheet where every row can have different columns
+            -> Best Usecases:
+                -> Big Data analytics
+                -> IoT systems
+                -> Logging systems
+                -> Time-series data
+                -> Recommendation engines
+            -> Advantage:
+                -> Highly scalable
+                -> Handles massive data efficiently
+                -> Very fast write operations
+            -> Disadvantages
+                -> Complex design
+                -> Harder querying compared to SQL
+            -> Popular Wide-Column Databases
+                -> Apache Cassandra
+                -> Apache HBase
+                -> Google Bigtable
+        
+        -> Graph databases
+            -> Data is stored as Nodes, Relationships (Edges)
+                -> Node represents entity/object. example: Person, Company, Product
+                -> Edge represents relationship. Example: Friends, Purchased, Follows
+
+            -> Focuses mainly on relationships between data
+
+            -> Structure Example
+                -> (Vinay) ---- FRIEND ----> (Rahul)
+                -> (Vinay) ---- WORKS_AT ----> (Company)
+
+            -> Real Life Analogy    
+                -> Social media friend connections
+
+            -> Best Usecase 
+                -> Social networks
+                -> Fraud detection
+                -> Recommendation systems
+                -> Network topology
+                -> Knowledge graphs
+
+            -> Advantages   
+                -> Excellent for connected data
+                -> Fast relationship traversal
+                -> Powerful graph queries
+
+            -> Disadvantages    
+                -> Not ideal for simple transactional systems
+                -> Can become complex at very large scale
+
+            -> Popular Graph Databases
+                -> Neo4j
+                -> Amazon Neptune
+                -> ArangoDB
+
+=> Multi-Model databases (Popular in these days)
+    -> It means a single database that supports multiple data models.
+    -> Instead of using seperate databses for different needs, one database can handle multiple storage types.
+    -> It combile features of:
+        -> Documents databases
+        -> Key-Value databases
+        -> Graph databases
+        -> Wide-Column databases
+    
+    -> Why Multi-Model databases became popular?
+        -> Modern applications handle different types of data
+        -> One application may require:
+            -> User profile storage
+            -> Relationship mapping
+            -> Caching
+            -> Analytics
+        -> Using multiple databases increases:
+            -> Complexity
+            -> Maintenance cost
+            -> Data synchronization problems
+
+        -> Multi-Model database solves this problem by:
+            -> Providing multiple models in one engine
+            -> Reducing operational complexity
+            -> Improving development speed
+            -> Example:
+                -> Suppose you are building a social media application
+                    -> User profile data: Best suited for Document model
+                    -> Friend connections: Best suited for Graph model
+                    -> User session cache: Best suited for Key-Value model
+                    -> Analytics(historical or real-time information) data: Best suited for Wide-Column model
+                -> So, Instead of using  MongoDB + Neo4j + Redis + Cassandra, you can use only one multimdel database.
+        
+        -> Features of Multi-Model databases
+            -> Supports multiple data models
+            -> Flexible schema
+            -> Horizontal scaling
+            -> High availability
+            -> Distributed architecture
+            -> Better integration between different data types
+
+        -> Advantages
+            -> Reduces database management overhead
+            -> Simplifies architecture
+            -> Less data duplication
+            -> Easier maintenance
+            -> Faster development
+            -> Better scalability
+
+        -> Disadvantages    
+            -> Can become internally complex
+            -> May not be best optimized for every model
+            -> Learning curve can be higher
+            -> Vendor-specific implementations
+
+        -> Popular Multi-Model databases
+            -> ArangoDB: Supports Document, Graph and Key-Value
+            -> OrientDB: Support Graph and Document
+            -> Azure Cosmos DB: Supports Document, Key-Value, Graph, Column-Family APIs
+            -> MarkLogic: Enterprise multi-model database
+
+    -> Difference between Traditional NoSQL and Multi-Model
+        -> Traditional NoSQL
+            -> Focuses mainly on one model
+            -> Example: 
+                -> MongoDB → Document 
+                -> Redis → Key-Value 
+                -> Neo4j → Graph
+                
+        -> Multi-Model Database
+            -> Supports multiple models together
+            -> Single database for multiple workloads
+
+    -> Real-World Trend
+        -> Modern cloud-native applications, AI Syatem, Real-time analytics, Social media plateform, IoT systems:
+            -> These applications often prefer Multi-Model databases because they deal with multiple types of data together.
+            -> Multi-Model databases are becoming very popular because modern applications are complex and require different data representations.
+            -> Instead of maintaining many separate databases, organizations now prefer: One unified database platform
+            -> This helps in:
+                -> simpler architecture
+                -> Better scalability
+                -> Faster development
+                -> Easier maintenance
