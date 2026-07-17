@@ -1,0 +1,229 @@
+=> MongoDB Read Practice Set (Phase 1 & Phase 2)
+
+    -> Basic Read Queries
+
+        Q1. Find all users whose age is greater than 25.
+
+        Q2. Find all users whose age is greater than or equal to 30.
+
+        Q3. Find all users whose age is less than 30.
+
+        Q4. Find all users whose age is less than or equal to 25.
+
+        Q5. Find all users whose age is not equal to 27.
+
+    ------------------------------------------------------------
+
+    -> AND / OR / NOT Queries
+
+        Q6. Find all users whose name is "Vinay".
+
+        Q7. Find all users whose name is "Vinay" AND age is greater than 30.
+
+        Q8. Find all users whose name is "Vinay" AND age is less than 30.
+
+        Q9. Find all users whose age is greater than 25 AND less than 35.
+
+        Q10. Find all users whose age is greater than or equal to 25 AND not equal to 35.
+
+        Q11. Find all users whose name is "Rahul" OR age is less than 26.
+
+        Q12. Find all users whose age is greater than 30 OR less than 26.
+
+        Q13. Find all users whose age is NOT greater than 29.
+
+        Q14. Find all users whose name is NOT "Vinay".
+
+        Q15. Find all users whose name is NOT "Vinay" AND age is NOT less than 28.
+
+    ------------------------------------------------------------
+
+    -> Interview Level Queries
+
+        Q16. Write the same query using both Implicit AND and Explicit $and.
+
+            Requirement:
+            Name = Vinay
+            Age > 25
+
+        Q17. Write the same query using both $ne and $not.
+
+            Requirement:
+            Age != 25
+
+        Q18. Find users whose name is "Vinay" OR age is greater than 30.
+
+        Q19. Find users whose name is NOT "Rahul" OR age is less than 27.
+
+        Q20. Find users where neither:
+                name = "Vinay"
+                nor
+                age < 28
+
+    ------------------------------------------------------------
+
+    -> $in & $nin
+
+        Q21. Find all users whose name is either "Vinay" or "Rahul".
+
+        Q22. Find all users whose age is either 25, 29 or 35.
+
+        Q23. Find all users whose age is either 27, 30 or 35 AND whose name is "Vinay".
+
+        Q24. Find all users whose name is NOT "Vinay" or "Rahul".
+
+        Q25. Find all users whose age is NOT 25, 29 or 35 AND whose name is "Vinay".
+
+    ------------------------------------------------------------
+
+    -> Projection
+
+        Q26. Return only the name of all users.
+
+        Q27. Return only the name without _id.
+
+        Q28. Return only name and email.
+
+        Q29. Return only name and email without _id.
+
+        Q30. Return all fields except email.
+
+        Q31. Return all fields except age and email.
+
+        Q32. Return only name and age of users whose age is greater than 28.
+
+        Q33. Return only email of users whose name is "Vinay".
+
+    ------------------------------------------------------------
+
+    -> Sorting
+
+        Q34. Sort all users by age in ascending order.
+
+        Q35. Sort all users by age in descending order.
+
+        Q36. Display users older than 27 sorted by age in ascending order.
+
+        Q37. Display users older than 27 sorted by age in descending order.
+
+        Q38. Return only name and age sorted by age in ascending order.
+
+        Q39. Return only name and email sorted by name in ascending order without _id.
+
+        Q40. Sort users by name in ascending order. If names are the same, sort by age in ascending order.
+
+        Q41. Sort users by name in ascending order. If names are the same, sort by age in descending order.
+
+        Q42. Return only name and age of users whose age is greater than 28 sorted by age in descending order.
+
+        Q43. Return only name and email of users whose name is "Vinay" sorted by age in ascending order without _id.
+
+    ------------------------------------------------------------
+
+    -> limit()
+
+        Q44. Return only the first 3 users.
+
+        Q45. Return the first 2 users sorted by age in ascending order.
+
+        Q46. Return the youngest 4 users.
+
+        Q47. Return only name and age of the first 3 users sorted by age in descending order.
+
+    ------------------------------------------------------------
+
+    -> skip()
+
+        Q48. Skip the first 2 users.
+
+        Q49. Skip the first 3 users and return the remaining users sorted by age.
+
+        Q50. Skip the first 2 youngest users and display the remaining users.
+
+    ------------------------------------------------------------
+
+    -> Pagination (skip + limit)
+
+        Q51. Display page 1 with page size 2.
+
+        Q52. Display page 2 with page size 2.
+
+        Q53. Display page 3 with page size 2.
+
+        Q54. Display page 2 with page size 3 sorted by age in ascending order.
+
+        Q55. Display page 3 with page size 2 showing only name and email without _id.
+
+    ------------------------------------------------------------
+
+    -> countDocuments()
+
+        Q56. Count all users.
+
+        Q57. Count users whose name is "Vinay".
+
+        Q58. Count users whose age is greater than 30.
+
+        Q59. Count users whose age is between 25 and 30 (inclusive).
+
+        Q60. Count users whose name is not "Rahul".
+
+        Q61. Count users whose age is greater than or equal to 25 and less than 35.
+
+    ------------------------------------------------------------
+
+    -> estimatedDocumentCount()
+
+        Q62. Return the estimated total number of users.
+
+        Q63. Execute estimatedDocumentCount() with a filter and observe the result.
+
+        Q64. Explain why estimatedDocumentCount() ignores filters.
+
+    ------------------------------------------------------------
+
+    -> distinct()
+
+        Q65. Return all unique names.
+
+        Q66. Return all unique ages.
+
+        Q67. Return all unique names whose age is greater than or equal to 30.
+
+        Q68. Return all unique names except users whose age is less than 28.
+
+        Q69. Return all unique ages of users whose name is "Vinay".
+
+        Q70. Return all unique email domains (Assume email addresses contain different domains).
+
+    ------------------------------------------------------------
+
+    -> Interview Challenge
+
+        Q71. Difference between countDocuments() and estimatedDocumentCount().
+
+        Q72. Difference between limit() and skip().
+
+        Q73. Why is limit() usually used with sort()?
+
+        Q74. Why is countDocuments() a Collection method instead of a Cursor method?
+
+        Q75. Difference between distinct() and SQL DISTINCT.
+
+        Q76. Difference between distinct() and Aggregation $group.
+
+        Q77. Why can't we write:
+
+             db.users.find().countDocuments()
+
+        Q78. Explain the pagination formula with an example.
+
+        Q79. Which method should be used to display the first 10 latest orders and why?
+
+        Q80. Explain the execution order of the following query:
+
+             db.users.find({ age: { $gt: 25 } })
+                     .sort({ age: -1 })
+                     .skip(2)
+                     .limit(3)
+                     .project({ name: 1, age: 1, _id: 0 })

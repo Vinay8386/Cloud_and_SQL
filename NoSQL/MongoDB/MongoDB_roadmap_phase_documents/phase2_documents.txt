@@ -1,0 +1,1446 @@
+=> Insert One Document
+
+    -> What is Insert One?
+        -> Used to insert a single Document into a Collection.
+
+    -> Important Points
+        -> MongoDB expects data in the form of a Document.
+        -> If _id is not provided, MongoDB automatically generates an ObjectId.
+        -> The generated _id uniquely identifies the Document.
+        -> The remaining Fields are stored exactly as provided.
+
+    -> Example
+
+        Input:
+
+        {
+            "name": "Vinay",
+            "age": 27,
+            "email": "vinay@gmail.com"
+        }
+
+        Stored in MongoDB:
+
+        {
+            "_id": ObjectId("..."),
+            "name": "Vinay",
+            "age": 27,
+            "email": "vinay@gmail.com"
+        }
+
+    -> Interview Question
+
+        -> Can two Documents have the same _id?
+            -> No.
+            -> _id is unique for every Document.
+
+        -> Can we insert a Document without _id?
+            -> Yes.
+            -> MongoDB automatically generates an ObjectId.
+
+=> Insert Many
+
+    -> What is Insert Many?
+        -> Used to insert multiple Documents into a Collection using a single request.
+
+    -> Why do we use Insert Many?
+        -> Reduces the number of database calls.
+        -> Reduces network overhead.
+        -> Improves performance when inserting a large number of Documents.
+        -> Suitable for bulk data insertion.
+
+    -> Syntax
+
+        db.users.insertMany([
+            {
+                "name": "Amit",
+                "age": 25
+            },
+            {
+                "name": "Rohit",
+                "age": 29
+            }
+        ])
+
+    -> Important Points
+        -> insertMany() accepts an Array of Documents.
+        -> Each Document is inserted independently.
+        -> If _id is not provided, MongoDB generates a unique ObjectId for every Document.
+        -> Every inserted Document has its own unique _id.
+
+    -> SQL vs MongoDB
+
+        SQL
+            -> INSERT INTO users VALUES (...), (...), (...);
+
+        MongoDB
+            -> db.users.insertMany([{...}, {...}, {...}])
+
+    -> Interview Question
+
+        -> insertMany() accepts which data type?
+            -> An Array of Documents.
+
+        -> If 1000 Documents are inserted without _id, how many ObjectIds will MongoDB generate?
+            -> 1000.
+            -> Every Document gets its own unique _id.
+
+        -> Why is insertMany() preferred over multiple insertOne() calls?
+            -> It reduces network overhead, decreases the number of database calls, and improves performance.
+
+=> Comparison Operators
+
+    -> What are Comparison Operators?
+        -> Used to compare a Field value with a specified value.
+        -> Used inside Filters to retrieve matching Documents.
+
+    -> Available Comparison Operators
+
+        -> $gt
+            -> Greater Than (>)
+
+        -> $gte
+            -> Greater Than or Equal To (>=)
+
+        -> $lt
+            -> Less Than (<)
+
+        -> $lte
+            -> Less Than or Equal To (<=)
+
+        -> $eq
+            -> Equal To (==)
+
+        -> $ne
+            -> Not Equal To (!=)
+
+    -> Examples
+
+        -> age > 25
+
+        db.users.find({
+            age: { $gt: 25 }
+        })
+
+        -> age >= 25
+
+        db.users.find({
+            age: { $gte: 25 }
+        })
+
+        -> age < 25
+
+        db.users.find({
+            age: { $lt: 25 }
+        })
+
+        -> age <= 25
+
+        db.users.find({
+            age: { $lte: 25 }
+        })
+
+        -> age == 25
+
+        db.users.find({
+            age: { $eq: 25 }
+        })
+
+        -> age != 25
+
+        db.users.find({
+            age: { $ne: 25 }
+        })
+
+    -> Important Points
+
+        -> Equality can be written in two ways.
+
+            -> Shorthand
+
+            db.users.find({
+                age: 25
+            })
+
+            -> Using $eq
+
+            db.users.find({
+                age: { $eq: 25 }
+            })
+
+        -> Both queries are equivalent.
+
+    -> Interview Question
+
+        -> Which comparison operator is most commonly omitted?
+            -> $eq
+            -> MongoDB provides a shorthand syntax for equality.
+
+=> Logical Operators
+
+    -> Why Logical Operators?
+        -> Used to combine or negate multiple query conditions.
+
+    -> Implicit AND
+        -> When multiple Fields are specified in the same Filter, MongoDB automatically applies an implicit AND.
+
+        Example:
+
+        {
+            "name": "Vinay",
+            "age": { "$gt": 25 }
+        }
+
+        Equivalent to:
+
+        name = "Vinay" AND age > 25
+
+    -> $and
+        -> Used to explicitly combine multiple conditions.
+        -> Mostly used when query conditions become complex.
+
+        Example:
+
+        db.users.find({
+            $and: [
+                { "name": "Vinay" },
+                { "age": { "$gt": 25 } }
+            ]
+        })
+
+    -> $or
+        -> Returns Documents if at least one condition is true.
+        -> Accepts an Array of Filter Documents.
+
+        Example:
+
+        db.users.find({
+            $or: [
+                { "name": "Vinay" },
+                { "age": { "$lt": 25 } }
+            ]
+        })
+
+    -> $not
+        -> Negates a single Field condition.
+        -> Used inside a Field.
+
+        Example:
+
+        db.users.find({
+            age: {
+                $not: {
+                    $gt: 25
+                }
+            }
+        })
+
+        Meaning:
+
+        NOT(age > 25)
+
+    -> $nor
+        -> Returns Documents where none of the specified conditions are true.
+        -> Negates multiple query conditions.
+        -> Accepts an Array of Filter Documents.
+
+        Example:
+
+        db.users.find({
+            $nor: [
+                { "name": "Vinay" },
+                { "age": { "$lt": 25 } }
+            ]
+        })
+
+        Meaning:
+
+        NOT
+        (
+            name = "Vinay"
+            OR
+            age < 25
+        )
+
+    -> Difference
+
+        -> Implicit AND
+            -> Applied automatically by MongoDB.
+            -> Used for simple multiple conditions.
+
+        -> $and
+            -> Explicit AND.
+            -> Used for complex query conditions.
+
+        -> $or
+            -> Returns Documents if any one condition is true.
+
+        -> $not
+            -> Negates a single Field condition.
+
+        -> $nor
+            -> Negates multiple query conditions.
+
+    -> Interview Questions
+
+        -> When should we use $and?
+            -> For complex query conditions where implicit AND is not sufficient.
+
+        -> What is the difference between $not and $nor?
+            -> $not negates a single Field condition.
+            -> $nor negates multiple query conditions.
+
+        -> Does $or accept a Document or an Array?
+            -> An Array of Filter Documents.
+
+        -> Does MongoDB automatically apply AND?
+            -> Yes.
+            -> Multiple Fields inside the same Filter are treated as an implicit AND.
+
+=> $in & $nin
+
+    -> Why do we need $in?
+        -> Used when a Field should match any one value from a given list.
+        -> Avoids writing multiple OR conditions.
+        -> Makes queries shorter and more readable.
+
+    ------------------------------------------------------
+
+    -> $in
+
+        -> Meaning
+            -> Returns Documents whose Field value exists in the specified list.
+
+        -> Syntax
+
+        db.users.find({
+            field: {
+                $in: [
+                    value1,
+                    value2,
+                    value3
+                ]
+            }
+        })
+
+        -> Example
+
+        db.users.find({
+            name: {
+                $in: [
+                    "Vinay",
+                    "Rahul"
+                ]
+            }
+        })
+
+        -> Example
+
+        db.users.find({
+            age: {
+                $in: [
+                    25,
+                    29,
+                    35
+                ]
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> Why do we need $nin?
+
+        -> Used when a Field should NOT match any value from a given list.
+        -> Avoids writing multiple NOT EQUAL conditions.
+
+    ------------------------------------------------------
+
+    -> $nin
+
+        -> Meaning
+            -> Returns Documents whose Field value does NOT exist in the specified list.
+
+        -> Syntax
+
+        db.users.find({
+            field: {
+                $nin: [
+                    value1,
+                    value2,
+                    value3
+                ]
+            }
+        })
+
+        -> Example
+
+        db.users.find({
+            name: {
+                $nin: [
+                    "Vinay",
+                    "Rahul"
+                ]
+            }
+        })
+
+        -> Example
+
+        db.users.find({
+            age: {
+                $nin: [
+                    25,
+                    29,
+                    35
+                ]
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> Combining with AND
+
+        -> Example
+
+        Find users whose name is "Vinay"
+        AND
+        age is either 27, 30 or 35.
+
+        -> Implicit AND
+
+        db.users.find({
+            name: "Vinay",
+            age: {
+                $in: [
+                    27,
+                    30,
+                    35
+                ]
+            }
+        })
+
+        -> Explicit AND
+
+        db.users.find({
+            $and: [
+                {
+                    name: "Vinay"
+                },
+                {
+                    age: {
+                        $in: [
+                            27,
+                            30,
+                            35
+                        ]
+                    }
+                }
+            ]
+        })
+
+    ------------------------------------------------------
+
+    -> Combining $nin with AND
+
+        -> Example
+
+        Find users whose name is "Vinay"
+        AND
+        age is NOT 25, 29 or 35.
+
+        db.users.find({
+            name: "Vinay",
+            age: {
+                $nin: [
+                    25,
+                    29,
+                    35
+                ]
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> SQL vs MongoDB
+
+        SQL
+
+        SELECT *
+        FROM users
+        WHERE age IN (25, 29, 35);
+
+        MongoDB
+
+        db.users.find({
+            age: {
+                $in: [
+                    25,
+                    29,
+                    35
+                ]
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> Important Points
+
+        -> $in is an alternative to multiple OR conditions on the same Field.
+
+        -> $nin is an alternative to multiple NOT EQUAL conditions on the same Field.
+
+        -> $in and $nin accept an Array of values.
+
+        -> $in and $nin work on a single Field.
+
+    ------------------------------------------------------
+
+    -> Interview Questions
+
+        -> What is the difference between $or and $in?
+
+            -> $or combines multiple Filter conditions.
+            -> $in checks whether a single Field value exists in a list.
+
+        -> What is the difference between $ne and $nin?
+
+            -> $ne checks a single value.
+            -> $nin checks multiple values.
+
+        -> What data type does $in accept?
+
+            -> An Array.
+
+        -> What data type does $nin accept?
+
+            -> An Array.
+
+=> Projection
+
+    -> What is Projection?
+
+        -> Projection specifies which Fields should be returned in the query result.
+        -> It helps retrieve only the required Fields instead of the complete Document.
+
+    ------------------------------------------------------
+
+    -> Why do we need Projection?
+
+        -> Reduces unnecessary data transfer.
+        -> Improves query performance.
+        -> Reduces memory usage.
+        -> Sends only the required data to the application.
+
+    ------------------------------------------------------
+
+    -> Syntax
+
+        db.collection.find(filter, projection)
+
+        -> filter
+            -> Specifies which Documents should be returned.
+
+        -> projection
+            -> Specifies which Fields should be returned.
+
+    ------------------------------------------------------
+
+    -> Include Fields
+
+        -> Use 1 to include a Field.
+
+        -> Syntax
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                age: 1
+            }
+        )
+
+        -> Result
+
+        {
+            "_id": ObjectId(...),
+            "name": "Vinay",
+            "age": 27
+        }
+
+    ------------------------------------------------------
+
+    -> Exclude Fields
+
+        -> Use 0 to exclude a Field.
+
+        -> Syntax
+
+        db.users.find(
+            {},
+            {
+                email: 0
+            }
+        )
+
+        -> Result
+
+        {
+            "_id": ObjectId(...),
+            "name": "Vinay",
+            "age": 27
+        }
+
+    ------------------------------------------------------
+
+    -> _id Field
+
+        -> MongoDB always returns _id by default.
+
+        -> To exclude _id
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                _id: 0
+            }
+        )
+
+        -> Result
+
+        {
+            "name": "Vinay"
+        }
+
+    ------------------------------------------------------
+
+    -> Projection Rules
+
+        -> Include Fields
+
+        {
+            name: 1,
+            age: 1
+        }
+
+        -> Exclude Fields
+
+        {
+            age: 0,
+            email: 0
+        }
+
+        -> Exception
+
+        {
+            name: 1,
+            _id: 0
+        }
+
+        -> Invalid
+
+        {
+            name: 1,
+            age: 0
+        }
+
+        -> Invalid
+
+        {
+            name: 0,
+            age: 1
+        }
+
+    ------------------------------------------------------
+
+    -> Important Points
+
+        -> 1 means Include the Field.
+        -> 0 means Exclude the Field.
+        -> Do not mix 1 and 0 in the same Projection.
+        -> By default, MongoDB always includes _id in the result. So MongoDB provides one special exception:
+            -> Include other fields using 1 AND Exclude only _id using 0
+            -> This is the only valid combination of 1 and 0.
+        -> Projection is always the second parameter of find().
+
+    ------------------------------------------------------
+
+    -> SQL vs MongoDB
+
+        SQL
+
+        SELECT name, age
+        FROM users;
+
+        MongoDB
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                age: 1
+            }
+        )
+
+    ------------------------------------------------------
+
+    -> Interview Questions
+
+        -> What is Projection?
+
+            -> Projection specifies which Fields should be returned in the query result.
+
+        -> Why is Projection used?
+
+            -> To return only the required Fields.
+
+        -> What does 1 mean in Projection?
+
+            -> Include the Field.
+
+        -> What does 0 mean in Projection?
+
+            -> Exclude the Field.
+
+        -> Can we mix 1 and 0 in Projection?
+
+            -> No.
+
+        -> What is the only exception?
+
+            -> _id.
+
+=> Sorting
+
+    -> What is Sorting?
+
+        -> Sorting arranges the Documents in a specific order based on one or more Fields.
+
+    -> Why do we need Sorting?
+
+        -> Display data in ascending or descending order.
+        -> Show highest or lowest values first.
+        -> Display records alphabetically.
+        -> Frequently used in reports, dashboards and APIs.
+
+    -> Syntax
+
+        db.collection.find(filter, projection).sort(sortCriteria)
+
+    -> Sort by Single Field
+
+        -> Ascending Order
+
+            -> Use 1 for Ascending Order.
+
+            db.users.find().sort({
+                age: 1
+            })
+
+            Result
+
+            25
+            27
+            29
+            30
+            35
+
+        -> Descending Order
+
+            -> Use -1 for Descending Order.
+
+            db.users.find().sort({
+                age: -1
+            })
+
+            Result
+
+            35
+            30
+            29
+            27
+            25
+
+    -> Sort by Multiple Fields
+
+        -> MongoDB sorts from left to right.
+
+        -> First Field
+            -> Primary Sort Key
+
+        -> Second Field
+            -> Secondary Sort Key
+
+        -> Example
+
+        db.users.find().sort({
+            name: 1,
+            age: 1
+        })
+
+        -> Meaning
+
+            -> First sort by name (A → Z).
+            -> If names are the same, sort by age (Youngest → Oldest).
+
+        -> Another Example
+
+        db.users.find().sort({
+            name: 1,
+            age: -1
+        })
+
+        -> Meaning
+
+            -> First sort by name (A → Z).
+            -> If names are the same, sort by age (Oldest → Youngest).
+
+    -> Combining Filter + Projection + Sorting
+
+        db.users.find(
+            {
+                age: {
+                    $gt: 27
+                }
+            },
+            {
+                name: 1,
+                age: 1,
+                _id: 0
+            }
+        ).sort({
+            age: -1
+        })
+
+    -> Important Points
+
+        -> sort() is called after find().
+        -> 1 represents Ascending Order.
+        -> -1 represents Descending Order.
+        -> Multiple Fields can be used in sort().
+        -> MongoDB processes sort keys from left to right.
+        -> Sorting does not modify the stored data; it only changes the order of the query result.
+
+    -> SQL vs MongoDB
+
+        SQL
+
+        SELECT *
+        FROM users
+        ORDER BY age DESC;
+
+        MongoDB
+
+        db.users.find().sort({
+            age: -1
+        })
+
+    -> Interview Questions
+
+        -> What does sort() do?
+
+            -> It arranges the Documents in ascending or descending order.
+
+        -> What does 1 mean in sort()?
+
+            -> Ascending Order.
+
+        -> What does -1 mean in sort()?
+
+            -> Descending Order.
+
+        -> Can MongoDB sort using multiple Fields?
+
+            -> Yes.
+
+        -> Which Field is sorted first in multi-field sorting?
+
+            -> The leftmost Field (Primary Sort Key).
+
+        -> Does sort() modify the data stored in MongoDB?
+
+            -> No. It only changes the order of the query result.
+
+=> limit()
+
+    -> What is limit()?
+
+        -> limit() is a Cursor method.
+        -> It limits the number of documents returned by a query.
+        -> It does NOT modify the documents stored in the collection.
+        -> It is commonly used to display only a fixed number of records.
+
+    -> Syntax
+
+        db.collection.find().limit(number)
+
+    -> Example 1: Return first 3 documents
+
+        db.users.find().limit(3)
+
+    -> Example 2: Return 2 oldest users
+
+        db.users.find()
+                .sort({
+                    age: -1
+                })
+                .limit(2)
+
+    -> How limit() Works
+
+                Collection
+                     │
+                  find()
+                     │
+                     ▼
+                  Cursor
+                     │
+                limit(3)
+                     │
+                     ▼
+         Returns only first 3 documents
+
+    -> Real World Examples
+
+        -> Top 10 highest paid employees
+        -> Latest 5 orders
+        -> Top 20 products
+        -> Recent 10 transactions
+
+    -> Important Points
+
+        -> limit() is a Cursor method.
+        -> limit() only affects the query result.
+        -> It does NOT delete or update documents.
+        -> Usually used with sort().
+
+    -> Common Mistakes
+
+        Mistake 24
+
+        Wrong Expectation:
+
+        db.users.find().limit(3)
+
+        -> Some people think only 3 documents remain in the collection.
+
+        Correct Understanding:
+
+        -> Only 3 documents are returned.
+        -> Collection remains unchanged.
+
+    -> Interview Questions
+
+        Q1. What is limit()?
+        Q2. Is limit() a Collection method or Cursor method?
+        Q3. Why is limit() commonly used with sort()?
+
+=> skip()
+
+    -> What is skip()?
+
+        -> skip() is a Cursor method.
+        -> It skips the specified number of documents.
+        -> Remaining documents are returned.
+
+    -> Syntax
+
+        db.collection.find().skip(number)
+
+    -> Example 1: Skip first 2 documents
+
+        db.users.find().skip(2)
+
+    -> Example 2: Skip first 5 documents
+
+        db.users.find().skip(5)
+
+    -> How skip() Works
+
+                Collection
+                     │
+                  find()
+                     │
+                     ▼
+                  Cursor
+                     │
+                skip(2)
+                     │
+                     ▼
+        Ignores first 2 documents
+                     │
+                     ▼
+        Returns remaining documents
+
+    -> Important Points
+
+        -> skip() never deletes documents.
+        -> skip() only ignores documents in the query result.
+        -> Commonly used with limit() for pagination.
+
+    -> Pagination Formula
+
+        skip = (pageNumber - 1) × pageSize
+
+        limit = pageSize
+
+    -> Example
+
+        Page Number = 4
+
+        Page Size = 5
+
+        skip = (4 - 1) × 5
+             = 15
+
+        Query
+
+        db.users.find()
+                .skip(15)
+                .limit(5)
+
+    -> Real World Example
+
+        GET /users?page=3&size=10
+
+        skip = (3 - 1) × 10 = 20
+
+        limit = 10
+
+        db.users.find()
+                .skip(20)
+                .limit(10)
+
+    -> Common Mistakes
+
+        Mistake 25
+
+        Wrong:
+
+        skip = pageNumber × pageSize
+
+        Correct:
+
+        skip = (pageNumber - 1) × pageSize
+
+    -> Interview Questions
+
+        Q1. What is skip()?
+        Q2. Difference between skip() and limit()?
+        Q3. What is the pagination formula?
+        Q4. Why are skip() and limit() used together?
+
+=> Count Operations
+
+    -> countDocuments()
+
+        -> Returns the exact number of matching documents.
+        -> Supports filtering.
+        -> Reads matching documents (or indexes) to calculate the count.
+        -> Accurate but comparatively slower for very large collections.
+
+    -> Syntax
+
+        db.collection.countDocuments()
+
+        db.collection.countDocuments({
+            field: value
+        })
+
+    -> Example 1: Count all documents
+
+        db.users.countDocuments()
+
+    -> Example 2: Count users whose name is Vinay
+
+        db.users.countDocuments({
+            name: "Vinay"
+        })
+
+    -> Example 3: Count users whose age is greater than 30
+
+        db.users.countDocuments({
+            age: {
+                $gt: 30
+            }
+        })
+
+    -> Example 4: Count users whose age is between 25 and 30 (inclusive)
+
+        db.users.countDocuments({
+            age: {
+                $gte: 25,
+                $lte: 30
+            }
+        })
+
+    -> estimatedDocumentCount()
+
+        -> Returns the estimated total number of documents.
+        -> Reads collection metadata.
+        -> Does NOT scan documents.
+        -> Very fast.
+        -> Ignores any filter passed to it.
+
+    -> Syntax
+
+        db.collection.estimatedDocumentCount()
+
+    -> Example
+
+        db.users.estimatedDocumentCount()
+
+        Even if you write
+
+        db.users.estimatedDocumentCount({
+            age:{
+                $gt:30
+            }
+        })
+
+        Output will still be the total document count because the filter is ignored.
+
+    -> How countDocuments() Works
+
+                Collection
+                     │
+      countDocuments(filter)
+                     │
+                     ▼
+        Counts matching documents
+                     │
+                     ▼
+              Exact Count
+
+    -> How estimatedDocumentCount() Works
+
+                Collection
+                     │
+                     ▼
+                 Metadata
+                     │
+                     ▼
+        Stored Document Count
+                     │
+                     ▼
+            Estimated Count
+
+    -> Difference
+
+        countDocuments()
+
+            -> Exact count.
+            -> Supports filters.
+            -> Reads matching documents or indexes.
+            -> Slower.
+
+        estimatedDocumentCount()
+
+            -> Estimated total count.
+            -> Does NOT support filters.
+            -> Reads metadata only.
+            -> Faster.
+
+    -> Common Mistakes
+
+        Mistake 26
+
+        Wrong
+
+        db.users.find({
+            age:{
+                $gt:30
+            }
+        }).countDocuments()
+
+        Reason
+
+        -> find() returns a Cursor.
+        -> countDocuments() is a Collection method.
+
+        Correct
+
+        db.users.countDocuments({
+            age:{
+                $gt:30
+            }
+        })
+
+        Mistake 27
+
+        Wrong
+
+        db.users.countDocument({
+            name:"Vinay"
+        })
+
+        Correct
+
+        db.users.countDocuments({
+            name:"Vinay"
+        })
+
+        Mistake 28
+
+        Wrong Expectation
+
+        db.users.estimatedDocumentCount({
+            age:{
+                $gt:30
+            }
+        })
+
+        -> Expecting filtered count.
+
+        Actual
+
+        -> MongoDB ignores the filter and returns the estimated total document count.
+
+    -> Interview Questions
+
+        Q1. Difference between countDocuments() and estimatedDocumentCount()?
+        Q2. Which method supports filtering?
+        Q3. Why is estimatedDocumentCount() faster?
+        Q4. Why can't countDocuments() be called after find()?
+        Q5. What happens if a filter is passed to estimatedDocumentCount()?
+
+    -> Easy Way to Remember
+
+        countDocuments()
+
+            -> Exact Count
+            -> Supports Filters
+            -> Slower
+
+        estimatedDocumentCount()
+
+            -> Estimated Total Count
+            -> Ignores Filters
+            -> Faster
+
+=> distinct()
+
+    -> What is distinct()?
+
+        -> distinct() is a Collection method.
+        -> It returns the unique values of a specified field.
+        -> Duplicate values are removed automatically.
+        -> It does NOT modify the collection.
+        -> An optional filter can be applied to return unique values only from matching documents.
+
+    -> Syntax
+
+        db.collection.distinct("field")
+
+        db.collection.distinct("field", {
+            filter
+        })
+
+    -> Parameters
+
+        First Parameter
+
+            -> Field name whose unique values need to be returned.
+
+        Second Parameter (Optional)
+
+            -> Filter condition.
+            -> MongoDB first filters the documents.
+            -> Then returns the unique values from the filtered documents.
+
+    -> Example 1: Return all unique names
+
+        db.users.distinct("name")
+
+        Output
+
+        [
+            "Amit",
+            "Rahul",
+            "Rohit",
+            "Vinay"
+        ]
+
+    -> Example 2: Return unique names whose age is greater than or equal to 30
+
+        db.users.distinct("name", {
+            age: {
+                $gte: 30
+            }
+        })
+
+        Output
+
+        [
+            "Amit",
+            "Rahul",
+            "Vinay"
+        ]
+
+    -> How distinct() Works
+
+                Collection
+                     │
+         distinct("name")
+                     │
+                     ▼
+          Reads all documents
+                     │
+                     ▼
+        Removes duplicate values
+                     │
+                     ▼
+        Returns unique names
+
+    -> How distinct() with Filter Works
+
+                Collection
+                     │
+         Apply Filter (age >= 30)
+                     │
+                     ▼
+         Matching Documents
+                     │
+                     ▼
+        Remove Duplicate Names
+                     │
+                     ▼
+        Return Unique Values
+
+    -> SQL Equivalent
+
+        MongoDB
+
+        db.users.distinct("name")
+
+        SQL
+
+        SELECT DISTINCT name
+        FROM users;
+
+    -> distinct() vs Aggregation $group
+
+        distinct()
+
+            -> Returns only unique values.
+            -> Works on a single field.
+            -> No calculations.
+            -> Faster and simpler.
+
+        Example
+
+        db.users.distinct("name")
+
+        Output
+
+        Amit
+        Rahul
+        Rohit
+        Vinay
+
+        Aggregation $group
+
+            -> Groups documents.
+            -> Supports calculations like Count, Sum, Average, Min and Max.
+            -> Used for reporting and analytics.
+
+        Example
+
+        db.users.aggregate([
+            {
+                $group: {
+                    _id: "$name",
+                    totalUsers: {
+                        $sum: 1
+                    }
+                }
+            }
+        ])
+
+        Output
+
+        Amit   2
+        Rahul  2
+        Rohit  1
+        Vinay  2
+
+    -> Real World Examples
+
+        -> Get all available product categories.
+
+            db.products.distinct("category")
+
+        -> Get all unique cities.
+
+            db.customers.distinct("city")
+
+        -> Get all unique departments.
+
+            db.employees.distinct("department")
+
+        -> Get all available brands.
+
+            db.products.distinct("brand")
+
+    -> Common Mistakes
+
+        Mistake 29
+
+        Wrong Expectation
+
+        db.users.distinct("name")
+
+        -> Expecting complete documents.
+
+        Actual
+
+        -> Returns only unique values of the specified field.
+
+        Mistake 30
+
+        Wrong
+
+        db.users.find().distinct("name")
+
+        Reason
+
+        -> find() returns a Cursor.
+        -> distinct() is a Collection method.
+
+        Correct
+
+        db.users.distinct("name")
+
+        Mistake 31
+
+        Wrong Expectation
+
+        db.users.distinct("name")
+
+        -> Expecting duplicate values in the output.
+
+        Correct Understanding
+
+        -> Duplicate values are removed automatically.
+
+    -> Interview Questions
+
+        Q1. What is distinct()?
+
+        Q2. Is distinct() a Collection method or a Cursor method?
+
+        Q3. Can distinct() accept a filter?
+
+        Q4. What is the difference between distinct() and SQL DISTINCT?
+
+        Q5. What is the difference between distinct() and Aggregation $group?
+
+    -> Easy Way to Remember
+
+        distinct()
+
+            -> Returns unique values.
+            -> Removes duplicates.
+            -> Supports optional filter.
+            -> Collection method.
+            -> Similar to SQL DISTINCT.
+

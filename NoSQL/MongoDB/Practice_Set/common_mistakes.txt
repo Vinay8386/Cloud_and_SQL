@@ -1,0 +1,477 @@
+=> Common Mistakes (Practice Set 1)
+
+    -> Mistake 1 : Forgetting find() Syntax
+
+        ❌ Wrong
+
+        db.users.find(
+            { name: "Vinay" },
+            { age: { $gt: 30 } }
+        )
+
+        Reason:
+            -> find() accepts
+
+                find(filter, projection)
+
+            -> The second parameter is treated as Projection, not another Filter.
+
+        ✅ Correct
+
+        db.users.find({
+            name: "Vinay",
+            age: { $gt: 30 }
+        })
+
+        OR
+
+        db.users.find({
+            $and: [
+                { name: "Vinay" },
+                { age: { $gt: 30 } }
+            ]
+        })
+
+    ------------------------------------------------------
+
+    -> Mistake 2 : Duplicate Field Names
+
+        ❌ Wrong
+
+        db.users.find({
+            age: { $gt: 25 },
+            age: { $lt: 35 }
+        })
+
+        Reason:
+            -> A Document cannot contain duplicate Field names.
+            -> The second age overwrites the first.
+
+        ✅ Correct
+
+        db.users.find({
+            $and: [
+                { age: { $gt: 25 } },
+                { age: { $lt: 35 } }
+            ]
+        })
+
+    ------------------------------------------------------
+
+    -> Mistake 3 : Using $gt with another Operator
+
+        ❌ Wrong
+
+        age: {
+            $gt: {
+                $eq: 25
+            }
+        }
+
+        Reason:
+            -> $gt expects a value.
+            -> It cannot contain another comparison operator.
+
+        ✅ Correct
+
+        age: {
+            $gte: 25
+        }
+
+    ------------------------------------------------------
+
+    -> Mistake 4 : Using $not as a Top-Level Operator
+
+        ❌ Wrong
+
+        db.users.find({
+            $not: [
+                {
+                    age: { $gt: 29 }
+                }
+            ]
+        })
+
+        Reason:
+            -> $not works only inside a Field.
+            -> It cannot be used at the query level.
+
+        ✅ Correct
+
+        db.users.find({
+            age: {
+                $not: {
+                    $gt: 29
+                }
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> Mistake 5 : Incorrect $not Syntax
+
+        ❌ Wrong
+
+        name: {
+            $not: "Vinay"
+        }
+
+        Reason:
+            -> $not must wrap another operator.
+
+        ✅ Correct
+
+        name: {
+            $not: {
+                $eq: "Vinay"
+            }
+        }
+
+        OR
+
+        name: {
+            $ne: "Vinay"
+        }
+
+    ------------------------------------------------------
+
+    -> Mistake 6 : Forgetting Curly Braces in find()
+
+        ❌ Wrong
+
+        db.users.find(
+            name: {
+                $not: {
+                    $eq: "Vinay"
+                }
+            }
+        )
+
+        Reason:
+            -> Filter must always be enclosed inside {}.
+
+        ✅ Correct
+
+        db.users.find({
+            name: {
+                $not: {
+                    $eq: "Vinay"
+                }
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> Mistake 7 : MongoDB Operators are Case-Sensitive
+
+        ❌ Wrong
+
+        $AND
+
+        ✅ Correct
+
+        $and
+
+        Reason:
+            -> All MongoDB operators are lowercase.
+
+    ------------------------------------------------------
+
+    -> Mistake 8 : Missing Closing Bracket
+
+        ❌ Wrong
+
+        db.users.find({
+            $and: [
+                { name: "Vinay" },
+                { age: { $gt: 25 } }
+        })
+
+        Reason:
+            -> Missing closing ]
+
+        ✅ Correct
+
+        db.users.find({
+            $and: [
+                { name: "Vinay" },
+                { age: { $gt: 25 } }
+            ]
+        })
+
+    ------------------------------------------------------
+
+    -> Mistake 9 : Logical Mistake in Requirement
+
+        Requirement
+
+            Age >= 30
+
+        ❌ Wrong Logic
+
+            age > 25 OR age == 25
+
+        Reason:
+            -> This becomes age >= 25.
+
+        ✅ Correct
+
+            age >= 30
+
+        OR
+
+        age > 30 OR age == 30
+
+    ------------------------------------------------------
+
+    -> Mistake 10 : Requirement Reading Mistake
+
+        Requirement
+
+            Neither
+                name = "Vinay"
+                age < 28
+
+        ❌ Written
+
+            name = "Rahul"
+
+        Reason:
+            -> Read the requirement carefully before writing the query.
+
+        Lesson:
+            -> Understand the requirement first.
+            -> Then think about the operator.
+            -> Finally write the query.
+
+    -> Mistake 11 : Using $or instead of $in for multiple values of the same Field.
+
+        db.users.find({
+            $or: [
+                { name: "Vinay" },
+                { name: "Rahul" }
+            ]
+        })
+
+        ✅ Better
+
+        db.users.find({
+            name: {
+                $in: [
+                    "Vinay",
+                    "Rahul"
+                ]
+            }
+        })
+
+
+    -> Mistake 12 : Writing Projection as the first parameter.
+
+        ❌ Wrong
+
+        db.users.find({
+            name: 1
+        })
+
+        ✅ Correct
+
+        db.users.find(
+            {},
+            {
+                name: 1
+            }
+        )
+
+
+    -> Mistake 13 : Using a Field value instead of 1 or 0 in Projection.
+
+        ❌ Wrong
+
+        db.users.find(
+            {},
+            {
+                name: "Vinay"
+            }
+        )
+
+        ✅ Correct
+
+        db.users.find(
+            {},
+            {
+                name: 1
+            }
+        )
+
+
+    -> Mistake 14 : Mixing Inclusion and Exclusion in Projection.
+
+        ❌ Wrong
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                age: 0
+            }
+        )
+
+        Error: Cannot do exclusion on field age in inclusion projection
+
+
+    -> Mistake 15 : Mixing Exclusion and Inclusion in Projection.
+
+        ❌ Wrong
+
+        db.users.find(
+            {},
+            {
+                name: 0,
+                age: 1
+            }
+        )
+
+        Error: Cannot do inclusion on field age in exclusion projection
+
+
+    -> Mistake 16 : Expecting _id to be excluded automatically.
+
+        ❌ Wrong
+
+        db.users.find(
+            {},
+            {
+                name: 1
+            }
+        )
+
+        Result
+
+        {
+            _id: ObjectId(...),
+            name: "Vinay"
+        }
+
+        ✅ Correct
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                _id: 0
+            }
+        )
+
+
+    -> Mistake 17 : Forgetting that _id is the only exception for mixing 1 and 0.
+
+        ✅ Valid
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                _id: 0
+            }
+        )
+
+        -> This is the only valid case where Inclusion (1) and Exclusion (0) are used together.
+
+        -> Mistake 18 : Trying to use sort() inside find().
+
+        ❌ Wrong
+
+        db.users.find({
+            $sort: {
+                age: 1
+            }
+        })
+
+        ✅ Correct
+
+        db.users.find().sort({
+            age: 1
+        })
+
+    -> Mistake 19 : Forgetting that sort() is called after find().
+
+        ❌ Wrong
+
+        db.users.sort({
+            age: 1
+        })
+
+        ✅ Correct
+
+        db.users.find().sort({
+            age: 1
+        })
+
+    -> Mistake 20 : Using 0 instead of -1 for Descending Order.
+
+        ❌ Wrong
+
+        db.users.find().sort({
+            age: 0
+        })
+
+        ✅ Correct
+
+        db.users.find().sort({
+            age: -1
+        })
+
+        -> In sort(), only 1 and -1 are valid.
+
+    -> Mistake 21 : Confusing the meaning of 1 in Projection and Sorting.
+
+        Projection
+
+        {
+            name: 1
+        }
+
+        -> 1 means Include the Field.
+
+        Sorting
+
+        {
+            age: 1
+        }
+
+        -> 1 means Ascending Order.
+
+    -> Mistake 22 : Forgetting the order of method chaining.
+
+        ❌ Wrong
+
+        db.users.sort({
+            age: 1
+        }).find()
+
+        ✅ Correct
+
+        db.users.find().sort({
+            age: 1
+        })
+
+    -> Mistake 23 : Expecting Secondary Sorting without specifying it.
+
+        ❌ Wrong
+
+        db.users.find().sort({
+            name: 1
+        })
+
+        -> Documents having the same name may appear in any order.
+
+        ✅ Correct
+
+        db.users.find().sort({
+            name: 1,
+            age: 1
+        })
+
+        -> MongoDB first sorts by name and then by age when names are the same.
+
+    

@@ -1,0 +1,32 @@
+[
+  {
+    _id: ObjectId('6a54de20572b5c8c58aaecbd'),
+    name: 'Vinay',
+    age: 27,
+    email: 'vinay@gmail.com'
+  },
+  {
+    _id: ObjectId('6a54e303572b5c8c58aaecbf'),
+    name: 'Rahul',
+    age: 30,
+    email: 'rahul@gmail.com'
+  },
+  {
+    _id: ObjectId('6a54e31a572b5c8c58aaecc1'),
+    name: 'Vinay',
+    age: 35,
+    email: 'vinay35@gmail.com'
+  },
+  {
+    _id: ObjectId('6a564bc41992e9f870eadc63'),
+    name: 'Amit',
+    age: 25,
+    email: 'amit@gmail.com'
+  },
+  {
+    _id: ObjectId('6a564bc41992e9f870eadc64'),
+    name: 'Rohit',
+    age: 29,
+    email: 'rohit@gmail.com'
+  }
+]

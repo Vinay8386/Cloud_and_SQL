@@ -24,9 +24,6 @@
             -> _id
             -> ObjectId
 
-        -> CRUD - Insert ✅
-            -> Insert One Document
-
         -> CRUD - Read (Basic) ✅
             -> find()
             -> findOne()
@@ -36,33 +33,154 @@
 
     -> Phase 2 : CRUD Operations ⏳
 
-        -> Insert
-            -> Insert Many
+    -> CRUD - Insert ✅
+        -> Insert One Document ✅
+        -> Insert Many ✅
 
-        -> Read
-            -> Comparison Operators ($gt, $lt, $gte, $lte, $eq, $ne)
-            -> Logical Operators ($and, $or, $not, $nor)
-            -> $in & $nin
-            -> Projection
-            -> Sorting
-            -> Limit
-            -> Skip
-            -> Count Documents
-            -> Distinct
+    -> Read
 
-        -> Update
-            -> updateOne()
-            -> updateMany()
-            -> replaceOne()
-            -> $set
-            -> $unset
-            -> $inc
-            -> $rename
-            -> Upsert
+        -> Comparison Operators✅
+            -> $gt
+            -> $gte
+            -> $lt
+            -> $lte
+            -> $eq
+            -> $ne
 
-        -> Delete
-            -> deleteOne()
-            -> deleteMany()
+        -> Logical Operators✅
+            -> Implicit AND
+            -> $and
+            -> $or
+            -> $not
+            -> $nor
+
+        -> Refere practice_set1 for practice query✅
+
+        -> $in & $nin✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Projection✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Sorting✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Limit✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Skip✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Count Documents✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Distinct✅
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+    -> Refer practice set 1 for practice above question
+
+    -> Update
+
+        -> updateOne()
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> updateMany()
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> replaceOne()
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> $set
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> $unset
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> $inc
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> $rename
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> Upsert
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+    -> Update Revision
+        -> Mixed Query Practice
+        -> Scenario Based Questions
+        -> Spring Boot Mapping
+        -> Update Module Interview Questions
+
+    -> Delete
+
+        -> deleteOne()
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+        -> deleteMany()
+            -> Practical
+            -> Notes
+            -> Interview Questions
+            -> Practice Questions
+
+    -> Delete Revision
+        -> Mixed Query Practice
+        -> Scenario Based Questions
+        -> Spring Boot Mapping
+        -> Delete Module Interview Questions
+
+    -> Phase 2 Revision
+        -> End-to-End CRUD Practice
+        -> Spring Boot CRUD Mapping
+        -> Interview Questions
+        -> Real-world Scenarios
 
     -> Phase 3 : Data Types ⏳
 

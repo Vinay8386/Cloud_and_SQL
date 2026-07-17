@@ -1,0 +1,190 @@
+=> MongoDB Basics
+
+    -> What is a Collection?
+
+        -> A Collection is like a table in a relational database.
+        -> It stores multiple documents.
+        -> Example:
+        
+           Collection: users
+
+           {
+               name: "Vinay",
+               age: 27
+           }
+
+           {
+               name: "Rahul",
+               age: 30
+           }
+
+    -> What is a Document?
+
+        -> A Document is a single record stored inside a collection.
+        -> It is stored in BSON (Binary JSON) format.
+        -> Example:
+
+           {
+               _id: ObjectId(...),
+               name: "Vinay",
+               age: 27,
+               email: "vinay@gmail.com"
+           }
+
+    -> What is a Query?
+
+        -> A Query is a request to MongoDB to retrieve, insert, update or delete documents.
+        -> Example:
+
+           db.users.find({age: {$gt: 25}})
+
+    -> What is a Cursor? ⭐ (Very Important)
+
+        -> Cursor is an object returned by the find() method.
+        -> It points to the query result.
+        -> Cursor does NOT store all documents in memory at once.
+        -> It fetches documents lazily (one by one or in batches) as needed.
+        -> This makes MongoDB memory efficient.
+
+        Flow:
+
+                Collection
+                     │
+               db.users.find()
+                     │
+                     ▼
+                  Cursor
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+      Document 1           Document 2 ...
+
+    -> Why does MongoDB use Cursor?
+
+        -> Suppose a collection contains 10 million documents.
+        -> Loading all documents into memory would consume huge memory.
+        -> Instead, MongoDB returns a Cursor.
+        -> Cursor retrieves documents only when required.
+
+    -> Cursor Methods
+
+        -> sort()
+        -> limit()
+        -> skip()
+        -> next()
+        -> hasNext()
+        -> forEach()
+        -> toArray()
+
+        Example:
+
+        db.users.find()
+                .sort({age:1})
+                .limit(5)
+
+        Flow:
+
+            Collection
+                 │
+                 ▼
+              find()
+                 │
+                 ▼
+              Cursor
+                 │
+                 ▼
+            sort(age)
+                 │
+                 ▼
+             limit(5)
+                 │
+                 ▼
+          Final Documents
+
+    -> Collection Methods
+
+        -> find()
+        -> findOne()
+        -> insertOne()
+        -> insertMany()
+        -> updateOne()
+        -> updateMany()
+        -> replaceOne()
+        -> deleteOne()
+        -> deleteMany()
+        -> countDocuments()
+        -> estimatedDocumentCount()
+
+    -> Why countDocuments() cannot be used after find()?
+
+        Wrong:
+
+        db.users.find({age: {$gt:30}})
+                .countDocuments()
+
+        Reason:
+
+            Collection
+                 │
+                 ▼
+              find()
+                 │
+                 ▼
+              Cursor
+                 │
+          countDocuments() ❌
+
+        -> countDocuments() is NOT a Cursor method.
+        -> It is a Collection method.
+
+        Correct:
+
+        db.users.countDocuments({
+            age: {$gt:30}
+        })
+
+        Flow:
+
+            Collection
+                 │
+      countDocuments(filter)
+                 │
+                 ▼
+            Returns Count
+
+    -> Difference Between Collection and Cursor
+
+        Collection
+
+            -> Represents the actual collection in MongoDB.
+            -> Can perform CRUD operations.
+            -> Returns documents or modifies data.
+
+        Cursor
+
+            -> Represents the result of a query.
+            -> Used to iterate over query results.
+            -> Supports operations like sorting, limiting and skipping.
+
+    -> Easy Way to Remember
+
+        Collection
+            -> Owns the data.
+
+        find()
+            -> Creates a Cursor.
+
+        Cursor
+            -> Navigates through the matching documents.
+
+        countDocuments()
+            -> Counts matching documents directly from the Collection.
+
+    -> Interview Questions
+
+        Q1. What is a Cursor in MongoDB?
+        Q2. Why does find() return a Cursor instead of documents?
+        Q3. Why can't we call countDocuments() after find()?
+        Q4. Difference between Collection and Cursor?
+        Q5. Why is Cursor memory efficient?
+        Q6. Which methods belong to Collection and which belong to Cursor?

@@ -1,0 +1,1129 @@
+=> Practice Set 1 : Answers
+
+    Q1. Find all users whose age is greater than 25.
+
+    db.users.find({
+        age: { $gt: 25 }
+    })
+
+    ------------------------------------------------------
+
+    Q2. Find all users whose age is greater than or equal to 30.
+
+    -> Using $gte
+
+    db.users.find({
+        age: { $gte: 30 }
+    })
+
+    -> Alternative
+
+    db.users.find({
+        $or: [
+            { age: { $gt: 30 } },
+            { age: { $eq: 30 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q3. Find all users whose age is less than 30.
+
+    db.users.find({
+        age: { $lt: 30 }
+    })
+
+    ------------------------------------------------------
+
+    Q4. Find all users whose age is less than or equal to 25.
+
+    -> Using $lte
+
+    db.users.find({
+        age: { $lte: 25 }
+    })
+
+    -> Alternative
+
+    db.users.find({
+        $or: [
+            { age: { $lt: 25 } },
+            { age: { $eq: 25 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q5. Find all users whose age is not equal to 27.
+
+    db.users.find({
+        age: { $ne: 27 }
+    })
+
+    ------------------------------------------------------
+
+    Q6. Find all users whose name is "Vinay".
+
+    -> Using Shorthand
+
+    db.users.find({
+        name: "Vinay"
+    })
+
+    -> Using $eq
+
+    db.users.find({
+        name: { $eq: "Vinay" }
+    })
+
+    ------------------------------------------------------
+
+    Q7. Find all users whose name is "Vinay" AND age is greater than 30.
+
+    -> Implicit AND
+
+    db.users.find({
+        name: "Vinay",
+        age: { $gt: 30 }
+    })
+
+    -> Explicit $and
+
+    db.users.find({
+        $and: [
+            { name: "Vinay" },
+            { age: { $gt: 30 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q8. Find all users whose name is "Vinay" AND age is less than 30.
+
+    -> Implicit AND
+
+    db.users.find({
+        name: "Vinay",
+        age: { $lt: 30 }
+    })
+
+    -> Explicit $and
+
+    db.users.find({
+        $and: [
+            { name: "Vinay" },
+            { age: { $lt: 30 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q9. Find all users whose age is greater than 25 AND less than 35.
+
+    db.users.find({
+        $and: [
+            { age: { $gt: 25 } },
+            { age: { $lt: 35 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q10. Find all users whose age is greater than or equal to 25 AND not equal to 35.
+
+    db.users.find({
+        $and: [
+            { age: { $gte: 25 } },
+            { age: { $ne: 35 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q11. Find all users whose name is "Rahul" OR age is less than 26.
+
+    db.users.find({
+        $or: [
+            { name: "Rahul" },
+            { age: { $lt: 26 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q12. Find all users whose age is greater than 30 OR less than 26.
+
+    db.users.find({
+        $or: [
+            { age: { $gt: 30 } },
+            { age: { $lt: 26 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q13. Find all users whose age is NOT greater than 29.
+
+    db.users.find({
+        age: {
+            $not: {
+                $gt: 29
+            }
+        }
+    })
+
+    ------------------------------------------------------
+
+    Q14. Find all users whose name is NOT "Vinay".
+
+    -> Using $ne
+
+    db.users.find({
+        name: { $ne: "Vinay" }
+    })
+
+    -> Using $not
+
+    db.users.find({
+        name: {
+            $not: {
+                $eq: "Vinay"
+            }
+        }
+    })
+
+    ------------------------------------------------------
+
+    Q15. Find all users whose name is NOT "Vinay" AND age is NOT less than 28.
+
+    db.users.find({
+        $and: [
+            {
+                name: { $ne: "Vinay" }
+            },
+            {
+                age: {
+                    $not: {
+                        $lt: 28
+                    }
+                }
+            }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q16. Write the same query using both Implicit AND and Explicit $and.
+
+    Requirement:
+    Name = "Vinay"
+    Age > 25
+
+    -> Implicit AND
+
+    db.users.find({
+        name: "Vinay",
+        age: { $gt: 25 }
+    })
+
+    -> Explicit $and
+
+    db.users.find({
+        $and: [
+            { name: "Vinay" },
+            { age: { $gt: 25 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q17. Write the same query using both $ne and $not.
+
+    Requirement:
+    Age != 25
+
+    -> Using $ne
+
+    db.users.find({
+        age: { $ne: 25 }
+    })
+
+    -> Using $not
+
+    db.users.find({
+        age: {
+            $not: {
+                $eq: 25
+            }
+        }
+    })
+
+    ------------------------------------------------------
+
+    Q18. Find users whose name is "Vinay" OR age is greater than 30.
+
+    db.users.find({
+        $or: [
+            { name: "Vinay" },
+            { age: { $gt: 30 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q19. Find users whose name is NOT "Rahul" OR age is less than 27.
+
+    db.users.find({
+        $or: [
+            { name: { $ne: "Rahul" } },
+            { age: { $lt: 27 } }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q20. Find users where neither:
+        -> name = "Vinay"
+        -> age < 28
+
+    db.users.find({
+        $nor: [
+            { name: "Vinay" },
+            { age: { $lt: 28 } }
+        ]
+    })
+
+
+    Q21. Find all users whose name is either "Vinay" or "Rahul".
+
+    Answer
+
+    db.users.find({
+        name: {
+            $in: [
+                "Vinay",
+                "Rahul"
+            ]
+        }
+    })
+
+    ------------------------------------------------------
+
+    Q22. Find all users whose age is either 25, 29 or 35.
+
+    Answer
+
+    db.users.find({
+        age: {
+            $in: [
+                25,
+                29,
+                35
+            ]
+        }
+    })
+
+    ------------------------------------------------------
+
+    Q23. Find all users whose age is either 27, 30 or 35
+        AND
+        whose name is "Vinay".
+
+    Answer
+
+    -> Implicit AND
+
+    db.users.find({
+        name: "Vinay",
+        age: {
+            $in: [
+                27,
+                30,
+                35
+            ]
+        }
+    })
+
+    -> Explicit AND
+
+    db.users.find({
+        $and: [
+            {
+                name: "Vinay"
+            },
+            {
+                age: {
+                    $in: [
+                        27,
+                        30,
+                        35
+                    ]
+                }
+            }
+        ]
+    })
+
+    ------------------------------------------------------
+
+    Q24. Find all users whose name is NOT "Vinay" or "Rahul".
+
+    Answer
+
+    db.users.find({
+        name: {
+            $nin: [
+                "Vinay",
+                "Rahul"
+            ]
+        }
+    })
+
+    ------------------------------------------------------
+
+    Q25. Find all users whose age is NOT 25, 29 or 35
+        AND
+        whose name is "Vinay".
+
+    Answer
+
+    -> Implicit AND
+
+    db.users.find({
+        name: "Vinay",
+        age: {
+            $nin: [
+                25,
+                29,
+                35
+            ]
+        }
+    })
+
+    -> Explicit AND
+
+    db.users.find({
+        $and: [
+            {
+                name: "Vinay"
+            },
+            {
+                age: {
+                    $nin: [
+                        25,
+                        29,
+                        35
+                    ]
+                }
+            }
+        ]
+    })
+
+
+    Q26. Return only the name of all users.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            name: 1
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q27. Return only the name without _id.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            name: 1,
+            _id: 0
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q28. Return only name and email.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            name: 1,
+            email: 1
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q29. Return only name and email without _id.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            name: 1,
+            email: 1,
+            _id: 0
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q30. Return all fields except email.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            email: 0
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q31. Return all fields except age and email.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            age: 0,
+            email: 0
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q32. Return only name and age of users whose age is greater than 28.
+
+    Answer
+
+    db.users.find(
+        {
+            age: {
+                $gt: 28
+            }
+        },
+        {
+            name: 1,
+            age: 1,
+            _id: 0
+        }
+    )
+
+    ------------------------------------------------------
+
+    Q33. Return only email of users whose name is "Vinay".
+
+    Answer
+
+    db.users.find(
+        {
+            name: "Vinay"
+        },
+        {
+            email: 1,
+            _id: 0
+        }
+    )
+
+        Q34. Sort all users by age in ascending order.
+
+    Answer
+
+    db.users.find().sort({
+        age: 1
+    })
+
+    Q35. Sort all users by age in descending order.
+
+    Answer
+
+    db.users.find().sort({
+        age: -1
+    })
+
+    Q36. Display users older than 27 sorted by age in ascending order.
+
+    Answer
+
+    db.users.find(
+        {
+            age: {
+                $gt: 27
+            }
+        }
+    ).sort({
+        age: 1
+    })
+
+    Q37. Display users older than 27 sorted by age in descending order.
+
+    Answer
+
+    db.users.find(
+        {
+            age: {
+                $gt: 27
+            }
+        }
+    ).sort({
+        age: -1
+    })
+
+    Q38. Return only name and age sorted by age in ascending order.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            name: 1,
+            age: 1,
+            _id: 0
+        }
+    ).sort({
+        age: 1
+    })
+
+    Q39. Return only name and email sorted by name in ascending order without _id.
+
+    Answer
+
+    db.users.find(
+        {},
+        {
+            name: 1,
+            email: 1,
+            _id: 0
+        }
+    ).sort({
+        name: 1
+    })
+
+    Q40. Sort users by name in ascending order. If names are the same, sort by age in ascending order.
+
+    Answer
+
+    db.users.find().sort({
+        name: 1,
+        age: 1
+    })
+
+    Q41. Sort users by name in ascending order. If names are the same, sort by age in descending order.
+
+    Answer
+
+    db.users.find().sort({
+        name: 1,
+        age: -1
+    })
+
+    Q42. Return only name and age of users whose age is greater than 28 sorted by age in descending order.
+
+    Answer
+
+    db.users.find(
+        {
+            age: {
+                $gt: 28
+            }
+        },
+        {
+            name: 1,
+            age: 1,
+            _id: 0
+        }
+    ).sort({
+        age: -1
+    })
+
+    Q43. Return only name and email of users whose name is "Vinay" sorted by age in ascending order without _id.
+
+    Answer
+
+    db.users.find(
+        {
+            name: "Vinay"
+        },
+        {
+            name: 1,
+            email: 1,
+            _id: 0
+        }
+    ).sort({
+        age: 1
+    })
+
+    ------------------------------------------------------
+
+
+    Q44. Return only the first 3 users.
+
+        Answer
+
+        db.users.find().limit(3)
+
+    ------------------------------------------------------
+
+    Q45. Return the first 2 users sorted by age in ascending order.
+
+        Answer
+
+        db.users.find().sort({
+            age: 1
+        }).limit(2)
+
+    ------------------------------------------------------
+
+    Q46. Return the youngest 4 users.
+
+        Answer
+
+        db.users.find().sort({
+            age: 1
+        }).limit(4)
+
+    ------------------------------------------------------
+
+    Q47. Return only name and age of the first 3 users sorted by age in descending order.
+
+        Answer
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                age: 1,
+                _id: 0
+            }
+        ).sort({
+            age: -1
+        }).limit(3)
+
+    ------------------------------------------------------
+
+    -> skip()
+
+    Q48. Skip the first 2 users.
+
+        Answer
+
+        db.users.find().skip(2)
+
+    ------------------------------------------------------
+
+    Q49. Skip the first 3 users and return the remaining users sorted by age.
+
+        Answer
+
+        db.users.find().sort({
+            age: 1
+        }).skip(3)
+
+    ------------------------------------------------------
+
+    Q50. Skip the first 2 youngest users and display the remaining users.
+
+        Answer
+
+        db.users.find().sort({
+            age: 1
+        }).skip(2)
+
+    ------------------------------------------------------
+
+    -> Pagination (skip + limit)
+
+    Q51. Display page 1 with page size 2.
+
+        Answer
+
+        db.users.find()
+        .skip(0)
+        .limit(2)
+
+    ------------------------------------------------------
+
+    Q52. Display page 2 with page size 2.
+
+        Answer
+
+        db.users.find()
+        .skip(2)
+        .limit(2)
+
+    ------------------------------------------------------
+
+    Q53. Display page 3 with page size 2.
+
+        Answer
+
+        db.users.find()
+        .skip(4)
+        .limit(2)
+
+    ------------------------------------------------------
+
+    Q54. Display page 2 with page size 3 sorted by age in ascending order.
+
+        Answer
+
+        db.users.find()
+        .sort({
+            age: 1
+        })
+        .skip(3)
+        .limit(3)
+
+    ------------------------------------------------------
+
+    Q55. Display page 3 with page size 2 showing only name and email without _id.
+
+        Answer
+
+        db.users.find(
+            {},
+            {
+                name: 1,
+                email: 1,
+                _id: 0
+            }
+        )
+        .skip(4)
+        .limit(2)
+
+    ------------------------------------------------------
+
+    -> countDocuments()
+
+    Q56. Count all users.
+
+        Answer
+
+        db.users.countDocuments()
+
+    ------------------------------------------------------
+
+    Q57. Count users whose name is "Vinay".
+
+        Answer
+
+        db.users.countDocuments({
+            name: "Vinay"
+        })
+
+    ------------------------------------------------------
+
+    Q58. Count users whose age is greater than 30.
+
+        Answer
+
+        db.users.countDocuments({
+            age: {
+                $gt: 30
+            }
+        })
+
+    ------------------------------------------------------
+
+    Q59. Count users whose age is between 25 and 30 (inclusive).
+
+        Answer
+
+        db.users.countDocuments({
+            age: {
+                $gte: 25,
+                $lte: 30
+            }
+        })
+
+    ------------------------------------------------------
+
+    Q60. Count users whose name is not "Rahul".
+
+        Answer
+
+        db.users.countDocuments({
+            name: {
+                $ne: "Rahul"
+            }
+        })
+
+    ------------------------------------------------------
+
+    Q61. Count users whose age is greater than or equal to 25 and less than 35.
+
+        Answer
+
+        db.users.countDocuments({
+            age: {
+                $gte: 25,
+                $lt: 35
+            }
+        })
+
+    ------------------------------------------------------
+
+    -> estimatedDocumentCount()
+
+    Q62. Return the estimated total number of users.
+
+        Answer
+
+        db.users.estimatedDocumentCount()
+
+    ------------------------------------------------------
+
+    Q63. Execute estimatedDocumentCount() with a filter and observe the result.
+
+        Answer
+
+        db.users.estimatedDocumentCount({
+            age: {
+                $gt: 30
+            }
+        })
+
+    ------------------------------------------------------
+
+    Q64. Explain why estimatedDocumentCount() ignores filters.
+
+        Answer
+
+        estimatedDocumentCount() reads the collection metadata instead of scanning documents.
+        Therefore, any filter passed to it is ignored and it always returns the estimated total
+        number of documents in the collection.
+
+    ------------------------------------------------------
+
+    -> distinct()
+
+    Q65. Return all unique names.
+
+        Answer
+
+        db.users.distinct("name")
+
+    ------------------------------------------------------
+
+    Q66. Return all unique ages.
+
+        Answer
+
+        db.users.distinct("age")
+
+    ------------------------------------------------------
+
+    Q67. Return all unique names whose age is greater than or equal to 30.
+
+        Answer
+
+        db.users.distinct(
+            "name",
+            {
+                age: {
+                    $gte: 30
+                }
+            }
+        )
+
+    ------------------------------------------------------
+
+    Q68. Return all unique names except users whose age is less than 28.
+
+        Answer
+
+        db.users.distinct(
+            "name",
+            {
+                age: {
+                    $gte: 28
+                }
+            }
+        )
+
+    ------------------------------------------------------
+
+    Q69. Return all unique ages of users whose name is "Vinay".
+
+        Answer
+
+        db.users.distinct(
+            "age",
+            {
+                name: "Vinay"
+            }
+        )
+
+    ------------------------------------------------------
+
+    Q70. Return all unique email domains (Assume email addresses contain different domains).
+
+        Answer
+
+        This cannot be done using distinct() alone because MongoDB stores the complete email.
+        It requires Aggregation ($project) or string operators to extract the domain first.
+
+    ------------------------------------------------------
+
+    -> Interview Challenge
+
+    Q71. Difference between countDocuments() and estimatedDocumentCount().
+
+        Answer
+
+        countDocuments()
+
+            -> Returns exact count.
+            -> Supports filters.
+            -> Reads matching documents or indexes.
+
+        estimatedDocumentCount()
+
+            -> Returns estimated total count.
+            -> Ignores filters.
+            -> Reads collection metadata only.
+
+    ------------------------------------------------------
+
+    Q72. Difference between limit() and skip().
+
+        Answer
+
+        limit()
+
+            -> Limits the number of returned documents.
+
+        skip()
+
+            -> Skips the specified number of documents before returning results.
+
+    ------------------------------------------------------
+
+    Q73. Why is limit() usually used with sort()?
+
+        Answer
+
+        Sorting ensures the documents are ordered first.
+        limit() then returns the required top records from that ordered result.
+
+    ------------------------------------------------------
+
+    Q74. Why is countDocuments() a Collection method instead of a Cursor method?
+
+        Answer
+
+        Because countDocuments() counts documents directly from the collection.
+        find() returns a Cursor, which is used only for iterating over query results.
+
+    ------------------------------------------------------
+
+    Q75. Difference between distinct() and SQL DISTINCT.
+
+        Answer
+
+        MongoDB distinct()
+
+            -> Returns unique values of a field.
+
+        SQL DISTINCT
+
+            -> Removes duplicate values from selected column(s).
+
+        Both are conceptually equivalent.
+
+    ------------------------------------------------------
+
+    Q76. Difference between distinct() and Aggregation $group.
+
+        Answer
+
+        distinct()
+
+            -> Returns unique values only.
+            -> No calculations.
+
+        Aggregation $group
+
+            -> Groups documents.
+            -> Supports Count, Sum, Average, Min, Max and other aggregations.
+
+    ------------------------------------------------------
+
+    Q77. Why can't we write:
+
+        db.users.find().countDocuments()
+
+        Answer
+
+        Because find() returns a Cursor.
+        countDocuments() is a Collection method, not a Cursor method.
+
+    ------------------------------------------------------
+
+    Q78. Explain the pagination formula with an example.
+
+        Answer
+
+        Formula
+
+            skip = (pageNumber - 1) × pageSize
+
+            limit = pageSize
+
+        Example
+
+            Page Number = 3
+            Page Size = 5
+
+            skip = (3 - 1) × 5 = 10
+
+            db.users.find()
+            .skip(10)
+            .limit(5)
+
+    ------------------------------------------------------
+
+    Q79. Which method should be used to display the first 10 latest orders and why?
+
+        Answer
+
+        db.orders.find()
+        .sort({
+            createdAt: -1
+        })
+        .limit(10)
+
+        Reason
+
+        -> sort() orders the latest records first.
+        -> limit(10) returns only the first 10 latest orders.
+
+    ------------------------------------------------------
+
+    Q80. Explain the execution order of the following query:
+
+        db.users.find({ age: { $gt: 25 } })
+                .sort({ age: -1 })
+                .skip(2)
+                .limit(3)
+                .project({ name: 1, age: 1, _id: 0 })
+
+        Answer
+
+        Execution Order
+
+            1. Filter documents where age > 25.
+            2. Sort the matching documents by age in descending order.
+            3. Skip the first 2 documents.
+            4. Return the next 3 documents.
+            5. Display only name and age, excluding _id.
