@@ -1,0 +1,1432 @@
+=> Part 6 - Amazon EFS Fundamentals
+
+    -> What is Amazon EFS?
+
+        Amazon EFS stands for Amazon Elastic File System.
+
+        EFS is a managed file storage service provided by AWS.
+
+        It provides a shared filesystem that can be accessed by multiple compute resources such as EC2 instances.
+
+        Conceptually:
+
+                    Amazon EFS
+                        │
+                 Shared Filesystem
+                   ┌────┴────┐
+                   │         │
+                   ↓         ↓
+                 EC2-1     EC2-2
+
+        Both EC2 instances can access files stored in the same EFS filesystem.
+
+
+    -> What is File Storage?
+
+        File storage organizes data directly as files and directories.
+
+        Example:
+
+        Shared Filesystem
+        │
+        ├── documents/
+        │     ├── file1.txt
+        │     └── file2.txt
+        │
+        ├── images/
+        │     └── image.jpg
+        │
+        └── application/
+              └── config.txt
+
+        Applications access data using normal file and directory paths.
+
+        This is different from EBS, which provides a block device on which a filesystem is normally created.
+
+
+    -> EBS Block Storage vs EFS File Storage
+
+        EBS:
+
+        AWS provides:
+        Block Storage
+             ↓
+        Linux Block Device
+             ↓
+        Filesystem
+             ↓
+        Mount Point
+             ↓
+        Files
+
+
+        EFS:
+
+        AWS already provides:
+        Managed Filesystem
+             ↓
+        Mount through NFS
+             ↓
+        Directory
+             ↓
+        Files
+
+        Therefore, when using EFS we do not normally create an EXT4 filesystem using mkfs.
+
+        EFS already provides the filesystem.
+
+
+    -> Why Amazon EFS Exists
+
+        EBS is useful when an EC2 instance needs persistent block storage.
+
+        However, applications sometimes need multiple EC2 instances to access the same files simultaneously.
+
+        Example:
+
+        EC2-1
+           │
+           ├──────────┐
+           │          │
+        EC2-2         ├──── Shared Application Files
+           │          │
+           ├──────────┘
+           │
+        EC2-3
+
+        Instead of maintaining separate copies of the files on every instance, EFS provides one shared filesystem.
+
+        Therefore, EFS is useful for workloads requiring shared file access.
+
+
+    -> Shared Filesystem
+
+        A shared filesystem means multiple clients can access the same filesystem.
+
+        Example:
+
+                     EFS
+                      │
+                /shared/data
+                  ┌───┴───┐
+                  │       │
+                  ↓       ↓
+                EC2-1   EC2-2
+
+        Suppose EC2-1 creates:
+
+        /shared/data/test.txt
+
+        Because EC2-2 has mounted the same EFS filesystem, EC2-2 can also access:
+
+        /shared/data/test.txt
+
+        The file is not copied manually from EC2-1 to EC2-2.
+
+        Both instances are accessing the same shared EFS storage.
+
+
+    -> Important EFS Mental Model
+
+        Suppose both EC2 instances mount EFS at:
+
+        /mnt/efs
+
+        Then:
+
+        EC2-1
+        /mnt/efs/test.txt
+                 │
+                 │
+                 ↓
+               EFS
+                 ↑
+                 │
+        /mnt/efs/test.txt
+        EC2-2
+
+        The directory /mnt/efs exists locally as a mount point on each EC2 instance.
+
+        However, the files accessed through that mounted directory are stored in the EFS filesystem.
+
+
+    -> What is NFS?
+
+        NFS stands for Network File System.
+
+        NFS is a network protocol used to access files stored on another system over a network.
+
+        EFS supports NFS-based file access.
+
+        Conceptually:
+
+        EC2 Instance
+             │
+             │ NFS
+             ↓
+        Amazon EFS
+
+        Therefore, unlike a locally attached EBS block device, EFS is accessed across the network.
+
+
+    -> EFS and NFS
+
+        An EC2 instance mounts an EFS filesystem using NFS or the Amazon EFS mount helper.
+
+        After mounting:
+
+        Application
+            ↓
+        /mnt/efs
+            ↓
+        NFS / EFS Mount
+            ↓
+        Network
+            ↓
+        Amazon EFS
+
+        From the application's point of view, the mounted EFS filesystem behaves like a normal directory.
+
+
+    -> EFS vs EBS
+
+        EBS:
+
+        -> Block storage.
+        -> Commonly attached to EC2 as a block device.
+        -> A filesystem such as EXT4/XFS is commonly created by the operating system.
+        -> Commonly used for boot volumes, databases and persistent application storage.
+        -> EBS volumes belong to a specific Availability Zone.
+
+
+        EFS:
+
+        -> File storage.
+        -> Provides a managed filesystem.
+        -> Accessed over the network using NFS.
+        -> Designed for shared file access.
+        -> Multiple EC2 instances can access the same filesystem concurrently.
+        -> Regional EFS can provide access across multiple Availability Zones through mount targets.
+
+
+    -> Simple EBS vs EFS Architecture
+
+        EBS:
+
+        EC2
+         │
+         ↓
+        EBS
+         │
+         ↓
+        Block Device
+         │
+         ↓
+        EXT4/XFS
+         │
+         ↓
+        Files
+
+
+        EFS:
+
+        EC2-1 ──────┐
+                    │
+                    ├──── NFS ──── EFS
+                    │
+        EC2-2 ──────┘
+                              │
+                              ↓
+                       Shared Filesystem
+
+
+    -> Multiple EC2 Instances Accessing EFS
+
+        One of the major advantages of EFS is concurrent access from multiple EC2 instances.
+
+        Example:
+
+                          Amazon EFS
+                         Shared Files
+                        /      |      \
+                       /       |       \
+                      ↓        ↓        ↓
+                   EC2-1    EC2-2    EC2-3
+
+        If EC2-1 creates or updates a file in the shared filesystem, other instances accessing the same EFS filesystem can see the shared data according to normal filesystem permissions and application behavior.
+
+        This makes EFS useful for applications running across multiple servers.
+
+
+    -> Example Shared Application
+
+        Suppose three web servers require the same uploaded images.
+
+        Without shared storage:
+
+        Web-1 → Local copy
+        Web-2 → Local copy
+        Web-3 → Local copy
+
+        The application would need some mechanism to keep the copies synchronized.
+
+
+        With EFS:
+
+        Web-1 ──────┐
+                    │
+        Web-2 ──────┼──── EFS
+                    │       │
+        Web-3 ──────┘       ↓
+                         images/
+
+        All servers can access the same shared image files.
+
+
+    -> Regional EFS Architecture
+
+        Amazon EFS offers Regional file systems designed to store data across multiple Availability Zones within an AWS Region.
+
+        Conceptually:
+
+                           AWS Region
+                               │
+                              EFS
+                     Shared Filesystem
+                         /          \
+                        /            \
+                       ↓              ↓
+                    AZ-A              AZ-B
+                     │                │
+                Mount Target     Mount Target
+                     │                │
+                     ↓                ↓
+                   EC2-1            EC2-2
+
+        The EC2 instances access the same EFS filesystem through the network.
+
+
+    -> What is an EFS Mount Target?
+
+        A mount target provides a network endpoint through which resources inside a VPC can access an EFS filesystem.
+
+        A mount target has a network interface and IP address inside a subnet.
+
+        Conceptually:
+
+        EC2
+         │
+         │ NFS request
+         ↓
+        Mount Target
+         │
+         ↓
+        EFS Filesystem
+
+        Therefore, EC2 does not access EFS as a locally attached disk.
+
+        It accesses EFS through the VPC network using a mount target.
+
+
+    -> Mount Targets and Availability Zones
+
+        For a Regional EFS filesystem, a common architecture is to create a mount target in each Availability Zone from which clients need to access EFS.
+
+        Example:
+
+                        Amazon EFS
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+             ↓                             ↓
+           AZ-A                           AZ-B
+             │                             │
+        Mount Target                  Mount Target
+             │                             │
+        Subnet-A                       Subnet-B
+             │                             │
+           EC2-1                           EC2-2
+
+        Both instances still access the same EFS filesystem.
+
+
+    -> EFS Networking
+
+        Because EFS is accessed through the network, networking configuration is important.
+
+        Important components include:
+
+        -> VPC.
+        -> Subnets.
+        -> Mount targets.
+        -> Security Groups.
+        -> Network connectivity between EC2 and the mount targets.
+
+        Conceptually:
+
+        EC2
+         │
+         ↓
+        VPC Network
+         │
+         ↓
+        EFS Mount Target
+         │
+         ↓
+        EFS
+
+
+    -> EFS and Security Groups
+
+        Security Groups control network access between EC2 instances and EFS mount targets.
+
+        EFS uses NFS traffic on TCP port:
+
+        2049
+
+        A common design is:
+
+        EC2 Security Group
+        -> Attached to EC2 instances.
+
+        EFS Security Group
+        -> Attached to EFS mount targets.
+
+        The EFS Security Group allows inbound NFS traffic from the EC2 Security Group.
+
+        Conceptually:
+
+        EC2
+        Security Group
+             │
+             │ TCP 2049
+             ↓
+        EFS
+        Security Group
+             │
+             ↓
+        Mount Target
+             │
+             ↓
+            EFS
+
+
+    -> Recommended Security Group Relationship
+
+        Instead of allowing NFS access from the entire internet, access should be restricted to the required clients.
+
+        Example:
+
+        EFS Security Group Inbound Rule:
+
+        Type:
+        NFS
+
+        Protocol:
+        TCP
+
+        Port:
+        2049
+
+        Source:
+        EC2 Security Group
+
+        Therefore:
+
+        EC2-SG
+           │
+           │ Allowed TCP 2049
+           ↓
+        EFS-SG
+
+
+    -> EFS is Not Mounted Through the Public Internet
+
+        EFS mount targets are created inside VPC subnets.
+
+        EC2 instances normally communicate with EFS through private VPC networking.
+
+        Therefore, EFS does not require a public IP address simply for EC2 instances in the VPC to access the filesystem.
+
+
+    -> EFS Performance Basics
+
+        EFS performance depends on factors such as:
+
+        -> Workload.
+        -> Amount and pattern of data access.
+        -> Performance mode/features selected.
+        -> Throughput configuration.
+        -> Network behavior.
+
+        Two important concepts are:
+
+        Performance
+        -> How the filesystem handles file operations and workload characteristics.
+
+        Throughput
+        -> How much data can be transferred to and from the filesystem over time.
+
+
+    -> EFS Throughput
+
+        Throughput represents the rate at which data can be read from or written to EFS.
+
+        Conceptually:
+
+        EC2
+         │
+         │ Read / Write Data
+         ↓
+        EFS
+
+        Amount of data transferred over time
+                    ↓
+                Throughput
+
+        Different workloads can require different throughput characteristics.
+
+
+    -> EFS Performance Modes
+
+        EFS supports performance options intended for different workload patterns.
+
+        General Purpose is the standard choice for many applications and is designed for workloads requiring low per-operation latency.
+
+        EFS also supports capabilities for highly parallel workloads where large numbers of clients and operations may need to access the filesystem.
+
+        The correct configuration depends on the workload rather than simply selecting the highest possible performance.
+
+
+    -> EFS Throughput Modes
+
+        EFS provides throughput options that determine how filesystem throughput is delivered.
+
+        Depending on the EFS configuration and AWS features available, throughput can scale with workload/storage characteristics or be configured according to required performance.
+
+        The main idea for beginners is:
+
+        EFS Performance
+              ↓
+        Depends on workload
+              +
+        Throughput configuration
+              +
+        Data access pattern
+
+
+    -> EFS Storage Classes
+
+        EFS provides different storage classes so files with different access patterns can be stored cost-effectively.
+
+        Important categories include:
+
+        -> Frequently accessed data.
+        -> Infrequently accessed data.
+        -> Archive-oriented data.
+
+        EFS storage classes allow AWS to reduce storage cost for files that are not accessed frequently.
+
+
+    -> EFS Standard Storage
+
+        EFS Standard is intended for frequently accessed data.
+
+        It is suitable when applications regularly read or write the files.
+
+        Example:
+
+        Active Application Files
+                ↓
+           EFS Standard
+
+
+    -> EFS Infrequent Access
+
+        EFS Infrequent Access, commonly called EFS IA, is designed for files that are accessed less frequently.
+
+        It provides lower storage cost for infrequently accessed files, with charges associated with accessing data from the class.
+
+        Example:
+
+        Old / Less Frequently Used Files
+                    ↓
+                 EFS IA
+
+
+    -> EFS Archive
+
+        EFS Archive is intended for long-lived data that is accessed very rarely.
+
+        It can provide lower storage cost for suitable archival access patterns.
+
+        Conceptually:
+
+        Frequently Used
+             ↓
+        Standard
+
+        Less Frequently Used
+             ↓
+        Infrequent Access
+
+        Rarely Used / Long-Lived
+             ↓
+        Archive
+
+
+    -> EFS Lifecycle Management
+
+        EFS Lifecycle Management can automatically transition files between storage classes based on access patterns and configured lifecycle policies.
+
+        Example:
+
+        New / Active File
+              ↓
+        EFS Standard
+              ↓
+        Not Accessed for Configured Period
+              ↓
+        EFS Infrequent Access
+              ↓
+        Longer Inactive Period
+              ↓
+        EFS Archive
+
+        This helps reduce storage cost without manually moving every file.
+
+
+    -> Why Lifecycle Management is Useful
+
+        Consider a filesystem containing millions of files.
+
+        Some files may be used every day.
+
+        Other files may not be accessed for months.
+
+        Keeping every file in the same frequently accessed storage class may cost more than necessary.
+
+        Lifecycle Management can automatically move eligible inactive files to lower-cost storage classes according to configured policies.
+
+
+    -> EFS Automatically Scales Storage Capacity
+
+        EFS is designed to grow and shrink as files are added and removed.
+
+        Unlike an EBS volume, the user generally does not create an EFS filesystem by choosing a fixed disk size such as:
+
+        5 GB
+        20 GB
+        100 GB
+
+        Instead, files are stored in EFS and storage consumption changes according to the amount of data being stored.
+
+        This reduces the need to manually manage filesystem capacity.
+
+
+    -> Common EFS Use Cases
+
+        EFS can be useful for:
+
+        -> Shared application files.
+        -> Web content.
+        -> Content management systems.
+        -> Shared home directories.
+        -> Development environments.
+        -> Containerized applications requiring shared files.
+        -> Analytics and other workloads requiring shared file access.
+
+
+    -> Complete EFS Architecture
+
+                              AWS Region
+                                  │
+                                  ↓
+                           Amazon EFS
+                         Shared Filesystem
+                                  │
+                 ┌────────────────┴────────────────┐
+                 │                                 │
+                 ↓                                 ↓
+          Availability Zone A              Availability Zone B
+                 │                                 │
+             Subnet-A                          Subnet-B
+                 │                                 │
+          EFS Mount Target                 EFS Mount Target
+                 │                                 │
+                 │ TCP 2049                       │ TCP 2049
+                 │                                 │
+                 ↓                                 ↓
+               EC2-1                             EC2-2
+                 │                                 │
+                 └──────────────┬──────────────────┘
+                                │
+                                ↓
+                       Same Shared Filesystem
+                                │
+                       ┌────────┴────────┐
+                       │                 │
+                   file1.txt         file2.txt
+
+
+    -> Final Part 6 Understanding
+
+        Amazon EFS is AWS managed file storage that provides a shared filesystem.
+
+        EFS differs from EBS because EBS provides block storage, while EFS directly provides a managed filesystem.
+
+        EC2 instances access EFS over the network using NFS.
+
+        Multiple EC2 instances can mount the same EFS filesystem and access the same files concurrently.
+
+        Regional EFS can provide access across multiple Availability Zones using mount targets.
+
+        Mount targets provide network endpoints inside VPC subnets through which clients access EFS.
+
+        Security Groups control access to EFS, and NFS commonly uses TCP port 2049.
+
+        EFS provides different performance and throughput options for different workload requirements.
+
+        EFS storage classes help optimize storage cost for frequently accessed, infrequently accessed and archival data.
+
+        Lifecycle Management can automatically transition eligible files between storage classes according to configured policies.
+
+        The most important mental model is:
+
+                        EC2-1
+                          │
+                          │
+                          ↓
+                     Mount Target
+                          │
+                          │
+                          ↓
+        EC2-2 ──────→ Amazon EFS ←────── EC2-3
+                          │
+                          ↓
+                   Shared Filesystem
+
+
+=> Part 7 - Amazon EFS Hands-on Lab
+
+    -> Lab Objective
+
+        In this lab, we will create one Amazon EFS filesystem and mount the same filesystem on two EC2 instances.
+
+        We will verify shared file storage by creating a file from EC2-1 and reading the same file from EC2-2.
+
+        Lab architecture:
+
+                         Amazon EFS
+                      Shared Filesystem
+                       /            \
+                      /              \
+                     ↓                ↓
+                  EC2-1              EC2-2
+                     │                │
+                 /mnt/efs         /mnt/efs
+
+
+    -> Step 1 - Prepare Two EC2 Instances
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Instances
+          ↓
+        Launch Instance
+
+        Create two EC2 instances.
+
+        Example:
+
+        EC2-1
+        EC2-2
+
+        Both instances should have network connectivity to the EFS mount targets.
+
+        For a simple lab, keep both EC2 instances inside the same VPC as EFS.
+
+
+    -> Step 2 - Verify EC2 Networking
+
+        Method:
+
+        AWS Management Console / UI
+
+        Verify:
+
+        -> VPC.
+        -> Subnet.
+        -> Availability Zone.
+        -> Security Group.
+
+        Record the Availability Zones used by EC2-1 and EC2-2.
+
+        This will help when verifying the EFS mount-target architecture.
+
+
+    -> Step 3 - Create an EFS Filesystem
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        AWS Console
+            ↓
+        EFS
+            ↓
+        File Systems
+            ↓
+        Create File System
+
+        Select the VPC containing the EC2 instances.
+
+        Create the EFS filesystem.
+
+        Conceptually:
+
+        VPC
+         │
+         ├── EC2-1
+         ├── EC2-2
+         │
+         └── EFS
+
+
+    -> Step 4 - Configure EFS Mount Targets
+
+        Method:
+
+        AWS Management Console / UI
+
+        During EFS network configuration, verify/create mount targets for the Availability Zones required by the EC2 instances.
+
+        Example:
+
+                         EFS
+                    ┌─────┴─────┐
+                    ↓           ↓
+                  AZ-A         AZ-B
+                    │           │
+              Mount Target  Mount Target
+                    │           │
+                  EC2-1       EC2-2
+
+        Each mount target is associated with a subnet in its Availability Zone.
+
+
+    -> Step 5 - Configure Security Groups
+
+        Method:
+
+        AWS Management Console / UI
+
+        Create or use:
+
+        EC2 Security Group
+        -> Attached to EC2-1 and EC2-2.
+
+        EFS Security Group
+        -> Attached to EFS mount targets.
+
+        Configure the EFS Security Group inbound rule:
+
+        Type:
+        NFS
+
+        Protocol:
+        TCP
+
+        Port:
+        2049
+
+        Source:
+        EC2 Security Group
+
+        Architecture:
+
+        EC2-1 ──┐
+                │
+                ├── EC2-SG
+        EC2-2 ──┘
+                     │
+                     │ TCP 2049
+                     ↓
+                  EFS-SG
+                     │
+                     ↓
+               Mount Targets
+                     │
+                     ↓
+                    EFS
+
+
+    -> Step 6 - Connect to Both EC2 Instances
+
+        Method:
+
+        Local Terminal / SSH
+
+        Open two terminals.
+
+        Terminal 1:
+
+        ssh -i "key.pem" ubuntu@<EC2-1-Public-DNS>
+
+        Terminal 2:
+
+        ssh -i "key.pem" ubuntu@<EC2-2-Public-DNS>
+
+        Both EC2 instances can be accessed simultaneously from separate terminals.
+
+
+    -> Step 7 - Install Required NFS/EFS Utilities
+
+        Method:
+
+        Linux CLI
+
+        On Ubuntu, update package information:
+
+        sudo apt update
+
+        One option is to install the NFS client:
+
+        sudo apt install -y nfs-common
+
+        This provides the utilities required to mount an NFS filesystem.
+
+        Amazon also provides amazon-efs-utils, which includes the EFS mount helper.
+
+        Use the installation method appropriate for the operating system and the mounting method selected for the lab.
+
+
+    -> Step 8 - Create the EFS Mount Directory on EC2-1
+
+        Method:
+
+        Linux CLI
+
+        Run on EC2-1:
+
+        sudo mkdir -p /mnt/efs
+
+        This directory will act as the local mount point.
+
+
+    -> Step 9 - Create the EFS Mount Directory on EC2-2
+
+        Method:
+
+        Linux CLI
+
+        Run on EC2-2:
+
+        sudo mkdir -p /mnt/efs
+
+        Now both instances contain a local mount-point directory:
+
+        EC2-1
+        -> /mnt/efs
+
+        EC2-2
+        -> /mnt/efs
+
+
+    -> Step 10 - Get the EFS Mount Command
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EFS
+          ↓
+        Select File System
+          ↓
+        Attach
+
+        AWS displays mount commands for the selected filesystem.
+
+        Depending on the method being used, the filesystem can be mounted using the EFS mount helper or NFS client.
+
+        Copy the appropriate command displayed for the filesystem rather than manually guessing the EFS DNS name.
+
+
+    -> Step 11 - Mount EFS on EC2-1
+
+        Method:
+
+        Linux CLI
+
+        Using the NFS method, the general structure is:
+
+        sudo mount -t nfs4 <EFS-DNS-NAME>:/ /mnt/efs
+
+        Or use the EFS mount-helper command provided by the AWS EFS Attach screen if amazon-efs-utils is installed.
+
+        Verify:
+
+        findmnt /mnt/efs
+
+        Also check:
+
+        df -hT /mnt/efs
+
+
+    -> Step 12 - Mount the Same EFS on EC2-2
+
+        Method:
+
+        Linux CLI
+
+        Use the same EFS filesystem on EC2-2.
+
+        Mount it at:
+
+        /mnt/efs
+
+        Verify:
+
+        findmnt /mnt/efs
+
+        Now:
+
+        EC2-1
+        /mnt/efs
+             \
+              \
+               → Same Amazon EFS
+              /
+             /
+        EC2-2
+        /mnt/efs
+
+
+    -> Step 13 - Create a File from EC2-1
+
+        Method:
+
+        Linux CLI
+
+        On EC2-1:
+
+        echo "Hello from EC2-1" | sudo tee /mnt/efs/shared-file.txt
+
+        Verify:
+
+        cat /mnt/efs/shared-file.txt
+
+        Expected:
+
+        Hello from EC2-1
+
+
+    -> Step 14 - Read the Same File from EC2-2
+
+        Method:
+
+        Linux CLI
+
+        Move to EC2-2.
+
+        Run:
+
+        ls -la /mnt/efs
+
+        Then:
+
+        cat /mnt/efs/shared-file.txt
+
+        Expected:
+
+        Hello from EC2-1
+
+        EC2-2 can see the file even though the file was created from EC2-1.
+
+
+    -> Step 15 - Understand Why EC2-2 Can See the File
+
+        The file was not stored on EC2-1's local root disk.
+
+        It was created inside the mounted EFS filesystem.
+
+        Therefore:
+
+        EC2-1
+             │
+             │ Create shared-file.txt
+             ↓
+            EFS
+             │
+             │ Same filesystem
+             ↓
+        EC2-2
+             │
+             ↓
+        Read shared-file.txt
+
+        Both instances are accessing the same shared storage.
+
+
+    -> Step 16 - Verify Two-Way Shared Access
+
+        Method:
+
+        Linux CLI
+
+        On EC2-2, create another file:
+
+        echo "Hello from EC2-2" | sudo tee /mnt/efs/ec2-2-file.txt
+
+        Then on EC2-1:
+
+        cat /mnt/efs/ec2-2-file.txt
+
+        Expected:
+
+        Hello from EC2-2
+
+        This confirms shared access in both directions.
+
+
+    -> Step 17 - Test EFS Persistence
+
+        Method:
+
+        AWS UI + Linux CLI
+
+        Keep test files stored in EFS.
+
+        Stop or replace an EC2 client if required for the experiment.
+
+        After connecting an appropriate EC2 instance to the same EFS filesystem and mounting it again, verify:
+
+        ls -la /mnt/efs
+
+        The files remain because they are stored in EFS rather than on the EC2 instance's local filesystem.
+
+
+    -> Step 18 - Important EFS Persistence Understanding
+
+        EFS and EC2 have separate lifecycles.
+
+        Conceptually:
+
+        EC2-1
+          │
+          X  Instance removed
+
+                        EFS
+                         │
+                         └── shared-file.txt still stored
+
+        Another EC2
+            │
+            ↓
+        Mount Same EFS
+            │
+            ↓
+        Access shared-file.txt
+
+        Therefore, terminating a client EC2 instance does not automatically mean the EFS filesystem and its files are deleted.
+
+
+    -> Step 19 - Unmount EFS from EC2-1
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        sudo umount /mnt/efs
+
+        Verify:
+
+        findmnt /mnt/efs
+
+        If no mounted EFS entry is returned, EFS has been unmounted from EC2-1.
+
+
+    -> Step 20 - Verify EC2-2 Can Still Access EFS
+
+        Method:
+
+        Linux CLI
+
+        While EC2-1 is unmounted, run on EC2-2:
+
+        cat /mnt/efs/shared-file.txt
+
+        EC2-2 should still be able to access the filesystem because its EFS mount is independent of EC2-1's mount.
+
+
+    -> Step 21 - Unmount EFS from EC2-2
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        sudo umount /mnt/efs
+
+        Verify:
+
+        findmnt /mnt/efs
+
+
+    -> Step 22 - Important Difference Between EBS and EFS Mounting
+
+        EBS lab:
+
+        Create EBS
+             ↓
+        Attach to EC2
+             ↓
+        Block Device
+        /dev/nvme1n1
+             ↓
+        mkfs.ext4
+             ↓
+        mount
+             ↓
+        /data
+
+
+        EFS lab:
+
+        Create EFS
+             ↓
+        Create/Use Mount Targets
+             ↓
+        Network Access
+             ↓
+        NFS / EFS Mount
+             ↓
+        /mnt/efs
+
+
+        For EFS, we do NOT normally run:
+
+        mkfs.ext4
+
+        because EFS already provides a managed filesystem.
+
+
+    -> Step 23 - Verify EFS Architecture from AWS Console
+
+        Method:
+
+        AWS Management Console / UI
+
+        Open the EFS filesystem and verify:
+
+        -> VPC.
+        -> Availability Zones.
+        -> Mount targets.
+        -> Subnets.
+        -> Security Groups.
+
+        Connect these components with the practical architecture:
+
+                              EFS
+                               │
+                   ┌───────────┴───────────┐
+                   │                       │
+              Mount Target            Mount Target
+                   │                       │
+                Subnet-A                Subnet-B
+                   │                       │
+                 EC2-1                   EC2-2
+
+
+    -> Step 24 - Cleanup EFS Resources
+
+        First unmount EFS from all EC2 clients using Linux CLI:
+
+        sudo umount /mnt/efs
+
+        Then use AWS Management Console / UI.
+
+        Delete temporary EC2 instances if they are no longer required.
+
+        Go to:
+
+        EFS
+          ↓
+        File Systems
+          ↓
+        Select Lab EFS
+          ↓
+        Delete
+
+        Also remove temporary Security Groups or other lab resources if they are no longer required.
+
+
+    -> Step 25 - Final Resource Verification
+
+        Before completing the lab, verify that unnecessary resources are not left running.
+
+        Check:
+
+        EC2
+        -> Temporary instances terminated.
+
+        EFS
+        -> Temporary filesystem deleted.
+
+        Security Groups
+        -> Temporary lab Security Groups removed if no longer required.
+
+        EBS
+        -> Any additional temporary volumes removed if applicable.
+
+        This prevents unnecessary AWS charges.
+
+
+    -> Important Commands for the EFS Lab
+
+        Update Ubuntu packages:
+
+        sudo apt update
+
+        Install NFS client:
+
+        sudo apt install -y nfs-common
+
+        Create mount point:
+
+        sudo mkdir -p /mnt/efs
+
+        Mount using NFS:
+
+        sudo mount -t nfs4 <EFS-DNS-NAME>:/ /mnt/efs
+
+        Verify mount:
+
+        findmnt /mnt/efs
+
+        Verify filesystem:
+
+        df -hT /mnt/efs
+
+        Create shared file:
+
+        echo "Hello from EC2-1" | sudo tee /mnt/efs/shared-file.txt
+
+        List shared files:
+
+        ls -la /mnt/efs
+
+        Read shared file:
+
+        cat /mnt/efs/shared-file.txt
+
+        Unmount:
+
+        sudo umount /mnt/efs
+
+
+    -> Complete EFS Lab Flow
+
+        AWS Console
+             ↓
+        Create EC2-1 + EC2-2
+             ↓
+        Create EFS
+             ↓
+        Configure Mount Targets
+             ↓
+        Configure EFS Security Group
+        TCP 2049 from EC2 Security Group
+             ↓
+        Linux CLI
+             ↓
+        Install NFS/EFS Utilities
+             ↓
+        Create /mnt/efs on Both EC2s
+             ↓
+        Mount Same EFS on EC2-1
+             ↓
+        Mount Same EFS on EC2-2
+             ↓
+        EC2-1 Creates File
+             ↓
+            EFS
+             ↓
+        EC2-2 Reads Same File
+             ↓
+        EC2-2 Creates File
+             ↓
+            EFS
+             ↓
+        EC2-1 Reads Same File
+             ↓
+        Test Persistence
+             ↓
+        Unmount Both Clients
+             ↓
+        Delete Lab Resources
+
+
+    -> Final Part 7 Understanding
+
+        In this lab, Amazon EFS acts as one shared filesystem for multiple EC2 instances.
+
+        The EC2 instances do not receive separate copies of the files.
+
+        Both instances mount and access the same EFS filesystem through the VPC network.
+
+        Mount targets provide network access to the EFS filesystem.
+
+        Security Groups allow the required NFS traffic on TCP port 2049.
+
+        The practical architecture is:
+
+                        EC2-1
+                          │
+                     /mnt/efs
+                          │
+                          │ NFS
+                          ↓
+                     Mount Target
+                          │
+                          ↓
+                     Amazon EFS
+                          ↑
+                          │
+                     Mount Target
+                          ↑
+                          │ NFS
+                     /mnt/efs
+                          │
+                        EC2-2
+
+        Therefore:
+
+        EBS
+        -> Persistent block storage commonly used by an individual EC2 instance.
+
+        EFS
+        -> Managed shared file storage that multiple EC2 instances can access concurrently.
+
+        The key practical proof is:
+
+        Create file from EC2-1
+                ↓
+        File stored in EFS
+                ↓
+        Read same file from EC2-2
+                ↓
+        Shared filesystem verified.

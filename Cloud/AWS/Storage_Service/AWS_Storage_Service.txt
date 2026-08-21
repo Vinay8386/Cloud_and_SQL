@@ -1,0 +1,399 @@
+=> AWS Storage Fundamentals — S3, EBS(Elastic Block Store), EFS(Elastic File System) and DynamoDB
+
+     -> Why AWS Provides Different Storage Services
+
+        AWS applications need to store different types of data in different ways.
+
+        The three important storage models are:
+
+        Object Storage  -> Amazon S3
+        Block Storage   -> Amazon EBS
+        File Storage    -> Amazon EFS
+
+        Amazon DynamoDB is different from these three storage services.
+        It is a managed NoSQL database used for storing application data.
+
+
+     -> Block Storage — Amazon EBS
+
+        Block Storage stores data in blocks and behaves like a disk attached to a computer.
+
+        A simple real-world example is the SSD or HDD attached to a laptop.
+
+        In AWS, Amazon EBS provides block storage mainly for EC2 instances.
+
+        We can think of:
+
+        Laptop SSD/HDD -> Disk for our computer
+        Amazon EBS     -> Virtual disk for an EC2 instance
+
+        An EC2 instance normally has a root EBS volume containing its operating system.
+
+        We can also create additional EBS volumes and attach them to the EC2 instance.
+
+        Example:
+
+        EC2 Instance
+             |
+             |-- Root EBS Volume
+             |      /
+             |
+             |-- Additional EBS Volume
+                    /data
+
+        Before storing files on a new EBS volume, we normally create a filesystem
+        and mount the volume to a directory.
+
+        EBS is useful when an EC2 instance needs persistent disk storage.
+
+
+     -> File Storage — Amazon EFS
+
+        File Storage organizes data using familiar files and directories.
+
+        Amazon EFS provides a shared file system that can be accessed by
+        multiple EC2 instances.
+
+        Example:
+
+        EC2-1 ─────┐
+                   |
+        EC2-2 ─────┼──── Amazon EFS
+                   |
+        EC2-3 ─────┘
+
+        The EC2 instances can mount the same EFS file system.
+
+        Example directory:
+
+        /shared
+           |
+           |-- reports/
+           |-- images/
+           |-- config/
+
+        If EC2-1 creates a file in the shared EFS filesystem,
+        EC2-2 and EC2-3 can also access that file.
+
+        EFS is useful when multiple servers need access to the same files.
+
+
+     -> Object Storage — Amazon S3
+
+        Object Storage stores data as objects instead of treating the storage
+        like a traditional disk.
+
+        Amazon S3 stores objects inside containers called buckets.
+
+        Example:
+
+        S3 Bucket
+            |
+            |-- images/product1.jpg
+            |-- images/product2.jpg
+            |-- videos/demo.mp4
+            |-- reports/report.pdf
+
+        Files such as images, videos, documents, backups and logs are common
+        examples of data stored in S3.
+
+        Each object is identified inside the bucket using an Object Key.
+
+        Applications normally communicate with S3 using AWS APIs, SDKs,
+        AWS CLI or HTTP-based requests.
+
+        S3 is commonly used when applications need highly scalable object storage.
+
+
+     -> Amazon DynamoDB
+
+        DynamoDB is not a block, file or object storage service.
+
+        Amazon DynamoDB is a managed NoSQL database provided by AWS.
+
+        It is commonly used to store structured application data as
+        key-value or document-style data.
+
+        Example:
+
+        UserID    Name      Status
+        101       Vinay     ACTIVE
+        102       Rahul     ACTIVE
+
+        Instead of storing application records as individual files,
+        applications can store and retrieve them efficiently using DynamoDB.
+
+        DynamoDB is useful when applications need a fast and highly scalable
+        NoSQL database.
+
+
+     -> Simple Comparison
+
+        S3
+        -> Object Storage
+        -> Think of it as a bucket containing objects.
+        -> Commonly used for images, videos, documents, backups and logs.
+
+        EBS
+        -> Block Storage
+        -> Think of it as a virtual disk attached to EC2.
+        -> Commonly used when an EC2 instance needs disk storage.
+
+        EFS
+        -> File Storage
+        -> Think of it as a shared filesystem.
+        -> Commonly used when multiple EC2 instances need the same files.
+
+        DynamoDB
+        -> NoSQL Database
+        -> Used for storing and retrieving application data.
+
+
+     -> Basic Decision
+
+        Need to store objects such as images, videos or backups?
+        -> Use S3.
+
+        Need a persistent disk for an EC2 instance?
+        -> Use EBS.
+
+        Need a shared filesystem for multiple EC2 instances?
+        -> Use EFS.
+
+        Need a scalable NoSQL database for application data?
+        -> Use DynamoDB.
+
+
+     -> Persistent Storage
+
+        Persistent storage is designed to keep data even when the compute instance
+        using the storage is stopped or is no longer running.
+
+        A simple example is the SSD in a laptop.
+
+        If we save a file on the SSD, shut down the laptop and start it again,
+        the file remains available.
+
+        Amazon EBS provides persistent block storage for EC2 instances.
+
+        If an EBS-backed EC2 instance is stopped and started again,
+        the data stored on its EBS volumes remains available.
+
+
+     -> Ephemeral Storage
+
+        Ephemeral means temporary.
+
+        Ephemeral storage is more closely tied to the lifecycle of the compute
+        resource using it.
+
+        EC2 Instance Store is an example of ephemeral block storage.
+
+        Instance Store uses storage physically attached to the host machine
+        running the EC2 instance.
+
+        Instance Store data survives an EC2 reboot.
+
+        However, if the instance is stopped or terminated, the Instance Store
+        data is lost.
+
+        Therefore, important long-term data should not be stored only
+        in Instance Store.
+
+
+     -> EBS vs Instance Store
+
+        EBS
+        -> Block storage.
+        -> Persistent storage.
+        -> Data remains when EC2 is stopped.
+        -> Data remains after an EC2 reboot.
+        -> Suitable for important persistent data.
+
+        Instance Store
+        -> Block storage.
+        -> Ephemeral or temporary storage.
+        -> Physically attached to the EC2 host.
+        -> Data remains after reboot.
+        -> Data is lost when the instance is stopped or terminated.
+        -> Useful for temporary data, caches and similar workloads.
+
+
+     -> EBS Volume and EC2 Termination
+
+        We should not assume that every EBS volume automatically remains
+        after an EC2 instance is terminated.
+
+        An EBS volume has a Delete on Termination configuration.
+
+        For example, the root EBS volume of an EC2 instance commonly has
+        Delete on Termination enabled.
+
+        In that case:
+
+        Terminate EC2
+             |
+             v
+        Root EBS Volume Deleted
+             |
+             v
+        Data Lost
+
+        Additional EBS data volumes can be configured to remain after
+        the EC2 instance is terminated.
+
+
+     -> How EC2 Accesses EBS
+
+        EBS behaves like a block storage device or virtual disk.
+
+        An EBS volume is attached to an EC2 instance.
+
+        The operating system can detect the attached block device.
+
+        We normally create a filesystem on a new EBS volume and mount it
+        to a directory before storing normal files.
+
+        Example:
+
+        EC2 Instance
+             |
+             |-- Root EBS
+             |
+             |-- Additional EBS
+                     |
+                     v
+                   /data
+
+        The application can then work with normal filesystem paths.
+
+        Example:
+
+        /data/report.txt
+        /data/images/photo.jpg
+
+        Basic flow:
+
+        EBS
+        -> Attach to EC2
+        -> Create filesystem
+        -> Mount
+        -> Use like a disk
+
+
+     -> How EC2 Accesses EFS
+
+        Amazon EFS provides a network-based shared filesystem.
+
+        Multiple EC2 instances can mount the same EFS filesystem.
+
+        Example:
+
+        EC2-1 ─────┐
+                   |
+                   ├──── EFS
+                   |
+        EC2-2 ─────┘
+
+        Both EC2 instances can mount EFS to a directory such as:
+
+        /shared
+
+        If EC2-1 creates:
+
+        /shared/test.txt
+
+        EC2-2 can access the same file through the shared filesystem.
+
+        EFS primarily uses NFS (Network File System) for filesystem access.
+
+        Basic flow:
+
+        EFS
+        -> Mount over network
+        -> Access files/directories
+        -> Multiple servers can share the same filesystem
+
+
+     -> How Applications Access S3
+
+        Amazon S3 is object storage and is not normally attached to EC2
+        like an EBS disk.
+
+        Applications communicate with the S3 service using mechanisms such as:
+
+        -> AWS APIs
+        -> AWS SDKs
+        -> AWS CLI
+        -> HTTP-based requests
+
+        Example:
+
+        Application
+             |
+             | S3 API / SDK
+             v
+        S3 Bucket
+             |
+             |-- images/product.jpg
+
+        Using AWS CLI, an object can be uploaded with a command such as:
+
+        aws s3 cp photo.jpg s3://my-bucket/
+
+        Here, the application is asking S3 to store an object inside a bucket.
+
+        Basic flow:
+
+        S3
+        -> Access through S3 API / SDK / CLI / HTTP
+        -> Bucket
+        -> Object
+
+
+     -> How Applications Access DynamoDB
+
+        DynamoDB is a managed NoSQL database rather than a filesystem or disk.
+
+        Applications communicate with DynamoDB using the DynamoDB APIs
+        or AWS SDKs.
+
+        Example:
+
+        Application
+             |
+             | DynamoDB API / SDK
+             v
+        DynamoDB
+             |
+             |-- Users Table
+                   |
+                   |-- UserID 101
+                   |-- UserID 102
+
+        The application performs database operations to store, retrieve,
+        update or delete items.
+
+
+     -> Final Access Comparison
+
+        EBS
+        -> Block storage.
+        -> Attach to EC2.
+        -> Create filesystem and mount.
+        -> Use like a disk.
+
+        EFS
+        -> File storage.
+        -> Mount over the network.
+        -> Use like a shared filesystem.
+
+        S3
+        -> Object storage.
+        -> Access using S3 API, SDK, CLI or HTTP.
+        -> Store and retrieve objects from buckets.
+
+        DynamoDB
+        -> NoSQL database.
+        -> Access using DynamoDB API or SDK.
+        -> Store and retrieve application data as items.

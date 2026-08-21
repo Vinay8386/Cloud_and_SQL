@@ -1,0 +1,266 @@
+=> Docker Port Mapping and AWS Security Group
+
+    -> Why Port Mapping is Required
+
+        A Docker container runs inside the EC2 virtual machine as an isolated environment.
+
+        An application running inside the container listens on its own container port.
+
+        For example, our Flask application listens on port 5000 inside the container.
+
+        External users cannot directly access this container port.
+
+        Docker port mapping is used to connect a port of the EC2 host with a port inside the Docker container.
+
+    -> Docker Port Mapping Syntax
+
+        docker run -p HOST_PORT:CONTAINER_PORT IMAGE_NAME
+
+        Example:
+
+        docker run -p 5000:5000 flask-app
+
+        Here:
+
+        5000:5000
+          |    |
+          |    -> Container Port
+          |
+          -> EC2 Host Port
+
+        The first port tells Docker which port of the EC2 host should receive the request.
+
+        The second port tells Docker which port inside the container should receive the forwarded request.
+
+    -> Our Flask Example
+
+        Our Flask application is configured to listen on port 5000.
+
+        app.run(host="0.0.0.0", port=5000)
+
+        We started the container using:
+
+        docker run -p 5000:5000 flask-app
+
+        Therefore:
+
+        EC2 Host Port 5000
+                |
+                | Docker Port Mapping
+                v
+        Container Port 5000
+                |
+                v
+        Flask Application
+
+    -> Role of AWS Security Group
+
+        An AWS Security Group controls which network traffic is allowed to reach the EC2 instance.
+
+        Suppose the user sends a request to:
+
+        http://<EC2-PUBLIC-IP>:5000
+
+        The destination port of this request is EC2 port 5000.
+
+        Therefore, the Security Group must allow inbound traffic on TCP port 5000.
+
+        Example:
+
+        Type        : Custom TCP
+        Port        : 5000
+        Source      : 0.0.0.0/0
+
+        The Security Group only decides whether the traffic is allowed to reach EC2 port 5000.
+
+        It does not decide which Docker container should receive the request.
+
+    -> Security Group vs Docker Port Mapping
+
+        Security Group:
+
+        Decides whether incoming traffic is allowed to reach a particular EC2 host port.
+
+        Docker Port Mapping:
+
+        Decides where traffic received on that EC2 host port should be forwarded inside the container.
+
+        Example:
+
+        Security Group Port 5000
+                |
+                | Allows Traffic
+                v
+        EC2 Host Port 5000
+                |
+                | Docker Port Mapping
+                v
+        Container Port 5000
+                |
+                v
+        Flask Application
+
+    -> Complete Request Flow
+
+        User opens:
+
+        http://<EC2-PUBLIC-IP>:5000
+
+                |
+                v
+
+        Internet
+
+                |
+                v
+
+        AWS Security Group
+
+        Checks whether inbound TCP port 5000 is allowed.
+
+                |
+                | Allowed
+                v
+
+        EC2 Host Port 5000
+
+                |
+                | Docker mapping
+                | 5000:5000
+                v
+
+        Docker Container Port 5000
+
+                |
+                v
+
+        Flask Application
+
+                |
+                v
+
+        HTTP Response returned to the user.
+
+    -> Host Port and Container Port Can Be Different
+
+        The EC2 host port does not have to be the same as the container port.
+
+        For example:
+
+        docker run -p 80:5000 flask-app
+
+        Here:
+
+        Host Port      = 80
+        Container Port = 5000
+
+        The request flow becomes:
+
+        User
+          |
+          v
+        EC2 Public IP : 80
+          |
+          v
+        Security Group allows port 80
+          |
+          v
+        EC2 Host Port 80
+          |
+          | Docker mapping 80:5000
+          v
+        Container Port 5000
+          |
+          v
+        Flask Application
+
+        Flask still runs on port 5000 inside the container.
+
+        Docker simply forwards requests received on EC2 port 80 to container port 5000.
+
+    -> Why Public IP Can Be Used Without Writing :80
+
+        HTTP uses port 80 as its default port.
+
+        Therefore:
+
+        http://<EC2-PUBLIC-IP>
+
+        is effectively:
+
+        http://<EC2-PUBLIC-IP>:80
+
+        If Docker mapping is:
+
+        -p 80:5000
+
+        the request automatically reaches EC2 host port 80 and Docker forwards it to container port 5000.
+
+    -> Multiple Users Accessing the Application
+
+        Multiple users do not require different EC2 host ports.
+
+        Many users can connect to the same EC2 host port.
+
+        Example:
+
+        User A ----\
+        User B -----+----> EC2 Port 80 ----> Container Port 5000 ----> Flask
+        User C ----/
+
+        Each user's device uses its own temporary source port, but all users can connect to the same destination port on EC2.
+
+        We do not need to add those temporary client ports to the EC2 Security Group.
+
+    -> Important Difference to Remember
+
+        Security Group Port
+
+            Controls whether network traffic is allowed to reach the EC2 host port.
+
+        Host Port
+
+            The port on the EC2 machine where Docker accepts incoming traffic.
+
+        Container Port
+
+            The port inside the Docker container where the application is listening.
+
+        Application Port
+
+            The port configured by the application itself.
+
+            In our Flask application:
+
+            Flask Application Port = 5000
+
+    -> Easy Rule to Remember
+
+        Security Group
+            -> Can the request enter the EC2 instance?
+
+        Host Port
+            -> On which EC2 port does Docker receive the request?
+
+        Docker Port Mapping
+            -> To which container port should Docker forward the request?
+
+        Container Port
+            -> On which port is the application listening inside the container?
+
+    -> HTTP and HTTPS Rules During EC2 Creation
+
+        During EC2 instance creation, AWS provides options to allow HTTP and HTTPS traffic from the internet.
+
+        Selecting "Allow HTTP traffic from the internet" automatically adds an inbound Security Group rule for TCP port 80.
+
+        Selecting "Allow HTTPS traffic from the internet" automatically adds an inbound Security Group rule for TCP port 443.
+
+        HTTP  -> TCP Port 80
+        HTTPS -> TCP Port 443
+
+        These ports are not automatically open just because HTTP or HTTPS uses them.
+
+        The corresponding Security Group inbound rule must exist for the traffic to be allowed.
+
+        For custom application ports such as 5000 or 8080, a Custom TCP inbound rule must be added if those ports need to be accessed externally.

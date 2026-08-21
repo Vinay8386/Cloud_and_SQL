@@ -1,0 +1,762 @@
+=> Part 4 - Amazon EBS Fundamentals
+
+    -> What is Amazon EBS?
+
+        Amazon EBS stands for Amazon Elastic Block Store.
+
+        EBS provides persistent block-level storage volumes that can be used with Amazon EC2 instances.
+
+        An EBS volume behaves similarly to a virtual hard disk attached to a virtual machine.
+
+        Conceptually:
+
+        EC2 Instance
+             │
+             ↓
+        EBS Volume
+             │
+             ↓
+        Block Storage
+
+        Applications and operating systems can use the volume to store files, applications, databases and other data.
+
+
+    -> What is Block Storage?
+
+        Block storage divides storage space into small fixed-size units called blocks.
+
+        Each block can be independently read or written.
+
+        Conceptually:
+
+        EBS Volume
+
+        ┌────────┬────────┬────────┬────────┬────────┐
+        │ Block 1│ Block 2│ Block 3│ Block 4│  ...   │
+        └────────┴────────┴────────┴────────┴────────┘
+
+        The operating system sees the EBS volume as a block device.
+
+        For example, on a Linux EC2 instance it may appear as:
+
+        /dev/nvme1n1
+
+        A filesystem such as EXT4 or XFS can be created on top of the block device.
+
+        Therefore:
+
+        EBS Volume
+             ↓
+        Block Device
+             ↓
+        Filesystem
+             ↓
+        Files and Directories
+
+
+    -> Block Storage vs File Storage
+
+        EBS provides block storage rather than directly providing files and folders.
+
+        EBS initially provides storage blocks to the operating system.
+
+        The operating system can create a filesystem on those blocks.
+
+        Conceptually:
+
+        EBS
+        -> Provides block-level storage.
+
+        EXT4 / XFS
+        -> Organizes those blocks into a filesystem.
+
+        Linux
+        -> Uses the filesystem to provide files and directories.
+
+
+    -> Why EC2 Needs EBS
+
+        An EC2 instance needs storage for the operating system and may also require additional persistent storage for applications and data.
+
+        EBS can provide:
+
+        -> Root storage for the operating system.
+        -> Additional storage for application data.
+        -> Database storage.
+        -> Log storage.
+        -> Persistent data independent of the EC2 instance lifecycle.
+
+        Conceptually:
+
+                         EC2 Instance
+                              │
+                  ┌───────────┴───────────┐
+                  ↓                       ↓
+            Root EBS Volume        Additional EBS Volume
+                  │                       │
+             Operating                Application
+              System                    Data
+
+
+    -> EC2 Root Volume
+
+        When an EC2 instance is launched from an EBS-backed AMI, an EBS volume is normally created as its root volume.
+
+        The root volume contains the operating system and other files required to boot the instance.
+
+        Conceptually:
+
+        EC2 Instance
+             │
+             ↓
+        Root EBS Volume
+             │
+             ↓
+        Operating System
+             │
+             ↓
+        EC2 Boots
+
+        On Linux, the root filesystem is mounted at:
+
+        /
+
+        Additional EBS volumes can be attached separately for other data.
+
+
+    -> Root Volume vs Additional EBS Volume
+
+        Root Volume:
+
+        -> Contains the operating system.
+        -> Used to boot the EC2 instance.
+        -> Usually created when the EC2 instance is launched.
+
+
+        Additional EBS Volume:
+
+        -> Can be created separately.
+        -> Can be attached to an EC2 instance.
+        -> Commonly used for application or data storage.
+        -> Can be detached and attached to another compatible EC2 instance when required.
+
+
+    -> EBS Volume Lifecycle
+
+        An EBS volume has its own lifecycle.
+
+        A typical lifecycle is:
+
+        Create Volume
+             ↓
+        Available
+             ↓
+        Attach to EC2
+             ↓
+        In-use
+             ↓
+        Use the Storage
+             ↓
+        Detach
+             ↓
+        Available Again
+             ↓
+        Attach Elsewhere or Delete
+
+        Therefore, an EBS volume is a separate AWS resource and is not simply part of the EC2 instance itself.
+
+
+    -> EBS Provides Persistent Storage
+
+        EBS is designed to provide persistent storage.
+
+        Data on an EBS volume can continue to exist even when the EC2 instance is stopped.
+
+        An additional EBS volume can also remain available after being detached from an instance.
+
+        Whether a volume is automatically deleted when an EC2 instance is terminated depends on its Delete on Termination configuration.
+
+        This is especially important for the root volume, which commonly has Delete on Termination enabled by default.
+
+
+    -> EBS and Availability Zones
+
+        An EBS volume is created inside a specific Availability Zone.
+
+        Example:
+
+        Region: ap-south-1
+
+        Availability Zones:
+
+        ap-south-1a
+        ap-south-1b
+        ap-south-1c
+
+        Suppose:
+
+        EC2 Instance
+        -> ap-south-1a
+
+        EBS Volume
+        -> ap-south-1a
+
+        The volume can be attached to the instance because both are in the same Availability Zone.
+
+        An EBS volume cannot be directly attached to an EC2 instance in a different Availability Zone.
+
+
+    -> Moving EBS Data to Another Availability Zone
+
+        If EBS data is required in another Availability Zone, a snapshot can be used.
+
+        Conceptually:
+
+        EBS Volume
+        AZ-A
+          ↓
+        Snapshot
+          ↓
+        Create New EBS Volume
+          ↓
+        AZ-B
+          ↓
+        Attach to EC2 in AZ-B
+
+        Therefore, the snapshot provides a way to create another volume containing the stored data in another Availability Zone.
+
+
+    -> EBS Volume Types
+
+        AWS provides different EBS volume types for different workload requirements.
+
+        Important types are:
+
+        -> gp3
+        -> gp2
+        -> io2
+        -> st1
+        -> sc1
+
+        The correct volume type depends on factors such as:
+
+        -> Performance requirement.
+        -> IOPS requirement.
+        -> Throughput requirement.
+        -> Workload type.
+        -> Cost.
+
+
+    -> gp3 - General Purpose SSD
+
+        gp3 is a general-purpose SSD-backed EBS volume type.
+
+        It provides a balance between price and performance and is suitable for many common workloads.
+
+        Typical use cases include:
+
+        -> Boot volumes.
+        -> Application servers.
+        -> Development and test environments.
+        -> General-purpose workloads.
+        -> Many database workloads.
+
+        gp3 allows storage capacity and certain performance characteristics such as IOPS and throughput to be provisioned independently within supported limits.
+
+        For many general-purpose workloads, gp3 is the common starting choice.
+
+
+    -> gp2 - General Purpose SSD
+
+        gp2 is an older generation of general-purpose SSD-backed EBS storage.
+
+        It is also designed for a broad range of workloads.
+
+        An important characteristic of gp2 is that its baseline IOPS performance is related to the size of the volume.
+
+        Therefore, increasing gp2 volume size can also affect its baseline performance.
+
+        gp3 improves flexibility by allowing capacity and performance to be configured more independently.
+
+
+    -> io2 - Provisioned IOPS SSD
+
+        io2 is designed for workloads requiring high and consistent I/O performance.
+
+        It is useful when applications require a high number of I/O operations with predictable performance.
+
+        Typical use cases include:
+
+        -> I/O-intensive databases.
+        -> Business-critical applications.
+        -> Workloads requiring high durability and consistent storage performance.
+
+        io2 allows Provisioned IOPS to be configured according to workload requirements.
+
+
+    -> st1 - Throughput Optimized HDD
+
+        st1 is HDD-backed storage designed for frequently accessed, throughput-intensive workloads.
+
+        It focuses more on moving large amounts of sequential data than on providing very high random IOPS.
+
+        Typical use cases include:
+
+        -> Big data workloads.
+        -> Log processing.
+        -> Data warehouses.
+        -> Large sequential workloads.
+
+        Therefore:
+
+        st1
+        -> HDD based.
+        -> Throughput focused.
+        -> Suitable for large sequential data access.
+
+
+    -> sc1 - Cold HDD
+
+        sc1 is HDD-backed storage intended for less frequently accessed data.
+
+        It is designed for workloads where low storage cost is more important than high performance.
+
+        Typical use cases include:
+
+        -> Cold data.
+        -> Infrequently accessed datasets.
+        -> Workloads with relatively low performance requirements.
+
+        Therefore:
+
+        sc1
+        -> HDD based.
+        -> Lowest-cost EBS HDD option.
+        -> Intended for infrequently accessed data.
+
+
+    -> Simple Volume Type Comparison
+
+        gp3
+        -> General-purpose SSD.
+        -> Balanced price and performance.
+        -> Common choice for general workloads.
+
+        gp2
+        -> Previous-generation general-purpose SSD.
+        -> Performance is more closely related to volume size.
+
+        io2
+        -> Provisioned IOPS SSD.
+        -> High and consistent I/O performance.
+        -> Suitable for critical I/O-intensive workloads.
+
+        st1
+        -> Throughput Optimized HDD.
+        -> Suitable for frequently accessed sequential workloads.
+
+        sc1
+        -> Cold HDD.
+        -> Suitable for infrequently accessed data where cost is the priority.
+
+
+    -> What is IOPS?
+
+        IOPS stands for Input/Output Operations Per Second.
+
+        It represents how many storage read/write operations can be performed per second.
+
+        Conceptually:
+
+        1 Read Operation
+        1 Write Operation
+              ↓
+        I/O Operations
+
+        Number of operations completed every second
+              ↓
+             IOPS
+
+        IOPS is particularly important for workloads performing many storage operations, such as databases with random reads and writes.
+
+
+    -> What is Throughput?
+
+        Throughput represents the amount of data that can be transferred between storage and the instance over a period of time.
+
+        It is commonly measured in:
+
+        MiB/s
+
+        Conceptually:
+
+        IOPS
+        -> How many I/O operations can be performed.
+
+        Throughput
+        -> How much data can be transferred per second.
+
+
+    -> IOPS vs Throughput
+
+        Consider two workloads.
+
+        Workload A:
+
+        Thousands of small random database operations.
+
+        This workload may depend heavily on:
+
+        IOPS.
+
+
+        Workload B:
+
+        Reading very large files sequentially.
+
+        This workload may depend heavily on:
+
+        Throughput.
+
+        Therefore:
+
+        IOPS
+        -> Number of operations per second.
+
+        Throughput
+        -> Amount of data transferred per second.
+
+        Both are important storage-performance measurements, but different workloads may depend more heavily on one than the other.
+
+
+    -> EBS Encryption
+
+        EBS supports encryption to protect stored data.
+
+        EBS encryption uses AWS Key Management Service keys.
+
+        Encryption can protect:
+
+        -> Data stored on the EBS volume.
+        -> Data transferred between supported EC2 instances and EBS storage.
+        -> Snapshots created from encrypted volumes.
+        -> Volumes created from encrypted snapshots.
+
+        Conceptually:
+
+        Application
+            ↓
+        EC2 Instance
+            ↓
+        Encrypted EBS Volume
+            ↓
+        Stored Data Protected
+
+        Encryption and decryption are handled transparently by the AWS storage infrastructure for the instance.
+
+
+    -> EBS Snapshots
+
+        An EBS snapshot is a point-in-time backup of an EBS volume.
+
+        Conceptually:
+
+        EBS Volume
+            ↓
+        Create Snapshot
+            ↓
+        Point-in-Time Backup
+
+        Snapshots can be used to:
+
+        -> Back up EBS volumes.
+        -> Restore data.
+        -> Create new EBS volumes.
+        -> Create volumes in another Availability Zone.
+        -> Support disaster-recovery and migration scenarios.
+
+
+    -> EBS Snapshots are Incremental
+
+        EBS snapshots are incremental.
+
+        The first snapshot captures the blocks required for the initial backup.
+
+        Subsequent snapshots store changed blocks that have not already been captured by previous snapshots.
+
+        Conceptually:
+
+        Volume
+          ↓
+        Snapshot 1
+        Initial blocks
+          ↓
+        Data Changes
+          ↓
+        Snapshot 2
+        Changed blocks
+          ↓
+        More Changes
+          ↓
+        Snapshot 3
+        Newly changed blocks
+
+        AWS manages the snapshot dependencies required to restore a complete volume.
+
+
+    -> Creating a Volume from a Snapshot
+
+        A snapshot can be used to create another EBS volume.
+
+        Conceptually:
+
+        Original EBS Volume
+              ↓
+           Snapshot
+              ↓
+        New EBS Volume
+              ↓
+        Existing Filesystem + Stored Data
+
+        The restored volume contains the block-level data captured by the snapshot.
+
+        If the original volume contained a filesystem, the restored volume also contains that filesystem information.
+
+
+    -> Snapshot and Mounting are Different Concepts
+
+        A snapshot preserves the EBS volume's stored block data.
+
+        Mounting is an operating-system-level configuration.
+
+        Suppose:
+
+        VM1
+         │
+         └── EBS Volume
+                ↓
+              EXT4
+                ↓
+              /data
+
+        Snapshot
+           ↓
+        New EBS Volume
+           ↓
+        Attach to VM2
+
+        The filesystem and data are restored with the volume.
+
+        However, VM2 still needs to mount that filesystem at a directory before normal file access through that mount point.
+
+        Therefore:
+
+        Snapshot
+        -> Preserves block-level data and filesystem information.
+
+        Mount
+        -> Connects an existing filesystem to a directory in the operating system.
+
+
+    -> EBS Volume vs Filesystem vs Mount Point
+
+        These three concepts should not be confused.
+
+        EBS Volume:
+
+        -> AWS block-storage resource.
+
+
+        Filesystem:
+
+        -> Organizes the block storage so the operating system can manage files and directories.
+
+        Examples:
+
+        EXT4
+        XFS
+
+
+        Mount Point:
+
+        -> Directory through which Linux accesses the filesystem.
+
+        Example:
+
+        /data
+
+
+        Complete relationship:
+
+        EBS Volume
+            ↓
+        Linux Block Device
+            ↓
+        Filesystem
+            ↓
+        Mount Point
+            ↓
+        Files and Directories
+
+
+    -> EBS Partitions
+
+        An EBS volume can be used directly as one filesystem or it can be divided into partitions.
+
+        Without partitions:
+
+        EBS Volume
+            ↓
+        /dev/nvme1n1
+            ↓
+        EXT4
+            ↓
+        /data
+
+
+        With partitions:
+
+        EBS Volume
+        /dev/nvme1n1
+            │
+            ├── /dev/nvme1n1p1
+            ├── /dev/nvme1n1p2
+            ├── /dev/nvme1n1p3
+            └── /dev/nvme1n1p4
+
+        Each partition represents a logical section of the disk.
+
+        Partitions shown by commands such as lsblk should not be confused with the internal storage blocks used by block storage.
+
+
+    -> EBS vs Instance Store
+
+        EBS and Instance Store both provide block storage, but their persistence characteristics are different.
+
+        EBS:
+
+        -> Network-attached block storage for EC2.
+        -> Designed for persistent data.
+        -> Exists as a separate AWS storage resource.
+        -> Supports snapshots.
+        -> Volumes can be detached and attached where supported.
+        -> Commonly used for EC2 root and persistent application storage.
+
+
+        Instance Store:
+
+        -> Physically attached storage associated with the host running the EC2 instance.
+        -> Provides temporary or ephemeral block storage.
+        -> Data does not provide the same persistence guarantees as EBS.
+        -> Data is lost when the instance is stopped, hibernated or terminated.
+        -> Useful for temporary data that can be recreated.
+
+
+    -> When to Use EBS
+
+        EBS is appropriate when data needs to persist independently of the temporary lifecycle of compute resources.
+
+        Examples:
+
+        -> Operating system/root storage.
+        -> Databases.
+        -> Application files.
+        -> Persistent logs.
+        -> Business data.
+        -> Workloads requiring snapshots and recovery.
+
+
+    -> When Instance Store Can Be Useful
+
+        Instance Store can be useful for temporary data where loss of the stored data is acceptable.
+
+        Examples:
+
+        -> Temporary files.
+        -> Caches.
+        -> Buffers.
+        -> Scratch data.
+        -> Data that can easily be recreated from another source.
+
+
+    -> Complete EBS Architecture
+
+                           AWS Region
+                               │
+                               ↓
+                       Availability Zone
+                               │
+                 ┌─────────────┴─────────────┐
+                 │                           │
+                 ↓                           ↓
+            EC2 Instance                EBS Volume
+                 │                           │
+                 └────────── Attach ─────────┘
+                                             │
+                                             ↓
+                                      Block Storage
+                                             │
+                                             ↓
+                                      Block Device
+                                             │
+                                             ↓
+                                        Filesystem
+                                             │
+                                             ↓
+                                       Mount Point
+                                             │
+                                             ↓
+                                     Application Data
+
+                                             │
+                                             │ Snapshot
+                                             ↓
+                                      EBS Snapshot
+                                             │
+                                             ↓
+                                   Create Another Volume
+                                             │
+                          ┌──────────────────┴──────────────────┐
+                          ↓                                     ↓
+                     Same AZ                               Different AZ
+                          │                                     │
+                          ↓                                     ↓
+                     EC2 Instance                          EC2 Instance
+
+
+    -> Final Part 4 Understanding
+
+        Amazon EBS provides persistent block-level storage for EC2 instances.
+
+        An EBS volume behaves like a virtual disk that the operating system sees as a block device.
+
+        A filesystem such as EXT4 or XFS can be created on the block device, and the filesystem can then be mounted to a directory.
+
+        EC2 instances commonly use an EBS root volume for the operating system and can use additional EBS volumes for application data.
+
+        EBS volumes belong to a specific Availability Zone and can normally be attached to EC2 instances in that same Availability Zone.
+
+        Snapshots can be used to back up a volume and create new volumes, including volumes in another Availability Zone.
+
+        gp3 and gp2 provide general-purpose SSD storage, io2 targets high and consistent I/O requirements, st1 targets throughput-intensive HDD workloads, and sc1 targets colder HDD workloads.
+
+        IOPS measures the number of I/O operations performed per second, while throughput measures the amount of data transferred per second.
+
+        EBS supports encryption and point-in-time incremental snapshots.
+
+        EBS provides persistent storage, whereas Instance Store is intended for temporary data tied more closely to the lifecycle of the EC2 host/instance.
+
+        The complete mental model is:
+
+        EC2
+         ↓
+        EBS Volume
+         ↓
+        Block Device
+         ↓
+        Filesystem
+         ↓
+        Mount Point
+         ↓
+        Persistent Data
+

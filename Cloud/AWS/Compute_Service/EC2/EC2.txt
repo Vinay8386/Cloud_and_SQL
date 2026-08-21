@@ -1,0 +1,766 @@
+=> AWS EC2 - Virtual Machine Creation and Software Installation
+
+    -> What is EC2?
+
+        -> EC2 stands for Elastic Compute Cloud.
+
+        -> Amazon EC2 is an AWS service that allows us to create and run Virtual Machines in the AWS Cloud.
+
+        -> In AWS, a Virtual Machine created using EC2 is called an EC2 Instance.
+
+        -> Instead of purchasing and maintaining a physical server, we can create a virtual server in AWS whenever required.
+
+        -> We can select the Operating System, CPU, memory, storage, networking, and security configuration according to our requirement.
+
+
+    -> Physical Server vs EC2 Instance
+
+        Physical Server
+
+            -> We purchase and maintain the physical hardware.
+
+            -> CPU, RAM, disk, and networking are physically available on the machine.
+
+            -> Increasing or replacing resources generally requires hardware changes.
+
+        EC2 Instance
+
+            -> AWS owns and manages the underlying physical infrastructure.
+
+            -> We create a Virtual Machine on top of AWS infrastructure.
+
+            -> We choose the required CPU, memory, Operating System, storage, and network configuration.
+
+            -> The instance can be started, stopped, restarted, or terminated when required.
+
+
+    -> Basic EC2 Architecture
+
+        User Computer
+
+            |
+            | Internet
+            |
+            v
+
+        AWS Cloud
+
+            -> AWS Region
+
+                -> VPC
+
+                    -> Subnet
+
+                        -> EC2 Instance
+
+                            -> Operating System
+
+                            -> Applications
+                               Apache
+                               PHP
+                               Java
+                               etc.
+
+
+    -> What Do We Need to Create an EC2 Instance?
+
+        -> Before creating an EC2 instance, we mainly need to understand:
+
+            1. AWS Region
+
+            2. AMI
+
+            3. Instance Type
+
+            4. Key Pair
+
+            5. VPC and Subnet
+
+            6. Public IP Address
+
+            7. Security Group
+
+            8. Storage
+
+
+    -> AWS Region
+
+        -> AWS provides infrastructure in multiple geographical locations called Regions.
+
+        -> An EC2 instance is created inside a particular AWS Region.
+
+        -> The Region should normally be selected according to requirements such as location, latency, service availability, compliance, 
+           and cost.
+
+        -> In our lab, the EC2 instance was created in:
+
+            Asia Pacific (Mumbai)
+
+
+    -> AMI
+
+        -> AMI stands for Amazon Machine Image.
+
+        -> An AMI is a template used to create an EC2 instance.
+
+        -> It provides the initial Operating System and related configuration required to create the Virtual Machine.
+
+        -> Examples include:
+
+            Amazon Linux
+
+            Ubuntu
+
+            Red Hat Enterprise Linux
+
+            Windows Server
+
+        -> In our lab, we selected:
+
+            Amazon Linux 2023
+
+        -> Therefore, when AWS created our EC2 instance, Amazon Linux 2023 became the Operating System of the Virtual Machine.
+
+
+    -> Instance Type
+
+        -> Instance Type determines the compute capacity of an EC2 instance.
+
+        -> It defines resources such as:
+
+            CPU
+
+            Memory
+
+            Network capability
+
+        -> Different instance types are available for different workloads.
+
+        -> For example, a small development server requires fewer resources than a production application server.
+
+        -> In our lab, we used:
+
+            t3a.micro
+
+        -> The university lab allows only predefined instance types such as t3a.micro, t3a.small, t3a.medium, and t3a.nano.
+
+
+    -> EC2 Storage
+
+        -> A Virtual Machine requires storage for its Operating System, applications, configuration files, and other data.
+
+        -> EC2 instances commonly use Amazon EBS volumes for persistent block storage.
+
+        -> EBS stands for Elastic Block Store.
+
+        -> The root EBS volume contains the Operating System and its files.
+
+        -> In our lab, we configured:
+
+            8 GiB gp3
+
+        -> gp3 is a General Purpose SSD EBS volume type.
+
+
+    -> VPC
+
+        -> VPC stands for Virtual Private Cloud.
+
+        -> A VPC provides an isolated virtual network inside AWS.
+
+        -> The EC2 instance is launched inside a VPC.
+
+        -> Networking resources such as subnets, routing, and security controls determine how the EC2 instance communicates with other systems.
+
+
+    -> Subnet
+
+        -> A subnet is a smaller IP network created inside a VPC.
+
+        -> An EC2 instance is launched inside a subnet.
+
+        -> The subnet determines which network the private IP address of the EC2 instance belongs to.
+
+
+    -> Private IP Address
+
+        -> An EC2 instance receives a Private IP Address inside the VPC.
+
+        -> The Private IP Address is primarily used for communication inside the private AWS network.
+
+        -> In our SSH terminal, the EC2 prompt contained the private IP information:
+
+            [ec2-user@ip-172-31-10-6 ~]$
+
+
+    -> Public IP Address
+
+        -> A Public IP Address allows the EC2 instance to communicate with systems through the Internet when the surrounding network configuration also permits that communication.
+
+        -> We enabled:
+
+            Auto-assign Public IP
+
+        -> This allowed AWS to assign a public IPv4 address to our EC2 instance.
+
+        -> We used the public address to access Apache from our local browser.
+
+
+    -> Security Group
+
+        -> A Security Group acts as a virtual firewall associated with an EC2 instance.
+
+        -> It controls which network traffic is allowed to reach the EC2 instance and which outbound traffic is allowed.
+
+        -> Inbound rules control incoming traffic.
+
+        -> Outbound rules control outgoing traffic.
+
+        -> A rule can specify information such as:
+
+            Protocol
+
+            Port
+
+            Source or Destination
+
+
+    -> Understanding Ports
+
+        -> A single server can run multiple network services.
+
+        -> Ports help the Operating System identify which service should receive incoming network traffic.
+
+        -> Some commonly used ports are:
+
+            SSH   -> Port 22
+
+            HTTP  -> Port 80
+
+            HTTPS -> Port 443
+
+
+    -> SSH
+
+        -> SSH stands for Secure Shell.
+
+        -> SSH allows us to securely access the command-line terminal of a remote Linux machine.
+
+        -> SSH normally communicates through TCP port 22.
+
+        -> In our lab:
+
+            SSH
+
+                Port   : 22
+
+                Source : My IP
+
+        -> My IP means SSH access was restricted to our current public IP address.
+
+        -> This is safer than allowing SSH access from the entire Internet.
+
+
+    -> HTTP
+
+        -> HTTP stands for Hypertext Transfer Protocol.
+
+        -> HTTP is commonly used for communication between a web browser and a web server.
+
+        -> HTTP normally uses TCP port 80.
+
+        -> Since we wanted to access Apache from a browser, we allowed:
+
+            HTTP
+
+                Port   : 80
+
+                Source : Internet
+
+
+    -> HTTPS
+
+        -> HTTPS is the encrypted version of HTTP.
+
+        -> HTTPS normally uses TCP port 443.
+
+        -> HTTPS generally requires SSL/TLS configuration.
+
+        -> HTTPS was not required for the current lab, so port 443 was not opened.
+
+
+    -> Why SSH Was Restricted but HTTP Was Public
+
+        -> SSH provides administrative access to the Operating System.
+
+        -> Therefore, SSH should normally be restricted to trusted IP addresses.
+
+        -> HTTP provides access to the web application.
+
+        -> Therefore, HTTP can be made publicly accessible when the application needs to be reached from the Internet.
+
+        SSH
+
+            User's IP
+                |
+                | Port 22
+                v
+            EC2 Instance
+
+        HTTP
+
+            Internet
+                |
+                | Port 80
+                v
+            EC2 Instance
+
+
+    -> Key Pair
+
+        -> A key pair is used for secure authentication when connecting to a Linux EC2 instance through SSH.
+
+        -> A key pair consists of:
+
+            Public Key
+
+            Private Key
+
+        -> AWS places or associates the public-key information required for login with the EC2 instance.
+
+        -> We securely keep the corresponding private key.
+
+        -> In our lab, the private key was downloaded as:
+
+            cloud-computing-assignment-key.pem
+
+        -> The .pem private key should never be publicly shared.
+
+
+    -> Complete EC2 Creation Flow
+
+        AWS Console
+
+            -> Select Region
+
+            -> Open EC2
+
+            -> Launch Instance
+
+            -> Enter Instance Name
+
+            -> Select AMI
+
+            -> Select Instance Type
+
+            -> Select/Create Key Pair
+
+            -> Select VPC and Subnet
+
+            -> Enable Public IP if required
+
+            -> Configure Security Group
+
+            -> Configure Storage
+
+            -> Launch Instance
+
+            -> Wait for Instance State = Running
+
+            -> Verify Status Checks
+
+
+    -> EC2 Configuration Used in Our Lab
+
+        Instance Name
+
+            Cloud-Computing-Assignment-VM
+
+        AMI
+
+            Amazon Linux 2023
+
+        Instance Type
+
+            t3a.micro
+
+        Storage
+
+            8 GiB gp3
+
+        Public IP
+
+            Enabled
+
+        SSH
+
+            Port 22 -> My IP
+
+        HTTP
+
+            Port 80 -> Internet
+
+        HTTPS
+
+            Not configured
+
+
+    -> Connecting to the EC2 Instance
+
+        -> After the Virtual Machine is running, we need a method to access its Operating System.
+
+        -> For our Linux instance, we used SSH from our Windows machine.
+
+        -> The general command is:
+
+            ssh -i "<private-key>.pem" ec2-user@<EC2-Public-DNS>
+
+        -> ssh starts the Secure Shell client.
+
+        -> -i specifies the private key used for authentication.
+
+        -> ec2-user is the default login user used by Amazon Linux.
+
+        -> EC2 Public DNS identifies the remote EC2 instance.
+
+
+    -> SSH Connection Flow
+
+        Windows Machine
+
+            -> SSH Client
+
+                -> Private Key Authentication
+
+                    -> Internet
+
+                        -> Security Group
+
+                            -> Check Port 22 and Source IP
+
+                                -> EC2 Instance
+
+                                    -> Amazon Linux Terminal
+
+
+    -> SSH Private Key Permission
+
+        -> A private key must be protected from access by unauthorized users.
+
+        -> Windows OpenSSH rejected our key initially because another Windows group had permission to access the file.
+
+        -> The key permission was restricted so that the required Windows user could read it.
+
+        -> After correcting the permission, SSH authentication succeeded.
+
+
+    -> Successful Connection
+
+        -> After successful SSH authentication, we received the Amazon Linux terminal:
+
+            [ec2-user@ip-172-31-10-6 ~]$
+
+        -> From this point onward, commands entered in the terminal execute inside the EC2 Virtual Machine.
+
+
+    -> Verify Operating System
+
+        -> The Operating System can be checked using:
+
+            cat /etc/os-release
+
+        -> In our lab, this confirmed:
+
+            Amazon Linux 2023
+
+
+    -> Installing Software on EC2
+
+        -> After connecting through SSH, the EC2 instance behaves like a Linux server.
+
+        -> We can install the software required by our application.
+
+        -> Examples include:
+
+            Apache
+
+            PHP
+
+            Java
+
+            Node.js
+
+            Docker
+
+            Database clients
+
+        -> The installation command depends on the Linux distribution running on the EC2 instance.
+
+
+    -> Package Manager
+
+        -> A package manager is used to install, update, and remove software packages on Linux.
+
+        -> Amazon Linux 2023 uses DNF.
+
+        -> Before installing software, packages can be checked for available updates using:
+
+            sudo dnf update -y
+
+        -> sudo executes a command with administrator privileges.
+
+        -> dnf is the package manager.
+
+        -> update checks and installs available package updates.
+
+        -> -y automatically confirms the installation prompts.
+
+
+    -> Installing Apache
+
+        -> Apache is a Web Server.
+
+        -> A Web Server listens for HTTP requests and returns web resources or application responses to clients.
+
+        -> The Apache package used by Amazon Linux is called httpd.
+
+        -> Install Apache:
+
+            sudo dnf install httpd -y
+
+        -> Verify Apache installation:
+
+            httpd -v
+
+
+    -> Starting Apache
+
+        -> Installing software and running the software are different operations.
+
+        -> After Apache is installed, its service must be started.
+
+        -> Start Apache:
+
+            sudo systemctl start httpd
+
+        -> Configure Apache to automatically start when the machine boots:
+
+            sudo systemctl enable httpd
+
+        -> Check Apache status:
+
+            sudo systemctl status httpd
+
+        -> A successfully running Apache service shows:
+
+            Active: active (running)
+
+
+    -> Apache Document Root
+
+        -> Apache needs a location from which it can serve website files.
+
+        -> The default document root used in our Amazon Linux setup is:
+
+            /var/www/html
+
+        -> Web application files placed in this directory can be served by Apache when the Apache configuration allows them.
+
+
+    -> Browser Request to Apache
+
+        Browser
+
+            -> http://<EC2-Public-IP>
+
+                -> Internet
+
+                    -> Security Group
+
+                        -> HTTP Port 80 Allowed
+
+                            -> EC2 Instance
+
+                                -> Apache
+
+                                    -> HTTP Response
+
+                                        -> Browser
+
+
+    -> Installing PHP
+
+        -> PHP is a server-side programming language commonly used for building dynamic web applications.
+
+        -> PHP code executes on the server.
+
+        -> The generated output is returned to the browser.
+
+        -> Install PHP:
+
+            sudo dnf install php -y
+
+        -> Verify PHP installation:
+
+            php -v
+
+
+    -> Why php -v Is Not Enough
+
+        -> php -v proves that PHP is installed on the EC2 machine.
+
+        -> It does not by itself prove that a PHP page can be processed when requested through the web server.
+
+        -> Therefore, PHP should also be tested through Apache.
+
+
+    -> Testing PHP Through Apache
+
+        -> A PHP file can be created inside Apache's document root.
+
+            /var/www/html/test.php
+
+        -> Example:
+
+            <?php echo "PHP is working successfully!"; ?>
+
+        -> The page can then be requested from the browser:
+
+            http://<EC2-Public-IP>/test.php
+
+        -> If the browser displays:
+
+            PHP is working successfully!
+
+        -> PHP has successfully executed on the server and Apache has returned the generated response.
+
+
+    -> PHP Web Request Flow
+
+        Browser
+
+            -> Request test.php
+
+                -> Security Group
+
+                    -> Port 80 Allowed
+
+                        -> Apache
+
+                            -> PHP Code Executed
+
+                                -> Generated Output
+
+                                    -> Apache Response
+
+                                        -> Browser
+
+
+    -> Installing Other Software Such as Java
+
+        -> The same general process can be followed when another application requires Java or other software.
+
+        -> First identify the required software and version.
+
+        -> Install the package using the package manager available on the Operating System.
+
+        -> After installation, verify the software.
+
+        -> For Java, the verification command is generally:
+
+            java -version
+
+        -> Therefore, the general software installation pattern is:
+
+            Connect to EC2
+
+                -> Update package information
+
+                    -> Install required software
+
+                        -> Start service if required
+
+                            -> Enable service if required
+
+                                -> Verify installation
+
+                                    -> Verify application functionality
+
+
+    -> Important Difference Between Application and Service
+
+        -> Some software only needs to be installed and executed when required.
+
+        -> Other software runs continuously in the background as a service.
+
+        -> Apache is a service because it continuously waits for incoming HTTP requests.
+
+        -> Therefore, Apache is managed using commands such as:
+
+            systemctl start
+
+            systemctl stop
+
+            systemctl restart
+
+            systemctl status
+
+            systemctl enable
+
+        -> A command such as java -version only verifies the installed Java runtime and does not represent a continuously running Java service.
+
+
+    -> Complete Learning Flow
+
+        Understand EC2
+
+            -> Select EC2 Configuration
+
+                -> Create Virtual Machine
+
+                    -> Configure Network and Security
+
+                        -> Create/Select Key Pair
+
+                            -> Launch EC2 Instance
+
+                                -> Connect Using SSH
+
+                                    -> Access Linux Operating System
+
+                                        -> Install Required Software
+
+                                            -> Start Required Services
+
+                                                -> Verify Services
+
+                                                    -> Access Application
+
+
+    -> Final Understanding
+
+        -> EC2 provides the Virtual Machine.
+
+        -> AMI provides the initial Operating System.
+
+        -> Instance Type determines compute resources such as CPU and memory.
+
+        -> EBS provides storage.
+
+        -> VPC and Subnet provide the network environment.
+
+        -> Public IP provides an Internet-reachable address when the rest of the network configuration permits Internet connectivity.
+
+        -> Security Group controls permitted network traffic.
+
+        -> Key Pair provides SSH authentication.
+
+        -> SSH provides remote access to the Linux terminal.
+
+        -> The Linux package manager installs required software.
+
+        -> Apache provides the Web Server.
+
+        -> PHP executes server-side PHP code.
+
+        -> Once these components work together, the EC2 instance can host and serve a web application.

@@ -1,0 +1,432 @@
+=> Deploying and Executing a PHP MVC Application on AWS EC2
+
+-> What is Amazon EC2
+
+   Amazon EC2 (Elastic Compute Cloud) is an AWS service that provides virtual machines in the cloud.
+
+   An EC2 instance acts like a virtual server where we can install and run applications such as Apache, PHP, Java, databases, and other software.
+
+   In this exercise, we created an Amazon Linux 2023 EC2 instance and used it to install Apache and PHP and deploy a simple MVC application.
+
+-> EC2 Instance
+
+   An EC2 instance is the virtual machine created inside AWS.
+
+   For our application, the EC2 instance provides the environment where Apache, PHP, and the MVC application run.
+
+   The basic flow is:
+
+       User Browser
+            |
+            v
+       EC2 Public IP
+            |
+            v
+       Apache Web Server
+            |
+            v
+       PHP MVC Application
+
+-> Security Group
+
+   A Security Group acts as a virtual firewall for the EC2 instance.
+
+   It controls which incoming network traffic is allowed to reach the virtual machine.
+
+-> SSH Traffic
+
+   SSH (Secure Shell) is used to connect to the Linux EC2 instance remotely.
+
+   SSH uses:
+
+   Protocol: TCP
+   Port: 22
+
+   We allowed SSH traffic from My IP so that the EC2 instance could be accessed from our computer.
+
+   The .pem private key was used to authenticate the SSH connection.
+
+   Command:
+
+   ssh -i "cloud-computing-assignment-key.pem" ec2-user@<public-dns>
+
+-> HTTP Traffic
+
+   HTTP is used by the browser to communicate with the Apache web server.
+
+   HTTP uses:
+
+   Protocol: TCP
+   Port: 80
+
+   We allowed HTTP traffic from the internet so that the MVC application could be accessed using the EC2 public IP.
+
+       Browser
+          |
+          | HTTP : 80
+          v
+       EC2 Public IP
+          |
+          v
+       Apache
+
+-> HTTPS Traffic
+
+   HTTPS is the secure version of HTTP and normally uses port 443.
+
+   HTTPS was not required for this task because the application was accessed using HTTP.
+
+-> Connect to EC2 Using SSH
+
+   After launching the EC2 instance, we connected to it using the .pem private key.
+
+   After successful connection, the terminal displayed a Linux shell similar to:
+
+   [ec2-user@ip-172-31-10-6 ~]$
+
+   This confirmed that we were connected to the EC2 virtual machine.
+
+-> Verify Operating System
+
+   The operating system was checked using:
+
+   cat /etc/os-release
+
+   The EC2 instance was running:
+
+   Amazon Linux 2023
+
+-> Update the System
+
+   The system packages were updated using:
+
+   sudo dnf update -y
+
+   dnf is the package manager used by Amazon Linux 2023.
+
+-> Install Apache and PHP
+
+   Apache is the web server that receives HTTP requests and serves the web application.
+
+   PHP is the server-side programming language used for our MVC application.
+
+   The required packages were installed using:
+
+   sudo dnf install -y httpd php php-cli php-common php-fpm php-mbstring php-pdo php-process php-xml
+
+-> Verify Apache
+
+   Apache installation was verified using:
+
+   httpd -v
+
+   This displayed the installed Apache version.
+
+-> Verify PHP
+
+   PHP installation was verified using:
+
+   php -v
+
+   This displayed the installed PHP version.
+
+-> Start Apache
+
+   Apache was started using:
+
+   sudo systemctl start httpd
+
+   Apache was also enabled so that it would start automatically when the EC2 instance starts:
+
+   sudo systemctl enable httpd
+
+   The Apache service was verified using:
+
+   sudo systemctl status httpd
+
+   The expected status is:
+
+   Active: active (running)
+
+-> Verify Apache in Browser
+
+   The EC2 public IP was opened in the browser:
+
+   http://<public-ip>
+
+   The Apache default page was displayed.
+
+   This confirmed that the Apache web server was running and accessible through the EC2 public IP.
+
+-> Verify PHP
+
+   A simple PHP file was created inside the Apache web root:
+
+   echo '<?php echo "PHP is working successfully!"; ?>' | sudo tee /var/www/html/test.php
+
+   The file was then accessed from the browser:
+
+   http://<public-ip>/test.php
+
+   The browser displayed:
+
+   PHP is working successfully!
+
+   This confirmed that PHP was successfully working with Apache.
+
+-> What is MVC
+
+   MVC stands for:
+
+   M → Model
+   V → View
+   C → Controller
+
+   MVC is an architectural pattern that separates an application into different responsibilities.
+
+   The basic flow is:
+
+       Browser
+          |
+          v
+       Controller
+          |
+          v
+       Model
+          |
+          v
+       Controller
+          |
+          v
+       View
+          |
+          v
+       Browser
+
+-> Model
+
+   The Model is responsible for application data and data-related operations.
+
+   In our application, the Model is:
+
+   model/Student.php
+
+   It contains the Student class and provides student information.
+
+   The Model returns:
+
+   Name → Vinay
+   Course → Cloud Computing
+   College → BITS Pilani WILP
+
+-> Controller
+
+   The Controller controls the application flow and connects the Model and View.
+
+   In our application, the Controller is:
+
+   controller/StudentController.php
+
+   The Controller:
+
+   - Creates the Model object.
+   - Calls the Model.
+   - Receives the student data.
+   - Passes the data to the View.
+
+-> View
+
+   The View is responsible for displaying information to the user.
+
+   In our application, the View is:
+
+   view/student.php
+
+   It receives the student data and displays it as an HTML page.
+
+-> Create MVC Application Directory
+
+   The MVC application directory was created inside the Apache web root:
+
+   sudo mkdir -p /var/www/html/mvc-app
+
+   Then we moved into the application directory:
+
+   cd /var/www/html/mvc-app
+
+   The Apache web root is:
+
+   /var/www/html
+
+   Therefore, the MVC application can be accessed using:
+
+   http://<public-ip>/mvc-app/
+
+-> Create MVC Folder Structure
+
+   The Model, View, and Controller directories were created using:
+
+   sudo mkdir model view controller
+
+   The final structure was:
+
+   mvc-app/
+   ├── model/
+   │   └── Student.php
+   ├── controller/
+   │   └── StudentController.php
+   ├── view/
+   │   └── student.php
+   └── index.php
+
+-> Create Model File
+
+   The Model file was created as:
+
+   model/Student.php
+
+   The Model contains a method called getStudent() which returns the student data.
+
+   The Model is responsible for providing the data required by the application.
+
+-> Create Controller File
+
+   The Controller file was created as:
+
+   controller/StudentController.php
+
+   The Controller loads the Model, creates the Model object, requests the student data, and loads the View.
+
+   The important flow is:
+
+       Controller
+          |
+          | getStudent()
+          v
+       Model
+          |
+          | returns student data
+          v
+       Controller
+
+-> Create View File
+
+   The View file was created as:
+
+   view/student.php
+
+   The View displays the data received from the Controller.
+
+   For example, the View uses the $student data to display:
+
+   Student Details
+   Name
+   Course
+   College
+
+-> Create index.php
+
+   index.php acts as the entry point of the MVC application.
+
+   It loads the Controller, creates the Controller object, and calls the Controller method.
+
+   The flow is:
+
+       Browser
+          |
+          v
+       index.php
+          |
+          v
+       StudentController
+
+-> Verify PHP Files
+
+   All PHP files were checked for syntax errors using:
+
+   php -l model/Student.php
+   php -l controller/StudentController.php
+   php -l view/student.php
+   php -l index.php
+
+   Each file returned:
+
+   No syntax errors detected
+
+-> MVC Application Execution Flow
+
+   When the user opens:
+
+   http://<public-ip>/mvc-app/
+
+   The request reaches Apache.
+
+   Apache loads index.php.
+
+   Then the following flow takes place:
+
+       Browser
+          |
+          v
+       Apache
+          |
+          v
+       index.php
+          |
+          v
+       StudentController
+          |
+          | calls getStudent()
+          v
+       Student Model
+          |
+          | returns student data
+          v
+       StudentController
+          |
+          | passes data
+          v
+       Student View
+          |
+          v
+       HTML Response
+          |
+          v
+       Browser
+
+-> Deploy and Execute MVC Application
+
+   The application was deployed inside:
+   /var/www/html/mvc-app
+
+   Because Apache serves files from /var/www/html, the application became accessible through the EC2 public IP:
+
+   http://<public-ip>/mvc-app/
+
+   The browser successfully displayed:
+
+   Student Details
+
+   Name: Vinay
+   Course: Cloud Computing
+   College: BITS Pilani WILP
+
+   This confirmed that the MVC application was successfully deployed and executed using Apache on the EC2 virtual machine.
+
+-> Model, View and Controller Interaction
+
+   The interaction between the three components was demonstrated as follows:
+
+       Model
+         ↓
+       Provides student data
+         ↓
+       Controller
+         ↓
+       Passes data to View
+         ↓
+       View
+         ↓
+       Displays data in browser
+
+   The successful browser output confirms that the Model, Controller, and View worked together correctly.

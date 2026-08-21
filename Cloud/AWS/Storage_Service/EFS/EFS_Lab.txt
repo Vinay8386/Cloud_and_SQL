@@ -1,0 +1,1514 @@
+=> Part 7 - Amazon EFS Hands-on Lab
+
+    -> Lab Objective
+
+        In this lab, we created an Amazon EFS shared filesystem and accessed the same filesystem from two EC2 instances located in two different Availability Zones.
+
+        We verified that:
+
+        -> Multiple EC2 instances can mount the same EFS filesystem.
+        -> EFS is accessed over the VPC network using NFS.
+        -> Each Availability Zone can have its own EFS mount target.
+        -> A file written from EC2-1 can immediately be accessed from EC2-2.
+        -> The file is stored in EFS, not separately on either EC2 instance.
+
+
+    -> Final Lab Architecture
+
+                              AWS Region
+                              ap-south-1
+                                  │
+                                  ↓
+                         VPC: efs-vpc-lab
+                           10.0.0.0/16
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │                           │
+               ap-south-1a                 ap-south-1b
+                    │                           │
+              my-subnet-01                my-subnet-02
+               10.0.1.0/24                 10.0.2.0/24
+                    │                           │
+                efs-ec2-1                   efs-ec2-2
+                    │                           │
+               /mnt/efs                     /mnt/efs
+                    │                           │
+                    │ NFS 4.1                  │ NFS 4.1
+                    │ TCP 2049                 │ TCP 2049
+                    ↓                           ↓
+              Mount Target                 Mount Target
+                10.0.1.56                   10.0.2.153
+                    │                           │
+                    └─────────────┬─────────────┘
+                                  ↓
+                              efs-lab
+                         Shared EFS Filesystem
+
+
+    -> Step 1 - Create a Custom VPC
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Your VPCs
+          ↓
+        Create VPC
+
+        Configuration used:
+
+        Name:
+        efs-vpc-lab
+
+        IPv4 CIDR:
+
+        10.0.0.0/16
+
+        This VPC provided the private network for the complete EFS lab.
+
+
+    -> Step 2 - Create Subnet 1
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Subnets
+          ↓
+        Create subnet
+
+        Configuration:
+
+        Name:
+        my-subnet-01
+
+        VPC:
+        efs-vpc-lab
+
+        Availability Zone:
+        ap-south-1a
+
+        CIDR:
+
+        10.0.1.0/24
+
+
+    -> Step 3 - Create Subnet 2
+
+        Method:
+
+        AWS Management Console / UI
+
+        Create another subnet in a different Availability Zone.
+
+        Configuration:
+
+        Name:
+        my-subnet-02
+
+        VPC:
+        efs-vpc-lab
+
+        Availability Zone:
+        ap-south-1b
+
+        CIDR:
+
+        10.0.2.0/24
+
+        Therefore:
+
+        efs-vpc-lab
+        10.0.0.0/16
+             │
+             ├── my-subnet-01
+             │      10.0.1.0/24
+             │      ap-south-1a
+             │
+             └── my-subnet-02
+                    10.0.2.0/24
+                    ap-south-1b
+
+        Using two Availability Zones allowed us to understand the EFS mount-target architecture properly.
+
+
+    -> Step 4 - Create and Attach an Internet Gateway
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Internet Gateways
+          ↓
+        Create Internet Gateway
+
+        Name used:
+
+        my-internet-gateway
+
+        After creation:
+
+        Actions
+          ↓
+        Attach to a VPC
+          ↓
+        efs-vpc-lab
+
+        The Internet Gateway was required so our public EC2 instances could access the internet.
+
+
+    -> Step 5 - Create a Public Route Table
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Route Tables
+          ↓
+        Create Route Table
+
+        Name:
+
+        my-public-route-table
+
+        VPC:
+
+        efs-vpc-lab
+
+
+    -> Step 6 - Add the Internet Route
+
+        Method:
+
+        AWS Management Console / UI
+
+        Open:
+
+        my-public-route-table
+          ↓
+        Routes
+          ↓
+        Edit routes
+          ↓
+        Add route
+
+        Added:
+
+        Destination:
+
+        0.0.0.0/0
+
+        Target:
+
+        my-internet-gateway
+
+        This provided a route from the public subnets toward the internet.
+
+
+    -> Step 7 - Associate Both Subnets with the Public Route Table
+
+        Method:
+
+        AWS Management Console / UI
+
+        Open:
+
+        my-public-route-table
+          ↓
+        Subnet associations
+          ↓
+        Edit subnet associations
+
+        Selected:
+
+        my-subnet-01
+        my-subnet-02
+
+        Architecture:
+
+                         Internet
+                            │
+                            ↓
+                  my-internet-gateway
+                            │
+                       0.0.0.0/0
+                            │
+                            ↓
+                  my-public-route-table
+                     /             \
+                    /               \
+           my-subnet-01         my-subnet-02
+           10.0.1.0/24          10.0.2.0/24
+
+
+    -> Step 8 - Enable Auto-Assign Public IPv4
+
+        Method:
+
+        AWS Management Console / UI
+
+        For both subnets:
+
+        VPC
+          ↓
+        Subnets
+          ↓
+        Select Subnet
+          ↓
+        Actions
+          ↓
+        Edit subnet settings
+
+        Enabled:
+
+        Auto-assign public IPv4 address
+
+        This allowed EC2 instances launched in these public subnets to automatically receive public IPv4 addresses.
+
+
+    -> Step 9 - Enable VPC DNS Settings
+
+        Method:
+
+        AWS Management Console / UI
+
+        During the EFS mounting process, the EFS DNS name initially failed to resolve.
+
+        We checked:
+
+        VPC
+          ↓
+        efs-vpc-lab
+          ↓
+        Actions
+          ↓
+        Edit VPC settings
+
+        Required settings:
+
+        DNS resolution:
+        Enabled
+
+        DNS hostnames:
+        Enabled
+
+        DNS resolution was already enabled.
+
+        DNS hostnames was enabled during the lab.
+
+        After enabling it, the EFS DNS name successfully resolved to the appropriate mount-target IP.
+
+        This was an important troubleshooting step in the lab.
+
+
+    -> Step 10 - Create EC2 Security Group
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Security Groups
+          ↓
+        Create Security Group
+
+        Configuration:
+
+        Name:
+
+        efs-ec2-sg
+
+        VPC:
+
+        efs-vpc-lab
+
+        Inbound rule:
+
+        Type:
+        SSH
+
+        Protocol:
+        TCP
+
+        Port:
+        22
+
+        Source:
+        My IP
+
+        Both EC2 instances used this Security Group.
+
+
+    -> Step 11 - Launch EC2-1
+
+        Method:
+
+        AWS Management Console / UI
+
+        Configuration used:
+
+        Name:
+
+        efs-ec2-1
+
+        OS:
+
+        Ubuntu
+
+        Instance Type:
+
+        t3a.micro
+
+        VPC:
+
+        efs-vpc-lab
+
+        Subnet:
+
+        my-subnet-01
+
+        Availability Zone:
+
+        ap-south-1a
+
+        Security Group:
+
+        efs-ec2-sg
+
+        Auto-assign Public IPv4:
+
+        Enabled
+
+
+    -> Step 12 - Launch EC2-2
+
+        Method:
+
+        AWS Management Console / UI
+
+        Configuration used:
+
+        Name:
+
+        efs-ec2-2
+
+        OS:
+
+        Ubuntu
+
+        Instance Type:
+
+        t3a.micro
+
+        VPC:
+
+        efs-vpc-lab
+
+        Subnet:
+
+        my-subnet-02
+
+        Availability Zone:
+
+        ap-south-1b
+
+        Security Group:
+
+        efs-ec2-sg
+
+        Auto-assign Public IPv4:
+
+        Enabled
+
+        Therefore:
+
+        ap-south-1a                    ap-south-1b
+
+        efs-ec2-1                      efs-ec2-2
+             │                              │
+        my-subnet-01                  my-subnet-02
+
+
+    -> Step 13 - Create EFS Security Group
+
+        Method:
+
+        AWS Management Console / UI
+
+        We created a separate Security Group for the EFS mount targets.
+
+        Name:
+
+        efs-sg
+
+        VPC:
+
+        efs-vpc-lab
+
+        Inbound rule:
+
+        Type:
+        NFS
+
+        Protocol:
+        TCP
+
+        Port:
+        2049
+
+        Source:
+        efs-ec2-sg
+
+        Therefore:
+
+        efs-ec2-1 ──┐
+                     │
+                     ├── efs-ec2-sg
+                     │
+        efs-ec2-2 ──┘
+                           │
+                           │ NFS
+                           │ TCP 2049
+                           ↓
+                         efs-sg
+                           │
+                           ↓
+                    EFS Mount Targets
+
+        We used the EC2 Security Group as the source instead of opening NFS to the entire internet.
+
+
+    -> Step 14 - Create the EFS Filesystem
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EFS
+          ↓
+        File Systems
+          ↓
+        Create File System
+
+        Configuration used:
+
+        Name:
+
+        efs-lab
+
+        Type:
+
+        Regional
+
+        Encryption:
+
+        Enabled
+
+        File System ID:
+
+        fs-06e13760686ed3f37
+
+        EFS automatically manages the filesystem itself.
+
+        Therefore, unlike our EBS lab, we did not create an EXT4 filesystem using mkfs.
+
+
+    -> Step 15 - Verify EFS Mount Targets
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EFS
+          ↓
+        efs-lab
+          ↓
+        Network
+
+        Two mount targets were available.
+
+        Mount Target 1:
+
+        Availability Zone:
+        ap-south-1a
+
+        Subnet:
+        my-subnet-01
+
+        IPv4:
+        10.0.1.56
+
+
+        Mount Target 2:
+
+        Availability Zone:
+        ap-south-1b
+
+        Subnet:
+        my-subnet-02
+
+        IPv4:
+        10.0.2.153
+
+
+        Architecture:
+
+                         efs-lab
+                    Shared Filesystem
+                      /           \
+                     /             \
+                    ↓               ↓
+             Mount Target       Mount Target
+               10.0.1.56         10.0.2.153
+                    │               │
+             ap-south-1a       ap-south-1b
+
+
+    -> Step 16 - Understand the Mount Target
+
+        A mount target is the network endpoint through which an EC2 instance accesses EFS.
+
+        A mount target has an Elastic Network Interface and a private IP address inside the VPC subnet.
+
+        Therefore:
+
+        EC2
+         │
+         │ NFS request
+         ↓
+        Mount Target
+         │
+         ↓
+        Amazon EFS
+
+        The mount targets do not contain separate copies of our files.
+
+        Both mount targets provide network access to the same EFS filesystem.
+
+
+    -> Step 17 - Attach efs-sg to the Mount Targets
+
+        Method:
+
+        AWS Management Console / UI
+
+        Initially, the EFS mount targets were using the VPC default Security Group.
+
+        We changed the mount-target Security Group to:
+
+        efs-sg
+
+        Therefore, the final network-security path became:
+
+        EC2
+         │
+         │ efs-ec2-sg
+         ↓
+        NFS TCP 2049
+         │
+         ↓
+        efs-sg
+         │
+         ↓
+        Mount Target
+         │
+         ↓
+        EFS
+
+
+    -> Step 18 - Connect to Both EC2 Instances
+
+        Method:
+
+        SSH / CLI
+
+        We opened two terminals so both EC2 instances could be accessed simultaneously.
+
+        General command:
+
+        ssh -i "cloud-computing-assignment-key.pem" ubuntu@<PUBLIC-IP>
+
+        After connection:
+
+        EC2-1:
+
+        ubuntu@ip-10-0-1-169
+
+        EC2-2:
+
+        ubuntu@ip-10-0-2-184
+
+
+    -> Step 19 - Install NFS Client on Both EC2 Instances
+
+        Method:
+
+        Linux CLI
+
+        On EC2-1:
+
+        sudo apt update
+        sudo apt install -y nfs-common
+
+        On EC2-2:
+
+        sudo apt update
+        sudo apt install -y nfs-common
+
+        nfs-common provides the NFS client utilities required for Ubuntu to mount an NFS filesystem.
+
+        EFS uses NFS for file access.
+
+
+    -> Step 20 - Create Mount Directory on Both EC2 Instances
+
+        Method:
+
+        Linux CLI
+
+        On EC2-1:
+
+        sudo mkdir -p /mnt/efs
+
+        On EC2-2:
+
+        sudo mkdir -p /mnt/efs
+
+        At this point these were simply local empty directories.
+
+        EFS had not yet been mounted.
+
+
+    -> Step 21 - EFS DNS Resolution Initially Failed
+
+        Our first mount attempt failed with:
+
+        Failed to resolve server
+        Name or service not known
+
+        The reason was that the EFS DNS hostname could not initially be resolved from the EC2 instance.
+
+        After enabling the required VPC DNS hostname setting, we tested DNS resolution again.
+
+
+    -> Step 22 - Verify EFS DNS Resolution from EC2-1
+
+        Method:
+
+        Linux CLI
+
+        On EC2-1:
+
+        getent hosts fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        Output:
+
+        10.0.1.56
+        fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        Notice:
+
+        EC2-1
+        -> ap-south-1a
+
+        EFS DNS resolved to:
+
+        10.0.1.56
+
+        which was the mount target in ap-south-1a.
+
+        Therefore:
+
+        EC2-1
+        10.0.1.169
+             │
+             │ DNS lookup
+             ↓
+        EFS DNS Name
+             │
+             ↓
+        10.0.1.56
+             │
+             ↓
+        Mount Target
+        ap-south-1a
+
+
+    -> Step 23 - Mount EFS on EC2-1
+
+        Method:
+
+        Linux CLI
+
+        Command:
+
+        sudo mount -t nfs4 -o nfsvers=4.1 fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com:/ /mnt/efs
+
+        Here:
+
+        mount
+        -> Mount a filesystem.
+
+        -t nfs4
+        -> Filesystem type is NFS version 4.
+
+        -o nfsvers=4.1
+        -> Use NFS protocol version 4.1.
+
+        fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com:/
+        -> EFS filesystem address.
+
+        /mnt/efs
+        -> Local mount point.
+
+
+    -> Step 24 - Verify EFS Mount on EC2-1
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        findmnt /mnt/efs
+
+        Output confirmed:
+
+        TARGET:
+        /mnt/efs
+
+        SOURCE:
+        fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com:/
+
+        FSTYPE:
+        nfs4
+
+        NFS Version:
+        4.1
+
+        Access:
+        rw
+
+        Therefore, EC2-1 successfully mounted EFS.
+
+
+    -> Step 25 - Verify EFS DNS Resolution from EC2-2
+
+        Method:
+
+        Linux CLI
+
+        On EC2-2:
+
+        getent hosts fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        Output:
+
+        10.0.2.153
+        fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        EC2-2 was in:
+
+        ap-south-1b
+
+        and the DNS name resolved to:
+
+        10.0.2.153
+
+        which was the EFS mount target in ap-south-1b.
+
+
+    -> Step 26 - Important DNS and Mount Target Observation
+
+        Both EC2 instances used the same EFS DNS name:
+
+        fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        But:
+
+        EC2-1 in ap-south-1a
+        resolved it to
+        10.0.1.56
+
+        EC2-2 in ap-south-1b
+        resolved it to
+        10.0.2.153
+
+        Therefore:
+
+                          Same EFS DNS Name
+                                │
+                   ┌────────────┴────────────┐
+                   │                         │
+                 EC2-1                     EC2-2
+              ap-south-1a               ap-south-1b
+                   │                         │
+                   ↓                         ↓
+               10.0.1.56                 10.0.2.153
+                   │                         │
+             Mount Target               Mount Target
+                   │                         │
+                   └────────────┬────────────┘
+                                ↓
+                              EFS
+
+
+    -> Step 27 - Mount EFS on EC2-2
+
+        Method:
+
+        Linux CLI
+
+        On EC2-2:
+
+        sudo mount -t nfs4 -o nfsvers=4.1 fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com:/ /mnt/efs
+
+        Verify:
+
+        findmnt /mnt/efs
+
+        Output confirmed:
+
+        FSTYPE:
+        nfs4
+
+        NFS Version:
+        4.1
+
+        Access:
+        rw
+
+        Therefore, both EC2 instances were now connected to the same EFS filesystem.
+
+
+    -> Step 28 - Final Mounted Architecture
+
+                           efs-lab
+                      Shared Filesystem
+                         /         \
+                        /           \
+                       ↓             ↓
+                Mount Target     Mount Target
+                 10.0.1.56       10.0.2.153
+                       ↑             ↑
+                       │ NFS 4.1     │ NFS 4.1
+                       │ TCP 2049    │ TCP 2049
+                       │             │
+                    EC2-1          EC2-2
+                       │             │
+                   /mnt/efs      /mnt/efs
+
+
+    -> Step 29 - Create a Shared File from EC2-1
+
+        Method:
+
+        Linux CLI
+
+        On EC2-1:
+
+        echo "Hello from EC2-1" | sudo tee /mnt/efs/shared-file.txt
+
+        The file was created inside:
+
+        /mnt/efs
+
+        Because /mnt/efs was the EFS mount point, the file was stored in the EFS filesystem.
+
+
+    -> Step 30 - Verify the File from EC2-2
+
+        Method:
+
+        Linux CLI
+
+        On EC2-2:
+
+        ls -l /mnt/efs
+
+        Output showed:
+
+        shared-file.txt
+
+        Then:
+
+        cat /mnt/efs/shared-file.txt
+
+        Output:
+
+        Hello from EC2-1
+
+        This successfully proved shared EFS access.
+
+
+    -> Step 31 - Understand Why EC2-2 Could See the File
+
+        The file was NOT copied from EC2-1 to EC2-2.
+
+        Both instances were accessing the same EFS filesystem.
+
+        Actual flow:
+
+        EC2-1
+        10.0.1.169
+             │
+             │ Write shared-file.txt
+             ↓
+        Mount Target
+        10.0.1.56
+             │
+             ↓
+                     Amazon EFS
+                   shared-file.txt
+             ↑
+             │
+        Mount Target
+        10.0.2.153
+             ↑
+             │ Read shared-file.txt
+        EC2-2
+        10.0.2.184
+
+        Therefore, the mount targets are only network entry points.
+
+        They are not separate storage locations.
+
+
+    -> Step 32 - EFS Persistence Understanding
+
+        The files are stored in EFS rather than in the local EC2 root filesystem.
+
+        Therefore, mounting and unmounting EFS does not itself delete the files.
+
+        Conceptually:
+
+        File Stored in EFS
+              ↓
+        Unmount from EC2
+              ↓
+        EFS Still Exists
+              ↓
+        Mount EFS Again
+              ↓
+        Stored File Available
+
+        EFS and the EC2 client instances have separate lifecycles.
+
+
+    -> Step 33 - Unmount EFS from EC2-1
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        sudo umount /mnt/efs
+
+        Verify:
+
+        findmnt /mnt/efs
+
+        If no result is returned, EFS is no longer mounted on EC2-1.
+
+
+    -> Step 34 - Unmount EFS from EC2-2
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        sudo umount /mnt/efs
+
+        Verify:
+
+        findmnt /mnt/efs
+
+        If no result is returned, EFS is no longer mounted on EC2-2.
+
+        Important:
+
+        Unmounting removes the connection between the local mount point and EFS.
+
+        It does not itself delete the EFS filesystem.
+
+
+    -> Step 35 - Terminate Both EC2 Instances
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Instances
+
+        Select:
+
+        efs-ec2-1
+        efs-ec2-2
+
+        Then:
+
+        Instance State
+          ↓
+        Terminate Instance
+
+        Both temporary EC2 instances were terminated.
+
+
+    -> Step 36 - Delete the EFS Filesystem
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EFS
+          ↓
+        File Systems
+          ↓
+        Select efs-lab
+          ↓
+        Delete
+
+        Deleting the EFS filesystem also removed its associated mount targets.
+
+
+    -> Step 37 - Delete Custom Security Groups
+
+        Method:
+
+        AWS Management Console / UI
+
+        After EC2 and EFS resources were removed, we deleted:
+
+        efs-sg
+
+        efs-ec2-sg
+
+        We did not manually delete the VPC default Security Group.
+
+
+    -> Step 38 - Detach and Delete the Internet Gateway
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Internet Gateways
+          ↓
+        my-internet-gateway
+
+        First:
+
+        Actions
+          ↓
+        Detach from VPC
+
+        After detaching:
+
+        Actions
+          ↓
+        Delete Internet Gateway
+
+
+    -> Step 39 - Delete Both Subnets
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Subnets
+
+        Delete:
+
+        my-subnet-01
+        my-subnet-02
+
+
+    -> Step 40 - Delete the Custom Route Table
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Route Tables
+
+        Delete:
+
+        my-public-route-table
+
+        The VPC's main route table did not need to be manually deleted because it is removed with the VPC.
+
+
+    -> Step 41 - Delete the Custom VPC
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        VPC
+          ↓
+        Your VPCs
+          ↓
+        efs-vpc-lab
+          ↓
+        Actions
+          ↓
+        Delete VPC
+
+        This completed the cleanup of the custom networking environment.
+
+
+    -> Important Commands Used in the Lab
+
+        Update package information:
+
+        sudo apt update
+
+        Install NFS client:
+
+        sudo apt install -y nfs-common
+
+        Create EFS mount point:
+
+        sudo mkdir -p /mnt/efs
+
+        Check EFS DNS resolution:
+
+        getent hosts fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        Mount EFS:
+
+        sudo mount -t nfs4 -o nfsvers=4.1 fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com:/ /mnt/efs
+
+        Verify EFS mount:
+
+        findmnt /mnt/efs
+
+        Create shared file:
+
+        echo "Hello from EC2-1" | sudo tee /mnt/efs/shared-file.txt
+
+        List shared files:
+
+        ls -l /mnt/efs
+
+        Read shared file:
+
+        cat /mnt/efs/shared-file.txt
+
+        Unmount EFS:
+
+        sudo umount /mnt/efs
+
+
+    -> Important Difference Between EBS Lab and EFS Lab
+
+        EBS:
+
+        Create EBS
+             ↓
+        Attach Volume to EC2
+             ↓
+        Linux Block Device
+        /dev/nvme1n1
+             ↓
+        Create Filesystem
+        mkfs.ext4
+             ↓
+        Mount
+             ↓
+        /data
+
+
+        EFS:
+
+        Create EFS
+             ↓
+        Create Mount Targets
+             ↓
+        Configure NFS TCP 2049
+             ↓
+        Install NFS Client
+             ↓
+        Mount EFS over Network
+             ↓
+        /mnt/efs
+
+
+        With EBS:
+
+        We worked with a block device.
+
+        With EFS:
+
+        We worked with an already managed network filesystem.
+
+        Therefore, we did NOT run mkfs for EFS.
+
+
+    -> Important Security Group Understanding
+
+        Two different Security Groups were intentionally used.
+
+        efs-ec2-sg:
+
+        -> Attached to EC2 instances.
+        -> Allowed SSH from our client IP.
+
+
+        efs-sg:
+
+        -> Attached to EFS mount targets.
+        -> Allowed NFS TCP 2049 from efs-ec2-sg.
+
+
+        Complete flow:
+
+        User
+         │
+         │ SSH TCP 22
+         ↓
+        efs-ec2-sg
+         │
+         ↓
+        EC2
+         │
+         │ NFS TCP 2049
+         ↓
+        efs-sg
+         │
+         ↓
+        EFS Mount Target
+         │
+         ↓
+        Amazon EFS
+
+
+    -> Important Mount Target Understanding
+
+        A mount target is not another EFS filesystem.
+
+        A mount target is a network endpoint inside a VPC subnet that allows clients to access EFS.
+
+        In our lab:
+
+        Mount Target 1:
+
+        10.0.1.56
+        -> ap-south-1a
+
+
+        Mount Target 2:
+
+        10.0.2.153
+        -> ap-south-1b
+
+
+        Both provided access to:
+
+        efs-lab
+
+        Therefore:
+
+        Mount Target 1 ──┐
+                         │
+                         ├──── Same EFS
+                         │
+        Mount Target 2 ──┘
+
+
+    -> Important DNS Understanding
+
+        We mounted EFS using its DNS name rather than manually using a mount-target IP.
+
+        EFS DNS:
+
+        fs-06e13760686ed3f37.efs.ap-south-1.amazonaws.com
+
+        From EC2-1:
+
+        DNS
+         ↓
+        10.0.1.56
+         ↓
+        Mount target in ap-south-1a
+
+
+        From EC2-2:
+
+        DNS
+         ↓
+        10.0.2.153
+         ↓
+        Mount target in ap-south-1b
+
+        This demonstrated how EFS DNS and mount targets work together.
+
+
+    -> Complete Lab Flow
+
+        Create Custom VPC
+              ↓
+        Create Subnet 1 in AZ-1
+              ↓
+        Create Subnet 2 in AZ-2
+              ↓
+        Create + Attach Internet Gateway
+              ↓
+        Create Public Route Table
+              ↓
+        Add 0.0.0.0/0 → Internet Gateway
+              ↓
+        Associate Both Subnets
+              ↓
+        Enable Public IPv4 Assignment
+              ↓
+        Enable Required VPC DNS Settings
+              ↓
+        Create efs-ec2-sg
+              ↓
+        Launch EC2-1 + EC2-2
+              ↓
+        Create efs-sg
+        NFS TCP 2049 from efs-ec2-sg
+              ↓
+        Create Regional EFS
+              ↓
+        Create/Verify Mount Targets
+        in Both Availability Zones
+              ↓
+        Attach efs-sg to Mount Targets
+              ↓
+        SSH into Both EC2 Instances
+              ↓
+        Install nfs-common
+              ↓
+        Create /mnt/efs
+              ↓
+        Resolve EFS DNS
+              ↓
+        EC2-1 → Local-AZ Mount Target
+        EC2-2 → Local-AZ Mount Target
+              ↓
+        Mount Same EFS on Both EC2s
+              ↓
+        EC2-1 Creates shared-file.txt
+              ↓
+             EFS
+              ↓
+        EC2-2 Reads shared-file.txt
+              ↓
+        Shared Storage Verified
+              ↓
+        Unmount EFS
+              ↓
+        Terminate EC2 Instances
+              ↓
+        Delete EFS
+              ↓
+        Delete Custom Security Groups
+              ↓
+        Detach + Delete Internet Gateway
+              ↓
+        Delete Subnets
+              ↓
+        Delete Custom Route Table
+              ↓
+        Delete VPC
+              ↓
+        Lab Cleanup Complete
+
+
+    -> Final Lab Understanding
+
+        Amazon EFS provides a shared network filesystem that can be mounted by multiple EC2 instances.
+
+        In this lab, EC2-1 and EC2-2 were placed in different Availability Zones.
+
+        A mount target was available in each Availability Zone and provided a private network endpoint for accessing the same EFS filesystem.
+
+        The EC2 instances communicated with EFS using NFS version 4.1 over the VPC network.
+
+        NFS traffic was controlled using Security Groups on TCP port 2049.
+
+        The EFS DNS name resolved to the appropriate mount-target IP for each EC2 instance.
+
+        Both EC2 instances mounted the same EFS filesystem at /mnt/efs.
+
+        When EC2-1 created shared-file.txt, EC2-2 could immediately access the same file because the file was stored in EFS rather than locally on EC2-1.
+
+        Therefore, the most important practical architecture learned in this lab is:
+
+                     EC2-1
+                       │
+                   /mnt/efs
+                       │
+                    NFS 4.1
+                       ↓
+                 Mount Target
+                  10.0.1.56
+                       │
+                       ↓
+                   Amazon EFS
+                 Shared Filesystem
+                       ↑
+                       │
+                 Mount Target
+                 10.0.2.153
+                       ↑
+                    NFS 4.1
+                       │
+                   /mnt/efs
+                       │
+                     EC2-2
+
+        EC2-1 and EC2-2 are different compute instances.
+
+        The two mount targets are different network entry points.
+
+        But the underlying EFS filesystem and the files stored inside it are shared.

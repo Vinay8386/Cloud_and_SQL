@@ -1,0 +1,2024 @@
+=> Amazon S3 Complete Hands-On Lab
+
+     -> Objective
+
+        The objective of this lab was to understand Amazon S3 practically
+        by creating a private S3 bucket and performing common S3 operations.
+
+        We also integrated Amazon EC2, IAM and S3 to understand how an
+        application running on EC2 can securely access S3.
+
+        During this lab we practiced:
+
+        -> Creating an S3 bucket
+        -> Uploading objects
+        -> Object Keys and prefixes
+        -> Storage Classes
+        -> Metadata
+        -> Default encryption
+        -> Private object access
+        -> S3 Versioning
+        -> Version IDs
+        -> Delete Markers
+        -> Recovering deleted objects
+        -> IAM Policies
+        -> IAM Roles
+        -> EC2 to S3 access
+        -> Least Privilege
+        -> Bucket Policies
+        -> Pre-Signed URLs
+        -> Complete resource cleanup
+
+
+     -> Architecture Used in the Lab
+
+                           AWS Account
+                                |
+              +-----------------+-----------------+
+              |                                   |
+              v                                   v
+             EC2                                 S3
+              |                                   |
+              |                           Private S3 Bucket
+              |                                   |
+              v                                   |
+        IAM Instance Profile                      |
+              |                                   |
+              v                                   |
+        s3-lab-ec2-role                           |
+              |                                   |
+              +-----------------------------------+
+                         Authorized Access
+
+
+        EC2 did not contain manually configured AWS Access Keys.
+
+        Instead, EC2 assumed an IAM Role and received temporary
+        AWS credentials.
+
+
+     -> Step 1 — Create an S3 Bucket
+
+        Open:
+
+        AWS Console
+             |
+             v
+        Amazon S3
+             |
+             v
+        Buckets
+             |
+             v
+        Create bucket
+
+
+        Region used:
+
+        Asia Pacific (Mumbai)
+        ap-south-1
+
+
+        Bucket type:
+
+        General purpose
+
+
+        Bucket namespace:
+
+        Global namespace
+
+
+        Bucket name used:
+
+        aws-s3-learning-lab-practice
+
+
+        With the global namespace, the bucket name must be unique
+        within the applicable AWS partition.
+
+
+     -> Step 2 — Configure Object Ownership
+
+        Object Ownership was configured as:
+
+        ACLs disabled
+             |
+             v
+        Bucket owner enforced
+
+
+        ACL stands for:
+
+        Access Control List
+
+
+        ACLs are another S3 access-control mechanism.
+
+        For this lab we disabled ACLs and used modern policy-based
+        authorization mechanisms such as:
+
+        -> IAM Policies
+        -> S3 Bucket Policies
+
+
+     -> Step 3 — Configure Block Public Access
+
+        We kept:
+
+        Block all public access
+        -> ON
+
+
+        Architecture:
+
+                       Internet
+                          |
+                          X
+                          |
+                 Block Public Access
+                          |
+                          v
+                   Private S3 Bucket
+
+
+        This ensured that the bucket was not accidentally exposed
+        publicly.
+
+        Important:
+
+        Private does not mean that nobody can access the bucket.
+
+        Authorized IAM identities can still access private S3 resources.
+
+
+     -> Step 4 — Bucket Versioning During Creation
+
+        Initially we kept:
+
+        Bucket Versioning
+        -> Disabled
+
+
+        We intentionally started without Versioning because later we
+        wanted to enable it and observe how S3 creates multiple versions
+        of the same Object Key.
+
+
+     -> Step 5 — Add Bucket Tag
+
+        We added a tag for identifying the lab resource.
+
+        Example:
+
+        Key:
+        Purpose
+
+        Value:
+        S3-Learning-Lab
+
+
+        Tags are metadata associated with AWS resources.
+
+        They can help with:
+
+        -> Resource organization
+        -> Filtering
+        -> Automation
+        -> Cost allocation
+        -> Supported access-control scenarios
+
+
+     -> Step 6 — Configure Default Encryption
+
+        We kept:
+
+        Server-side encryption with Amazon S3 managed keys
+
+        SSE-S3
+
+
+        Architecture:
+
+        Object Upload
+             |
+             v
+            S3
+             |
+             | SSE-S3
+             v
+        Encrypted Object
+             |
+             v
+        S3-Managed Keys
+
+
+        Therefore, objects stored in the bucket were protected
+        using server-side encryption at rest.
+
+
+     -> Step 7 — Create the Bucket
+
+        After verifying all settings, we selected:
+
+        Create bucket
+
+
+        The bucket was successfully created:
+
+        aws-s3-learning-lab-practice
+
+
+     -> Step 8 — Create the First Test Object
+
+        We created a small text file locally.
+
+        Example:
+
+        s3-test.txt
+
+
+        Example content:
+
+        Hello from Amazon S3!
+
+        This is my first S3 object.
+
+
+        We then opened:
+
+        S3
+         |
+         v
+        aws-s3-learning-lab-practice
+         |
+         v
+        Upload
+
+
+     -> Step 9 — Understand Upload Properties
+
+        During the upload we inspected several properties.
+
+
+        Storage Class:
+
+        Standard
+
+
+        S3 Standard is suitable for frequently accessed data
+        requiring millisecond access.
+
+
+        Encryption:
+
+        We selected:
+
+        Don't specify an encryption key
+
+
+        This did NOT mean that the object was unencrypted.
+
+        The bucket already had default SSE-S3 encryption.
+
+        Therefore:
+
+        Object
+          |
+          | Upload
+          v
+        S3 Bucket
+          |
+          | Default Encryption
+          v
+        SSE-S3
+          |
+          v
+        Encrypted Object
+
+
+     -> Step 10 — Checksum
+
+        S3 also provided checksum functionality.
+
+        A checksum helps verify data integrity.
+
+        Conceptually:
+
+        Original File
+             |
+             v
+        Checksum A
+
+        Uploaded File
+             |
+             v
+        Checksum A
+
+        If both values match, the transferred data has maintained
+        its integrity.
+
+
+     -> Step 11 — Add Object Metadata
+
+        We added custom user-defined metadata.
+
+        Example:
+
+        Key:
+
+        purpose
+
+        Value:
+
+        s3-learning
+
+
+        Therefore the object contained:
+
+                     S3 Object
+                         |
+              +----------+----------+
+              |          |          |
+             Data       Key      Metadata
+                                    |
+                             purpose=s3-learning
+
+
+     -> Step 12 — Verify the Uploaded Object
+
+        After uploading, we inspected the object.
+
+        We verified:
+
+        -> Object Key
+        -> Object URL
+        -> Storage Class
+        -> Encryption
+        -> Metadata
+
+
+        Storage Class:
+
+        Standard
+
+
+        Encryption:
+
+        SSE-S3
+
+
+     -> Step 13 — Test Private Object URL
+
+        We opened the object's normal Object URL.
+
+        Because the bucket remained private and Block Public Access
+        was enabled, anonymous access was denied.
+
+        Architecture:
+
+        Anonymous Browser
+               |
+               X
+               |
+          Private S3 Object
+
+
+        However, access through the authenticated AWS Console worked.
+
+        This demonstrated:
+
+        Object URL
+             ≠
+        Public Access
+
+
+     -> Step 14 — Understand S3 Folders and Prefixes
+
+        We created:
+
+        documents/
+
+
+        Then uploaded an object inside it.
+
+        The AWS Console visually displayed:
+
+        aws-s3-learning-lab-practice
+                  |
+                  +-- documents/
+                          |
+                          +-- s3.txt.txt
+
+
+        We then inspected the Object Key.
+
+        It showed:
+
+        documents/s3.txt.txt
+
+
+        Therefore:
+
+        documents/
+        -> Prefix
+
+        documents/s3.txt.txt
+        -> Complete Object Key
+
+
+        S3 fundamentally identifies objects by keys.
+
+        The AWS Console can present prefixes separated by "/" in
+        a folder-like hierarchy.
+
+
+     -> Step 15 — Enable S3 Versioning
+
+        We opened:
+
+        S3 Bucket
+             |
+             v
+        Properties
+             |
+             v
+        Bucket Versioning
+             |
+             v
+        Edit
+             |
+             v
+        Enable
+
+
+        After this:
+
+        Bucket Versioning
+        -> Enabled
+
+
+     -> Step 16 — Create Multiple Object Versions
+
+        We modified the same local object and uploaded it again
+        using exactly the same Object Key.
+
+        We repeated this operation multiple times.
+
+
+        Important:
+
+        We did NOT create:
+
+        s3-v1.txt
+        s3-v2.txt
+        s3-v3.txt
+
+
+        Instead, the Object Key remained:
+
+        documents/s3.txt.txt
+
+
+        S3 generated different Version IDs.
+
+
+        Architecture:
+
+                       documents/s3.txt.txt
+                               |
+                +--------------+--------------+
+                |              |              |
+             Original          V2             V3
+                |              |              |
+              null         Version ID     Version ID
+                |              |              |
+           Noncurrent      Noncurrent       Current
+
+
+     -> Step 17 — Understand the Null Version
+
+        The original object existed before Versioning was enabled.
+
+        Therefore its Version ID was:
+
+        null
+
+
+        Flow:
+
+        Upload Object
+             |
+        Versioning Disabled
+             |
+             v
+        Version ID = null
+
+             ↓
+
+        Enable Versioning
+
+             ↓
+
+        Upload same Object Key
+             |
+             v
+        AWS-generated Version ID
+
+
+        This allowed us to practically observe the difference between
+        objects created before and after enabling Versioning.
+
+
+     -> Step 18 — View Object Versions
+
+        We enabled:
+
+        Show versions
+
+
+        S3 displayed three versions of the same Object Key.
+
+        Example:
+
+        documents/s3.txt.txt
+
+        Version ID 1
+        -> Current
+
+        Version ID 2
+        -> Noncurrent
+
+        null
+        -> Original version
+
+
+        Therefore:
+
+        Same Bucket
+             +
+        Same Object Key
+             +
+        Different Version IDs
+             |
+             v
+        Multiple Object Versions
+
+
+     -> Step 19 — Delete an Object with Versioning Enabled
+
+        We turned Show versions OFF and performed a normal DELETE
+        operation on the object.
+
+        The object disappeared from the normal Objects view.
+
+        However, S3 had not deleted all previous versions.
+
+
+        Instead:
+
+        Normal DELETE
+             |
+             v
+        Delete Marker Created
+             |
+             v
+        Delete Marker becomes Current
+             |
+             v
+        Object appears deleted
+
+
+     -> Step 20 — Inspect the Delete Marker
+
+        We enabled:
+
+        Show versions
+
+
+        We could now see:
+
+        documents/s3.txt.txt
+               |
+               +-- Delete Marker
+               |
+               +-- Version 3
+               |
+               +-- Version 2
+               |
+               +-- null
+
+
+        The Delete Marker had:
+
+        Size = 0 B
+
+
+        It did not contain the actual object data.
+
+        It caused normal S3 requests to treat the object as deleted.
+
+
+     -> Step 21 — Recover the Deleted Object
+
+        To recover the object, we selected ONLY the Delete Marker
+        and permanently deleted that marker.
+
+
+        Before:
+
+        s3.txt.txt
+            |
+            +-- Delete Marker       Current
+            |
+            +-- V3
+            |
+            +-- V2
+            |
+            +-- null
+
+
+        Delete the Delete Marker
+                  |
+                  v
+
+
+        After:
+
+        s3.txt.txt
+            |
+            +-- V3                  Current
+            |
+            +-- V2
+            |
+            +-- null
+
+
+        After turning Show versions OFF, the object appeared again.
+
+        Therefore we practically demonstrated accidental-delete recovery
+        using S3 Versioning.
+
+
+     -> Step 22 — Start EC2 + IAM + S3 Integration
+
+        Next, we wanted to understand how an application running on
+        EC2 can securely access a private S3 bucket.
+
+        Target architecture:
+
+                          EC2
+                           |
+                           v
+                       IAM Role
+                           |
+                           v
+                    IAM Permissions
+                           |
+                           v
+                      S3 Bucket
+
+
+        We intentionally avoided storing AWS Access Keys inside EC2.
+
+
+     -> Step 23 — Create Custom IAM Policy
+
+        We created a Customer Managed IAM Policy named:
+
+        S3LabReadOnlyPolicy
+
+
+        Policy:
+
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "ListLabBucket",
+                    "Effect": "Allow",
+                    "Action": "s3:ListBucket",
+                    "Resource": "arn:aws:s3:::aws-s3-learning-lab-practice"
+                },
+                {
+                    "Sid": "ReadLabBucketObjects",
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::aws-s3-learning-lab-practice/*"
+                }
+            ]
+        }
+
+
+        This policy allowed:
+
+        s3:ListBucket
+        -> List the bucket contents
+
+        s3:GetObject
+        -> Read/download objects
+
+
+        It did NOT allow:
+
+        s3:PutObject
+        -> Upload object
+
+        s3:DeleteObject
+        -> Delete object
+
+
+     -> Step 24 — Bucket-Level vs Object-Level ARN
+
+        We learned an important IAM distinction.
+
+
+        Bucket-level action:
+
+        s3:ListBucket
+
+        Resource:
+
+        arn:aws:s3:::aws-s3-learning-lab-practice
+
+
+        Object-level action:
+
+        s3:GetObject
+
+        Resource:
+
+        arn:aws:s3:::aws-s3-learning-lab-practice/*
+
+
+        Therefore:
+
+                    S3 Permissions
+                          |
+               +----------+----------+
+               |                     |
+          Bucket Action          Object Action
+               |                     |
+         s3:ListBucket           s3:GetObject
+               |                     |
+          Bucket ARN            Bucket ARN/*
+                                     |
+                                  Objects
+
+
+     -> Step 25 — Create IAM Role
+
+        We created an IAM Role:
+
+        s3-lab-ec2-role
+
+
+        Trusted entity:
+
+        AWS Service
+
+
+        Use case:
+
+        EC2
+
+
+        This created the trust relationship:
+
+        EC2
+         |
+         | Can assume
+         v
+        s3-lab-ec2-role
+
+
+        The role had two important concepts:
+
+        IAM Role
+           |
+           +-- Trust Relationship
+           |      |
+           |      +-- WHO can assume the role?
+           |          EC2
+           |
+           +-- Permissions
+                  |
+                  +-- WHAT can the role do?
+                      List/read our S3 bucket
+
+
+     -> Step 26 — Attach Custom Policy to IAM Role
+
+        We attached:
+
+        S3LabReadOnlyPolicy
+
+        to:
+
+        s3-lab-ec2-role
+
+
+        Architecture:
+
+                    s3-lab-ec2-role
+                        |
+                        v
+                    S3LabReadOnlyPolicy
+                        |
+                    +-----+------+
+                    |            |
+                    v            v
+            ListBucket     GetObject
+                ✓             ✓
+
+
+     -> Step 27 — Launch EC2 Instance
+
+        We launched a small Ubuntu EC2 instance.
+
+        Name:
+
+        s3-iam-lab-ec2
+
+
+        AMI:
+
+        Ubuntu Server 24.04 LTS
+
+
+        We configured SSH access so we could connect to the instance.
+
+
+     -> Step 28 — Attach IAM Role to EC2
+
+        Under EC2 Advanced Details, we selected the IAM Instance Profile
+        associated with:
+
+        s3-lab-ec2-role
+
+
+        Architecture:
+
+                   EC2 Instance
+                        |
+                        v
+                 Instance Profile
+                        |
+                        v
+                s3-lab-ec2-role
+                        |
+                        v
+                 Temporary AWS
+                   Credentials
+
+
+        Creating an IAM Role does NOT automatically create an EC2 instance.
+
+        EC2 and IAM Roles are separate AWS resources.
+
+        A role can be attached during EC2 creation or attached to an
+        existing EC2 instance later.
+
+
+     -> Step 29 — Verify EC2 Health
+
+        We waited until the EC2 instance showed:
+
+        2/2 Status Checks Passed
+
+
+        This confirmed that the instance was healthy.
+
+
+     -> Step 30 — Connect to EC2
+
+        We connected to the Ubuntu EC2 instance using SSH.
+
+        Example:
+
+        ssh -i <key-file>.pem ubuntu@<public-ip>
+
+
+     -> Step 31 — Install AWS CLI v2
+
+        The Ubuntu APT repository available to the instance did not provide
+        an awscli installation candidate.
+
+        Therefore, we installed AWS CLI v2 using the AWS installer.
+
+
+        Install unzip:
+
+        sudo apt update
+        sudo apt install unzip -y
+
+
+        Download AWS CLI v2:
+
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+
+        Extract:
+
+        unzip awscliv2.zip
+
+
+        Install:
+
+        sudo ./aws/install
+
+
+        Verify:
+
+        aws --version
+
+
+     -> Step 32 — Do NOT Run aws configure
+
+        We intentionally did NOT run:
+
+        aws configure
+
+
+        Therefore, we did not manually configure:
+
+        -> AWS Access Key ID
+        -> AWS Secret Access Key
+
+
+        Instead:
+
+        EC2
+         |
+         v
+        IAM Instance Profile
+         |
+         v
+        IAM Role
+         |
+         v
+        Temporary Credentials
+
+
+        This is a safer and recommended pattern for workloads running
+        on EC2.
+
+
+     -> Step 33 — Verify the IAM Role from EC2
+
+        We executed:
+
+        aws sts get-caller-identity
+
+
+        The returned ARN contained:
+
+        assumed-role/s3-lab-ec2-role/<instance-id>
+
+
+        This proved:
+
+        EC2
+         |
+         v
+        Assumed s3-lab-ec2-role
+         |
+         v
+        Authenticated to AWS
+         |
+         v
+        No manually configured credentials required
+
+
+     -> Step 34 — Test s3:ListBucket
+
+        We executed:
+
+        aws s3 ls s3://aws-s3-learning-lab-practice
+
+
+        The command successfully listed the bucket contents.
+
+
+        We also executed:
+
+        aws s3 ls s3://aws-s3-learning-lab-practice/documents/
+
+
+        This also succeeded.
+
+
+        Therefore:
+
+        s3:ListBucket
+        -> Working
+
+
+        We also observed:
+
+        PRE documents/
+
+
+        PRE represented the folder-like prefix:
+
+        documents/
+
+
+     -> Step 35 — Test s3:GetObject
+
+        We downloaded an object from S3 to EC2.
+
+        Command:
+
+        aws s3 cp s3://aws-s3-learning-lab-practice/documents/s3.txt.txt .
+
+
+        The "." represented the current EC2 directory.
+
+
+        We verified the downloaded file:
+
+        ls -l
+
+
+        The file appeared locally on EC2.
+
+        Therefore:
+
+        s3:GetObject
+        -> Working
+
+
+     -> Step 36 — Test Least Privilege
+
+        Next, we intentionally attempted an operation that the IAM Policy
+        did NOT allow.
+
+        We created a file:
+
+        echo "Testing S3 write permission" > upload-test.txt
+
+
+        Then attempted:
+
+        aws s3 cp upload-test.txt s3://aws-s3-learning-lab-practice/
+
+
+        Result:
+
+        AccessDenied
+
+
+        AWS specifically reported that the assumed role was not authorized
+        to perform:
+
+        s3:PutObject
+
+
+        This proved:
+
+        S3LabReadOnlyPolicy
+                |
+                +-- ListBucket       ✓
+                |
+                +-- GetObject        ✓
+                |
+                +-- PutObject        X
+                |
+                +-- DeleteObject     X
+
+
+        This demonstrated the Principle of Least Privilege.
+
+        We granted only the permissions that were initially required.
+
+
+     -> Step 37 — Understand Identity-Based Policy
+
+        The policy attached to the IAM Role was an Identity-Based Policy.
+
+        Architecture:
+
+        IAM Role
+            |
+            v
+        S3LabReadOnlyPolicy
+
+
+        It answered:
+
+        "What is this IAM identity allowed to do?"
+
+
+     -> Step 38 — Create an S3 Bucket Policy
+
+        Next, we wanted to demonstrate a Resource-Based Policy.
+
+        We opened:
+
+        S3
+         |
+         v
+        aws-s3-learning-lab-practice
+         |
+         v
+        Permissions
+         |
+         v
+        Bucket Policy
+
+
+        We kept:
+
+        Block Public Access
+        -> ON
+
+
+        We did NOT make the bucket public.
+
+
+     -> Step 39 — Bucket Policy Structure
+
+        A Bucket Policy contains fields such as:
+
+        Version
+        -> Policy language version
+
+        Statement
+        -> Permission rule
+
+        Sid
+        -> Statement ID
+
+        Effect
+        -> Allow or Deny
+
+        Principal
+        -> WHO receives permission
+
+        Action
+        -> WHAT operation is permitted
+
+        Resource
+        -> WHICH resource is affected
+
+
+        Simple mental model:
+
+                    POLICY STATEMENT
+                           |
+              +------------+------------+
+              |            |            |
+             WHO          WHAT         WHICH
+              |            |            |
+         Principal       Action      Resource
+                           |
+                         Effect
+                           |
+                      Allow / Deny
+
+
+     -> Step 40 — Grant PutObject Using Bucket Policy
+
+        We intentionally left the Identity-Based Policy unchanged.
+
+        It still did NOT contain:
+
+        s3:PutObject
+
+
+        Instead, we added a Bucket Policy allowing the EC2 IAM Role
+        to upload objects.
+
+
+        Policy structure used:
+
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "AllowEC2RoleToUpload",
+                    "Effect": "Allow",
+                    "Principal": {
+                        "AWS": "arn:aws:iam::<ACCOUNT-ID>:role/s3-lab-ec2-role"
+                    },
+                    "Action": "s3:PutObject",
+                    "Resource": "arn:aws:s3:::aws-s3-learning-lab-practice/*"
+                }
+            ]
+        }
+
+
+        Important:
+
+        We used the IAM Role ARN:
+
+        arn:aws:iam::<ACCOUNT-ID>:role/s3-lab-ec2-role
+
+
+        We did NOT use the temporary STS assumed-role ARN.
+
+
+     -> Step 41 — Bucket Remained Private
+
+        Block Public Access remained enabled.
+
+        The Bucket Policy did not contain:
+
+        Principal = "*"
+
+
+        Instead, permission was granted to one specific IAM Role.
+
+
+        Therefore:
+
+        Random Internet User
+                |
+                X
+                |
+              S3
+
+
+        EC2
+         |
+        IAM Role
+         |
+        Authorized
+         |
+         v
+        S3
+
+
+     -> Step 42 — Retry the Previously Failed Upload
+
+        We executed exactly the same upload command again:
+
+        aws s3 cp upload-test.txt s3://aws-s3-learning-lab-practice/
+
+
+        This time the upload succeeded.
+
+
+        Before Bucket Policy:
+
+        EC2
+         |
+        PutObject
+         |
+         X
+        AccessDenied
+
+
+        After Bucket Policy:
+
+        EC2
+         |
+        IAM Role
+         |
+         | Bucket Policy grants PutObject
+         v
+        S3
+         |
+         ✓
+        Upload Successful
+
+
+     -> Step 43 — Verify Uploaded Object
+
+        We executed:
+
+        aws s3 ls s3://aws-s3-learning-lab-practice/
+
+
+        The result included:
+
+        upload-test.txt
+
+
+        Therefore the Bucket Policy permission was successfully verified.
+
+
+     -> Step 44 — Identity Policy vs Bucket Policy
+
+        We now had:
+
+        Identity-Based IAM Policy:
+
+        ListBucket
+        -> Allow
+
+        GetObject
+        -> Allow
+
+
+        S3 Resource-Based Bucket Policy:
+
+        PutObject
+        -> Allow for s3-lab-ec2-role
+
+
+        Architecture:
+
+                        EC2
+                         |
+                         v
+                 s3-lab-ec2-role
+                         |
+              +----------+----------+
+              |                     |
+              v                     v
+        Identity Policy       Bucket Policy
+              |                     |
+        ListBucket ✓            PutObject ✓
+        GetObject  ✓                 |
+              |                     |
+              +----------+----------+
+                         |
+                         v
+                     S3 Bucket
+
+
+        In this same-account scenario, with no applicable explicit Deny,
+        the resource-based Bucket Policy could grant the role PutObject
+        permission even though the identity policy did not grant it.
+
+
+     -> Step 45 — Generate an S3 Pre-Signed URL
+
+        Next, we wanted to temporarily share a private S3 object.
+
+        We kept:
+
+        Block Public Access
+        -> ON
+
+
+        Bucket:
+        -> Private
+
+
+        From EC2, we generated a Pre-Signed URL:
+
+        aws s3 presign s3://aws-s3-learning-lab-practice/s3.txt.txt --expires-in 120
+
+
+        Here:
+
+        --expires-in 120
+
+        means:
+
+        120 seconds
+        =
+        2 minutes
+
+
+     -> Step 46 — Pre-Signed URL Architecture
+
+        Architecture:
+
+        Private S3 Object
+               |
+               | Generate
+               v
+        Pre-Signed URL
+               |
+               | Valid temporarily
+               v
+             Browser
+               |
+               v
+        View / Download Object
+
+
+        The browser did NOT need:
+
+        -> AWS Account
+        -> IAM Role
+        -> Access Key
+        -> Secret Key
+
+
+        The URL carried temporary signed authorization.
+
+
+     -> Step 47 — Test Pre-Signed URL
+
+        We copied the generated URL and opened it from the browser.
+
+        Before expiration:
+
+        View object
+        -> Successful
+
+        Download object
+        -> Successful
+
+
+        For a text file, the browser displayed the content directly.
+
+        The object could also be saved using:
+
+        Ctrl + S
+
+
+        A Pre-Signed GET URL can also be used with tools such as
+        curl or wget.
+
+
+     -> Step 48 — Verify Pre-Signed URL Expiration
+
+        We waited for more than two minutes.
+
+        Then we attempted to access the same URL again.
+
+        Result:
+
+        AccessDenied
+
+
+        Therefore we practically verified:
+
+        Pre-Signed URL
+             |
+             +-- Before expiration
+             |       |
+             |       +-- View      ✓
+             |       +-- Download  ✓
+             |
+             +-- After expiration
+                     |
+                     +-- Access     X
+
+
+     -> Step 49 — Pre-Signed URL vs Azure SAS URL
+
+        The concept is similar to Azure Blob Storage SAS URLs.
+
+        AWS:
+
+        Private S3 Object
+             |
+             v
+        Pre-Signed URL
+             |
+             v
+        Temporary Access
+
+
+        Azure:
+
+        Private Blob
+             |
+             v
+        SAS URL
+             |
+             v
+        Temporary Access
+
+
+        Therefore:
+
+        AWS S3 Pre-Signed URL
+                  ≈
+        Azure Blob SAS URL
+
+
+        They are conceptually similar but are different technologies
+        with different implementations and terminology.
+
+
+     -> Step 50 — Real-World Pre-Signed URL Example
+
+        Suppose a customer wants to download an invoice.
+
+        Architecture:
+
+        Customer
+            |
+            | GET /invoice/123
+            v
+        Spring Boot Backend
+            |
+            | Authenticate and authorize customer
+            v
+        Generate S3 Pre-Signed URL
+            |
+            v
+        Customer
+            |
+            | Temporary URL
+            v
+        Private S3 Bucket
+            |
+            v
+        invoice.pdf
+
+
+        This allows the S3 object to remain private while the authorized
+        customer receives temporary access.
+
+
+     -> Step 51 — Begin Lab Cleanup
+
+        After completing the required practical exercises, we decided
+        to terminate and remove the entire lab environment.
+
+        Cleanup order:
+
+        EC2
+         |
+         v
+        EBS / Elastic IP Check
+         |
+         v
+        S3 Object Versions
+         |
+         v
+        S3 Bucket
+         |
+         v
+        IAM Role
+         |
+         v
+        IAM Policy
+
+
+     -> Step 52 — Terminate EC2
+
+        We opened:
+
+        EC2
+         |
+         v
+        Instances
+
+
+        Selected:
+
+        s3-iam-lab-ec2
+
+
+        Then:
+
+        Instance state
+             |
+             v
+        Terminate instance
+
+
+        After termination, the EC2 dashboard showed:
+
+        Running Instances
+        -> 0
+
+
+     -> Step 53 — Verify EBS Cleanup
+
+        We checked:
+
+        EC2
+         |
+         v
+        Elastic Block Store
+         |
+         v
+        Volumes
+
+
+        Result:
+
+        Volumes
+        -> 0
+
+
+        The root EBS volume had been configured to be removed with
+        instance termination, so no lab EBS volume remained.
+
+
+     -> Step 54 — Verify Elastic IP Cleanup
+
+        We checked the EC2 resource dashboard.
+
+        Result:
+
+        Elastic IPs
+        -> 0
+
+
+        Therefore there was no Elastic IP from this lab requiring release.
+
+
+     -> Step 55 — Permanently Delete S3 Object Versions
+
+        Because Versioning had been enabled, deleting only the visible
+        objects was not enough to empty the bucket.
+
+        We opened:
+
+        S3 Bucket
+             |
+             v
+        Objects
+             |
+             v
+        Show versions = ON
+
+
+        We permanently removed:
+
+        -> Current object versions
+        -> Noncurrent object versions
+        -> Null versions
+        -> Delete markers, if present
+
+
+        Finally S3 displayed:
+
+        Objects (0)
+
+        Show versions = ON
+
+        No objects
+
+
+        This confirmed that all versions had been removed.
+
+
+     -> Step 56 — Delete S3 Bucket
+
+        After the bucket became completely empty, we returned to the
+        bucket list.
+
+        We selected:
+
+        aws-s3-learning-lab-practice
+
+
+        Then:
+
+        Delete bucket
+
+
+        We entered the bucket name for confirmation and permanently
+        deleted the bucket.
+
+
+     -> Step 57 — Delete IAM Role
+
+        We opened:
+
+        IAM
+         |
+         v
+        Roles
+
+
+        Searched for:
+
+        s3-lab-ec2-role
+
+
+        Then deleted the role because the EC2 instance no longer required it.
+
+
+     -> Step 58 — Delete Customer Managed IAM Policy
+
+        We opened:
+
+        IAM
+         |
+         v
+        Policies
+         |
+         v
+        Customer managed
+
+
+        Searched for:
+
+        S3LabReadOnlyPolicy
+
+
+        Then permanently deleted the custom policy.
+
+
+     -> Step 59 — Final Cleanup Verification
+
+        Final lab status:
+
+        EC2 Instance
+        -> Terminated                              ✓
+
+        Running EC2 Instances
+        -> 0                                       ✓
+
+        Root EBS Volume
+        -> Deleted                                 ✓
+
+        Elastic IP
+        -> None                                    ✓
+
+        S3 Current Objects
+        -> Deleted                                 ✓
+
+        S3 Noncurrent Versions
+        -> Deleted                                 ✓
+
+        S3 Null Versions
+        -> Deleted                                 ✓
+
+        S3 Delete Markers
+        -> Deleted                                 ✓
+
+        S3 Bucket
+        -> Deleted                                 ✓
+
+        IAM Role
+        -> Deleted                                 ✓
+
+        Customer Managed IAM Policy
+        -> Deleted                                 ✓
+
+
+     -> Important Cleanup Note
+
+        We did not blindly delete existing Security Groups or Key Pairs.
+
+        These resources may have existed before the lab or may be reused
+        by other labs.
+
+        A resource should only be deleted when we are certain that it
+        belongs exclusively to the lab being cleaned up.
+
+
+     -> Complete S3 Lab Architecture
+
+                             User / Application
+                                    |
+                       +------------+------------+
+                       |                         |
+                       v                         v
+                 AWS Console              Pre-Signed URL
+                       |                         |
+                       |                         v
+                       |                  Temporary Access
+                       |                         |
+                       +------------+------------+
+                                    |
+                                    v
+                              Private S3 Bucket
+                                    ^
+                                    |
+                             Authorized Access
+                                    |
+                              IAM Permissions
+                                    |
+                                    v
+                              IAM Role
+                                    ^
+                                    |
+                            Instance Profile
+                                    |
+                                    v
+                              EC2 Instance
+
+
+        S3 Bucket
+           |
+           +-- Objects
+           |
+           +-- Object Keys / Prefixes
+           |
+           +-- Metadata
+           |
+           +-- Storage Classes
+           |
+           +-- SSE-S3 Encryption
+           |
+           +-- Versioning
+           |      |
+           |      +-- Current Version
+           |      +-- Noncurrent Versions
+           |      +-- Version IDs
+           |      +-- Delete Markers
+           |
+           +-- IAM Access
+           |
+           +-- Bucket Policy
+           |
+           +-- Pre-Signed URL
+           |
+           +-- Block Public Access
+
+
+     -> Important Concepts Practically Verified
+
+        S3 is Object Storage.
+
+        Objects are stored inside S3 buckets.
+
+        Every object is identified by an Object Key.
+
+        Folder-like structures in S3 are represented using prefixes
+        in Object Keys.
+
+        S3 buckets can remain completely private while authorized
+        IAM identities access them.
+
+        Block Public Access does not prevent properly authorized
+        private access.
+
+        SSE-S3 provides server-side encryption using S3-managed keys.
+
+        Versioning allows multiple versions of the same Object Key
+        to exist.
+
+        Objects created before Versioning is enabled can have a
+        null Version ID.
+
+        A normal delete in a versioning-enabled bucket can create
+        a Delete Marker rather than deleting all previous versions.
+
+        Removing the current Delete Marker can make the previous
+        object version visible again.
+
+        IAM Roles allow AWS workloads such as EC2 to obtain temporary
+        credentials without manually storing long-term Access Keys.
+
+        Trust Policies answer:
+
+        "Who can assume this role?"
+
+
+        Permission Policies answer:
+
+        "What can this role do?"
+
+
+        Identity-Based Policies are attached to IAM identities.
+
+        Resource-Based Bucket Policies are attached to S3 buckets.
+
+        Least Privilege means granting only the permissions required
+        by the workload.
+
+        We verified Least Privilege when:
+
+        ListBucket
+        -> Worked
+
+        GetObject
+        -> Worked
+
+        PutObject
+        -> Initially returned AccessDenied
+
+
+        We then granted PutObject through the S3 Bucket Policy and
+        verified that the same upload succeeded.
+
+        Pre-Signed URLs provide temporary access to private S3 objects
+        without making the bucket public.
+
+        Pre-Signed URLs expire after their configured validity period.
+
+
+     -> AWS and Azure Relationship from This Lab
+
+        Azure Blob Storage
+                ≈
+        Amazon S3
+
+
+        Azure Blob Container
+                ≈
+        S3 Bucket
+
+
+        Azure Blob
+                ≈
+        S3 Object
+
+
+        Azure SAS URL
+                ≈
+        S3 Pre-Signed URL
+
+
+        Azure Managed Identity conceptually helps workloads avoid
+        hard-coded credentials.
+
+        AWS IAM Roles for EC2 provide a similar workload-identity
+        pattern for AWS resources.
+
+
+     -> S3 Lab Final Flow
+
+        Create S3 Bucket
+             |
+             v
+        Keep Bucket Private
+             |
+             v
+        Configure SSE-S3
+             |
+             v
+        Upload Object
+             |
+             v
+        Verify Object Properties
+             |
+             v
+        Test Private Object URL
+             |
+             v
+        Create Prefix / Folder
+             |
+             v
+        Verify Object Key
+             |
+             v
+        Enable Versioning
+             |
+             v
+        Create Multiple Versions
+             |
+             v
+        Delete Object
+             |
+             v
+        Observe Delete Marker
+             |
+             v
+        Recover Object
+             |
+             v
+        Create IAM Policy
+             |
+             v
+        Create IAM Role
+             |
+             v
+        Launch EC2
+             |
+             v
+        Attach IAM Role
+             |
+             v
+        Verify Role with STS
+             |
+             v
+        Test ListBucket
+             |
+             v
+        Test GetObject
+             |
+             v
+        Test PutObject
+             |
+             X
+        AccessDenied
+             |
+             v
+        Add S3 Bucket Policy
+             |
+             v
+        Retry PutObject
+             |
+             ✓
+        Upload Successful
+             |
+             v
+        Generate Pre-Signed URL
+             |
+             v
+        View / Download Private Object
+             |
+             v
+        Wait for Expiration
+             |
+             v
+        AccessDenied
+             |
+             v
+        Terminate EC2
+             |
+             v
+        Verify EBS / Elastic IP
+             |
+             v
+        Delete All S3 Versions
+             |
+             v
+        Delete S3 Bucket
+             |
+             v
+        Delete IAM Role
+             |
+             v
+        Delete IAM Policy
+             |
+             v
+        LAB CLEANUP COMPLETE

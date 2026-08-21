@@ -1,0 +1,1317 @@
+=> Part 5 - Amazon EBS Hands-on Lab
+
+    -> Lab Objective
+
+        In this lab, we will perform the complete lifecycle of an additional Amazon EBS volume with an EC2 instance.
+
+        We will:
+
+        -> Launch/use an EC2 instance.
+        -> Create an additional EBS volume.
+        -> Attach the EBS volume to EC2.
+        -> Identify the attached block device in Linux.
+        -> Check whether a filesystem already exists.
+        -> Create an EXT4 filesystem.
+        -> Create a mount point.
+        -> Mount the EBS volume.
+        -> Verify the mounted volume.
+        -> Write and verify data.
+        -> Configure persistent mounting.
+        -> Unmount the volume.
+        -> Detach and reattach the volume.
+        -> Verify data persistence.
+        -> Create an EBS snapshot.
+        -> Create another EBS volume from the snapshot in another Availability Zone.
+        -> Attach the restored volume to another EC2 instance.
+        -> Mount and verify the restored filesystem/data.
+        -> Understand and create disk partitions.
+        -> Clean up all AWS resources.
+
+
+    -> Lab Architecture
+
+        Initial Setup:
+
+        Availability Zone A
+
+        EC2 Instance - VM1
+              │
+              │ Attach
+              ↓
+        Additional 5 GB EBS
+              │
+              ↓
+        Linux Block Device
+        /dev/nvme1n1
+              │
+              ↓
+             EXT4
+              │
+              ↓
+            /data
+
+
+        Snapshot and Restore:
+
+        VM1
+         │
+         └── 5 GB EBS
+                │
+                ↓
+             Snapshot
+                │
+                ↓
+        Create New 5 GB EBS
+        in Availability Zone B
+                │
+                ↓
+              VM2
+                │
+                ↓
+        /dev/nvme1n1
+                │
+                ↓
+        Existing EXT4 Filesystem
+                │
+                ↓
+              /data
+
+
+    -> Step 1 - Launch or Use an EC2 Instance
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        AWS Console
+            ↓
+        EC2
+            ↓
+        Instances
+            ↓
+        Launch Instance
+
+        Create or use an Ubuntu EC2 instance.
+
+        Important:
+
+        The EC2 instance must be in the Availability Zone where the additional EBS volume will be created.
+
+        After launching, connect to the instance using SSH.
+
+        Example:
+
+        ssh -i "key.pem" ubuntu@<EC2-Public-DNS>
+
+
+    -> Step 2 - Create an Additional EBS Volume
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Elastic Block Store
+          ↓
+        Volumes
+          ↓
+        Create Volume
+
+        Example configuration:
+
+        Volume Type:
+        gp3
+
+        Size:
+        5 GiB
+
+        Availability Zone:
+        Same Availability Zone as VM1
+
+        Create the volume.
+
+        Important:
+
+        EBS volumes are Availability Zone specific.
+
+        Therefore:
+
+        VM1
+        -> AZ-A
+
+        Additional EBS
+        -> AZ-A
+
+
+    -> Step 3 - Attach the EBS Volume to VM1
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Volumes
+          ↓
+        Select 5 GB Volume
+          ↓
+        Actions
+          ↓
+        Attach Volume
+
+        Select VM1 and attach the volume.
+
+        AWS attaches the EBS volume to the EC2 instance as a block-storage device.
+
+
+    -> Step 4 - Identify the New Block Device
+
+        Method:
+
+        Linux CLI
+
+        Connect to VM1 and run:
+
+        lsblk
+
+        Example:
+
+        NAME         SIZE TYPE MOUNTPOINTS
+        nvme0n1        8G disk
+        ├─nvme0n1p1    7G part /
+        ├─nvme0n1p14   4M part
+        ├─nvme0n1p15 106M part /boot/efi
+        └─nvme0n1p16 913M part /boot
+
+        nvme1n1        5G disk
+
+        Here:
+
+        /dev/nvme0n1
+        -> Existing root EBS disk.
+
+        /dev/nvme1n1
+        -> Newly attached 5 GB EBS disk.
+
+
+    -> Step 5 - Check Whether the New Volume Already Has a Filesystem
+
+        Method:
+
+        Linux CLI
+
+        Before formatting a volume, always check whether a filesystem already exists.
+
+        Run:
+
+        sudo file -s /dev/nvme1n1
+
+        In our new volume, the output was:
+
+        /dev/nvme1n1: data
+
+        Also run:
+
+        sudo blkid /dev/nvme1n1
+
+        No filesystem information was returned.
+
+        This indicated that the new volume did not contain a recognized filesystem.
+
+        Important:
+
+        Never blindly execute mkfs on an existing volume.
+
+        If the volume already contains a filesystem and data, formatting it can destroy the existing data.
+
+
+    -> Step 6 - Create an EXT4 Filesystem
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        sudo mkfs -t ext4 /dev/nvme1n1
+
+        This creates an EXT4 filesystem directly on the 5 GB block device.
+
+        Verify:
+
+        sudo blkid /dev/nvme1n1
+
+        Our output showed:
+
+        UUID="63935c8c-bef2-4d8a-8768-26d8db555406"
+        BLOCK_SIZE="4096"
+        TYPE="ext4"
+
+        Therefore:
+
+        5 GB EBS
+            ↓
+        /dev/nvme1n1
+            ↓
+        EXT4 Filesystem
+
+
+    -> Step 7 - Create the Mount Point
+
+        Method:
+
+        Linux CLI
+
+        Create a directory:
+
+        sudo mkdir -p /data
+
+        /data will act as the mount point for the new filesystem.
+
+
+    -> Step 8 - Mount the EBS Volume
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        sudo mount /dev/nvme1n1 /data
+
+        Conceptually:
+
+        /dev/nvme1n1
+              ↓
+            Mount
+              ↓
+            /data
+
+        The filesystem on the EBS volume can now be accessed through /data.
+
+
+    -> Step 9 - Verify the Mount
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        findmnt /data
+
+        Our output:
+
+        TARGET  SOURCE         FSTYPE OPTIONS
+        /data   /dev/nvme1n1   ext4   rw,relatime
+
+        Here:
+
+        /data
+        -> Mount point.
+
+        /dev/nvme1n1
+        -> EBS block device.
+
+        ext4
+        -> Filesystem.
+
+        rw
+        -> Read and write access.
+
+        Additional verification:
+
+        df -h
+
+        or:
+
+        df -h /data
+
+
+    -> Step 10 - Write Data to the EBS Volume
+
+        Method:
+
+        Linux CLI
+
+        Create test data inside /data.
+
+        Example:
+
+        echo "Created on VM1" | sudo tee /data/test.txt
+
+        Verify:
+
+        cat /data/test.txt
+
+        Expected:
+
+        Created on VM1
+
+        Anything written under /data is now stored on the additional EBS filesystem rather than the root filesystem.
+
+
+    -> Step 11 - Configure Persistent Mounting
+
+        Method:
+
+        Linux CLI
+
+        A manual mount does not by itself guarantee that the volume will automatically be mounted after reboot.
+
+        First obtain the filesystem UUID:
+
+        sudo blkid /dev/nvme1n1
+
+        Example UUID used in our lab:
+
+        63935c8c-bef2-4d8a-8768-26d8db555406
+
+        Check the existing configuration:
+
+        cat /etc/fstab
+
+        Backup the file:
+
+        sudo cp /etc/fstab /etc/fstab.backup
+
+        Edit:
+
+        sudo nano /etc/fstab
+
+        Add:
+
+        UUID=63935c8c-bef2-4d8a-8768-26d8db555406 /data ext4 defaults,nofail 0 2
+
+        Save the file.
+
+
+    -> Step 12 - Test the /etc/fstab Configuration
+
+        Method:
+
+        Linux CLI
+
+        Reload systemd configuration:
+
+        sudo systemctl daemon-reload
+
+        Test all fstab entries:
+
+        sudo mount -a
+
+        Verify:
+
+        findmnt /data
+
+        To perform a stronger test:
+
+        sudo umount /data
+
+        Verify that it is unmounted:
+
+        findmnt /data
+
+        Then:
+
+        sudo mount -a
+
+        Verify again:
+
+        findmnt /data
+
+        If /data is mounted again, the /etc/fstab configuration is working.
+
+
+    -> Step 13 - Verify the Complete VM1 Storage Setup
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        lsblk -f
+
+        findmnt /data
+
+        df -h /data
+
+        Conceptually:
+
+        VM1
+         │
+         ├── Root EBS
+         │      ↓
+         │   /dev/nvme0n1
+         │      ↓
+         │      /
+         │
+         └── Additional EBS - 5 GB
+                ↓
+            /dev/nvme1n1
+                ↓
+              EXT4
+                ↓
+              /data
+
+
+    -> Step 14 - Unmount Before Detaching
+
+        Method:
+
+        Linux CLI
+
+        Before detaching a mounted data volume, unmount its filesystem.
+
+        Run:
+
+        sudo umount /data
+
+        Verify:
+
+        findmnt /data
+
+        If no result is returned, the filesystem is no longer mounted.
+
+        Important:
+
+        Unmounting does not delete the filesystem or data.
+
+        It only disconnects the filesystem from the Linux directory tree.
+
+
+    -> Step 15 - Detach the EBS Volume
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Volumes
+          ↓
+        Select Volume
+          ↓
+        Actions
+          ↓
+        Detach Volume
+
+        Wait until the volume state becomes:
+
+        Available
+
+        The volume now exists independently of VM1.
+
+
+    -> Step 16 - Reattach the Existing EBS Volume
+
+        Method:
+
+        AWS Management Console / UI
+
+        Select the same EBS volume.
+
+        Go to:
+
+        Actions
+          ↓
+        Attach Volume
+          ↓
+        Select VM1
+
+        Attach it again.
+
+
+    -> Step 17 - Identify the Reattached Volume
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        lsblk
+
+        Then verify its filesystem:
+
+        sudo blkid /dev/nvme1n1
+
+        Because this is an existing volume, the EXT4 filesystem should already exist.
+
+        Important:
+
+        Do NOT execute:
+
+        sudo mkfs -t ext4 /dev/nvme1n1
+
+        again.
+
+        mkfs is used to create a new filesystem and can destroy the existing filesystem/data.
+
+
+    -> Step 18 - Mount the Reattached Volume
+
+        Method:
+
+        Linux CLI
+
+        If /etc/fstab is correctly configured, it can be mounted using:
+
+        sudo mount -a
+
+        Or manually:
+
+        sudo mount /dev/nvme1n1 /data
+
+        Verify:
+
+        findmnt /data
+
+
+    -> Step 19 - Verify Data Persistence
+
+        Method:
+
+        Linux CLI
+
+        Check the previously created file:
+
+        ls -la /data
+
+        cat /data/test.txt
+
+        Expected:
+
+        Created on VM1
+
+        This demonstrates:
+
+        Write Data
+            ↓
+        Unmount
+            ↓
+        Detach EBS
+            ↓
+        Reattach EBS
+            ↓
+        Mount
+            ↓
+        Original Data Still Exists
+
+        Therefore, EBS provides persistent storage.
+
+
+    -> Step 20 - Create an EBS Snapshot
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Elastic Block Store
+          ↓
+        Volumes
+          ↓
+        Select 5 GB Volume
+          ↓
+        Actions
+          ↓
+        Create Snapshot
+
+        Provide a description/name if required and create the snapshot.
+
+        Wait until the snapshot becomes available/completed.
+
+        Conceptually:
+
+        5 GB EBS Volume
+              ↓
+        Create Snapshot
+              ↓
+        Point-in-Time EBS Backup
+
+
+    -> Step 21 - Create a New Volume from the Snapshot
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Snapshots
+          ↓
+        Select Snapshot
+          ↓
+        Actions
+          ↓
+        Create Volume from Snapshot
+
+        For our experiment, create the new volume in another Availability Zone.
+
+        Example:
+
+        Original Volume
+        -> AZ-A
+
+        Snapshot
+        -> Regional snapshot resource
+
+        Restored Volume
+        -> AZ-B
+
+        The restored volume can then be attached to an EC2 instance in AZ-B.
+
+
+    -> Step 22 - Launch or Use VM2 in the New Availability Zone
+
+        Method:
+
+        AWS Management Console / UI
+
+        Create or use another EC2 instance in the same Availability Zone as the restored EBS volume.
+
+        Conceptually:
+
+        Availability Zone B
+
+        VM2
+         │
+         │
+         └── Restored 5 GB EBS
+
+
+    -> Step 23 - Attach the Restored Volume to VM2
+
+        Method:
+
+        AWS Management Console / UI
+
+        Go to:
+
+        EC2
+          ↓
+        Volumes
+          ↓
+        Select Restored Volume
+          ↓
+        Actions
+          ↓
+        Attach Volume
+          ↓
+        Select VM2
+
+
+    -> Step 24 - Verify the Restored Block Device on VM2
+
+        Method:
+
+        Linux CLI
+
+        Connect to VM2.
+
+        Run:
+
+        lsblk
+
+        Verify the filesystem:
+
+        sudo blkid /dev/nvme1n1
+
+        In our lab, the restored volume showed:
+
+        UUID="63935c8c-bef2-4d8a-8768-26d8db555406"
+        BLOCK_SIZE="4096"
+        TYPE="ext4"
+
+        This showed that the filesystem information from the original volume was present in the restored volume.
+
+
+    -> Step 25 - Do Not Format the Restored Volume
+
+        The restored volume already contains the filesystem captured in the snapshot.
+
+        Therefore, do NOT run mkfs on VM2.
+
+        Incorrect:
+
+        sudo mkfs -t ext4 /dev/nvme1n1
+
+        Correct flow:
+
+        Existing Restored EBS
+              ↓
+        Existing EXT4
+              ↓
+        Create Mount Point
+              ↓
+        Mount
+
+
+    -> Step 26 - Mount the Restored Volume on VM2
+
+        Method:
+
+        Linux CLI
+
+        Create a mount point:
+
+        sudo mkdir -p /data
+
+        Mount:
+
+        sudo mount /dev/nvme1n1 /data
+
+        Verify:
+
+        findmnt /data
+
+        Our output:
+
+        TARGET  SOURCE         FSTYPE OPTIONS
+        /data   /dev/nvme1n1   ext4   rw,relatime
+
+        Another verification:
+
+        mount | grep nvme1n1
+
+        Example:
+
+        /dev/nvme1n1 on /data type ext4 (rw,relatime)
+
+
+    -> Step 27 - Verify Restored Data
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        ls -la /data
+
+        If test data existed when the snapshot was created:
+
+        cat /data/test.txt
+
+        The restored volume should contain the data captured by the snapshot.
+
+        Conceptually:
+
+        VM1
+         ↓
+        Write Data
+         ↓
+        Snapshot
+         ↓
+        Create New EBS
+         ↓
+        Attach to VM2
+         ↓
+        Mount
+         ↓
+        Original Snapshot Data Available
+
+
+    -> Step 28 - Important Snapshot and Mount Observation
+
+        A snapshot preserves the block-level contents of the EBS volume.
+
+        Therefore, the restored volume can contain:
+
+        -> Existing filesystem.
+        -> Filesystem metadata.
+        -> Existing files/data captured by the snapshot.
+
+        However, mounting is an operating-system operation.
+
+        Therefore, after attaching the restored volume to VM2, we still create/select a mount point and mount the existing filesystem.
+
+        We do not recreate the filesystem.
+
+
+    -> Step 29 - Understanding Disk vs Partition
+
+        Method:
+
+        Linux CLI
+
+        Run:
+
+        lsblk
+
+        The root disk may appear like:
+
+        nvme0n1
+        ├─nvme0n1p1
+        ├─nvme0n1p14
+        ├─nvme0n1p15
+        └─nvme0n1p16
+
+        These entries are partitions.
+
+        They are NOT the individual internal storage blocks of EBS.
+
+        Our additional volume initially appeared as:
+
+        nvme1n1
+
+        without child partitions because we originally created the EXT4 filesystem directly on the whole disk.
+
+
+    -> Step 30 - Create Partitions on the Additional EBS Volume
+
+        Method:
+
+        Linux CLI
+
+        Important:
+
+        Creating a new partition table on a disk that already contains a filesystem can destroy or make the existing filesystem inaccessible.
+
+        Perform this only when the existing data is no longer required or when intentionally rebuilding the lab disk.
+
+        First unmount the volume:
+
+        sudo umount /data
+
+        Start fdisk:
+
+        sudo fdisk /dev/nvme1n1
+
+
+    -> Step 31 - Create Partition 1
+
+        Inside fdisk:
+
+        n
+        p
+        Enter
+        Enter
+        +1G
+
+        This creates approximately:
+
+        /dev/nvme1n1p1
+        -> 1 GiB
+
+
+    -> Step 32 - Create Partition 2
+
+        Inside fdisk:
+
+        n
+        p
+        Enter
+        Enter
+        +1G
+
+        This creates:
+
+        /dev/nvme1n1p2
+        -> 1 GiB
+
+
+    -> Step 33 - Create Partition 3
+
+        Inside fdisk:
+
+        n
+        p
+        Enter
+        Enter
+        +1G
+
+        This creates:
+
+        /dev/nvme1n1p3
+        -> 1 GiB
+
+
+    -> Step 34 - Create Partition 4
+
+        Inside fdisk:
+
+        n
+        p
+        Enter
+        Enter
+        Enter
+
+        For the final Last Sector, pressing Enter uses the remaining available disk space.
+
+        This creates approximately:
+
+        /dev/nvme1n1p4
+        -> 2 GiB
+
+
+    -> Step 35 - Verify the Proposed Partition Table
+
+        Before saving changes inside fdisk, run:
+
+        p
+
+        Our layout was:
+
+        /dev/nvme1n1p1    1G
+        /dev/nvme1n1p2    1G
+        /dev/nvme1n1p3    1G
+        /dev/nvme1n1p4    2G
+
+        Conceptually:
+
+        /dev/nvme1n1              5 GiB
+             │
+             ├── p1               1 GiB
+             ├── p2               1 GiB
+             ├── p3               1 GiB
+             └── p4               ~2 GiB
+
+
+    -> Step 36 - Write the Partition Table
+
+        After verifying the proposed partition layout, inside fdisk run:
+
+        w
+
+        w
+        -> Writes the partition table to the disk and exits fdisk.
+
+        Verify from Linux:
+
+        lsblk
+
+        Expected structure:
+
+        nvme1n1          5G disk
+        ├─nvme1n1p1      1G part
+        ├─nvme1n1p2      1G part
+        ├─nvme1n1p3      1G part
+        └─nvme1n1p4      2G part
+
+
+    -> Step 37 - Filesystems on Partitions
+
+        After partitioning, filesystems can be created on individual partitions if they are going to be used for file storage.
+
+        Example:
+
+        sudo mkfs.ext4 /dev/nvme1n1p1
+        sudo mkfs.ext4 /dev/nvme1n1p2
+        sudo mkfs.ext4 /dev/nvme1n1p3
+        sudo mkfs.ext4 /dev/nvme1n1p4
+
+        Important:
+
+        These commands format the partitions.
+
+        Run them only when the partitions are intentionally being prepared as new filesystems.
+
+
+    -> Step 38 - Mount Individual Partitions
+
+        Example mount points:
+
+        sudo mkdir -p /data1
+        sudo mkdir -p /data2
+        sudo mkdir -p /data3
+        sudo mkdir -p /data4
+
+        Mount:
+
+        sudo mount /dev/nvme1n1p1 /data1
+        sudo mount /dev/nvme1n1p2 /data2
+        sudo mount /dev/nvme1n1p3 /data3
+        sudo mount /dev/nvme1n1p4 /data4
+
+        Verify:
+
+        lsblk -f
+
+        findmnt /data1
+        findmnt /data2
+        findmnt /data3
+        findmnt /data4
+
+        Conceptually:
+
+        5 GB EBS
+        /dev/nvme1n1
+             │
+             ├── p1 → EXT4 → /data1
+             ├── p2 → EXT4 → /data2
+             ├── p3 → EXT4 → /data3
+             └── p4 → EXT4 → /data4
+
+
+    -> Step 39 - Important Difference Between Blocks and Partitions
+
+        EBS provides block storage.
+
+        Internally, storage is handled in blocks.
+
+        However:
+
+        nvme1n1p1
+        nvme1n1p2
+        nvme1n1p3
+        nvme1n1p4
+
+        are partitions, not individual EBS blocks.
+
+        Conceptually:
+
+        EBS Block Storage
+              ↓
+        Linux Block Device
+        /dev/nvme1n1
+              ↓
+        Partition Table
+              ↓
+        p1 / p2 / p3 / p4
+              ↓
+        Filesystems
+              ↓
+        Mount Points
+
+
+    -> Step 40 - Resource Cleanup
+
+        Method:
+
+        Linux CLI + AWS Management Console / UI
+
+        Before detaching any mounted data volumes, unmount them from Linux.
+
+        Example:
+
+        sudo umount /data
+
+        or for partitioned storage:
+
+        sudo umount /data1
+        sudo umount /data2
+        sudo umount /data3
+        sudo umount /data4
+
+        Then use AWS Console:
+
+        EC2
+          ↓
+        Volumes
+          ↓
+        Detach Additional EBS Volumes
+
+        After the volumes are detached:
+
+        -> Delete additional EBS volumes that are no longer required.
+        -> Delete snapshots that are no longer required.
+        -> Terminate temporary EC2 instances.
+        -> Verify that no unnecessary lab resources remain.
+
+
+    -> Important Cleanup Note
+
+        Stopping or terminating an EC2 instance does not necessarily delete every separately created EBS volume or snapshot.
+
+        Therefore, always verify:
+
+        EC2 Instances
+        -> No unnecessary instances.
+
+        EBS Volumes
+        -> No unnecessary available volumes.
+
+        EBS Snapshots
+        -> No unnecessary snapshots.
+
+        This avoids continuing storage charges after the lab.
+
+
+    -> Important Commands Used in the Lab
+
+        Identify disks:
+
+        lsblk
+
+        Show filesystem information:
+
+        lsblk -f
+
+        Check whether filesystem exists:
+
+        sudo file -s /dev/nvme1n1
+
+        Check filesystem UUID/type:
+
+        sudo blkid /dev/nvme1n1
+
+        Create EXT4 filesystem:
+
+        sudo mkfs -t ext4 /dev/nvme1n1
+
+        Create mount point:
+
+        sudo mkdir -p /data
+
+        Mount:
+
+        sudo mount /dev/nvme1n1 /data
+
+        Verify mount:
+
+        findmnt /data
+
+        Check storage usage:
+
+        df -h
+
+        Unmount:
+
+        sudo umount /data
+
+        Mount entries configured in /etc/fstab:
+
+        sudo mount -a
+
+        Edit persistent mount configuration:
+
+        sudo nano /etc/fstab
+
+        Create/manage partitions:
+
+        sudo fdisk /dev/nvme1n1
+
+
+    -> Complete EBS Lab Flow
+
+        AWS Console
+             ↓
+        Launch VM1
+             ↓
+        Create 5 GB EBS
+             ↓
+        Attach EBS to VM1
+             ↓
+        Linux CLI
+             ↓
+           lsblk
+             ↓
+        Check Filesystem
+             ↓
+           mkfs
+             ↓
+        Create /data
+             ↓
+           mount
+             ↓
+        Write Test Data
+             ↓
+        Configure /etc/fstab
+             ↓
+        Verify Persistent Mount
+             ↓
+          unmount
+             ↓
+        AWS Console
+             ↓
+        Detach EBS
+             ↓
+        Reattach EBS
+             ↓
+        Linux CLI
+             ↓
+        Mount Existing Filesystem
+             ↓
+        Verify Existing Data
+             ↓
+        AWS Console
+             ↓
+        Create Snapshot
+             ↓
+        Create New EBS from Snapshot
+        in Another Availability Zone
+             ↓
+        Launch/Use VM2 in Same New AZ
+             ↓
+        Attach Restored EBS to VM2
+             ↓
+        Linux CLI
+             ↓
+        Detect Existing EXT4
+             ↓
+        DO NOT FORMAT AGAIN
+             ↓
+        Mount at /data
+             ↓
+        Verify Restored Data
+             ↓
+        Optional Partition Experiment
+             ↓
+        Create p1 + p2 + p3 + p4
+             ↓
+        Verify with lsblk
+             ↓
+        Cleanup Resources
+
+
+    -> Final Lab Understanding
+
+        AWS Console was used for AWS infrastructure operations such as creating EBS volumes, attaching/detaching volumes, creating snapshots, creating volumes from snapshots and managing EC2 instances.
+
+        Linux CLI was used for operating-system-level storage operations such as identifying block devices, creating filesystems, creating mount points, mounting/unmounting filesystems, configuring /etc/fstab and creating partitions.
+
+        The most important separation is:
+
+        AWS Console
+        -> Create and manage the EBS storage resource.
+        -> Attach/detach the EBS volume.
+        -> Create and restore snapshots.
+
+        Linux CLI
+        -> Detect the attached block device.
+        -> Create or identify the filesystem.
+        -> Mount the filesystem.
+        -> Manage partitions.
+        -> Access and verify stored data.
+
+        The complete practical relationship is:
+
+        AWS EBS Volume
+              ↓
+        Attach to EC2
+              ↓
+        Linux Block Device
+              ↓
+        Partition (Optional)
+              ↓
+        Filesystem
+              ↓
+        Mount Point
+              ↓
+        Files and Data
+              ↓
+        Snapshot
+              ↓
+        Restore New Volume
+              ↓
+        Attach + Mount
+              ↓
+        Data Available Again
+

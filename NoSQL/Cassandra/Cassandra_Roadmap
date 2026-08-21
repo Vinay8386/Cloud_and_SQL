@@ -1,0 +1,268 @@
+=> Apache Cassandra Roadmap
+
+    -> Phase 1 : Cassandra Basics ⏳
+
+        -> Environment Setup
+            -> Install Java
+            -> Install Apache Cassandra
+            -> Install cqlsh
+            -> Start Cassandra Server
+            -> Connect to localhost
+            -> Verify Installation
+
+        -> Why Cassandra?
+            -> What is Apache Cassandra
+            -> Why NoSQL
+            -> SQL vs Cassandra
+            -> When to use Cassandra
+            -> Cassandra vs MongoDB
+
+        -> Cassandra Architecture
+            -> Cluster
+            -> Node
+            -> Data Center
+            -> Rack
+            -> Peer-to-Peer Architecture
+            -> Gossip Protocol
+            -> Ring Architecture
+
+        -> Keyspace → Table → Row
+            -> Keyspace
+            -> Table
+            -> Row
+            -> Column
+            -> Primary Key
+
+        -> CQL Basics
+            -> CQL
+            -> cqlsh
+            -> DESCRIBE
+            -> HELP
+            -> USE
+            -> SOURCE
+
+    -> Phase 2 : CRUD Operations ⏳
+
+        -> Create
+
+            -> CREATE KEYSPACE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> CREATE TABLE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+        -> Read
+
+            -> SELECT
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> WHERE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> LIMIT
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> ORDER BY
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> ALLOW FILTERING
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+        -> Update
+
+            -> UPDATE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> TTL
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> TIMESTAMP
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+        -> Delete
+
+            -> DELETE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> TRUNCATE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> DROP TABLE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+            -> DROP KEYSPACE
+                -> Practical
+                -> Notes
+                -> Interview Questions
+                -> Practice Questions
+
+    -> Phase 2 Revision
+        -> End-to-End CRUD Practice
+        -> Spring Boot CRUD Mapping
+        -> Interview Questions
+        -> Real-world Scenarios
+
+    -> Phase 3 : Data Types ⏳
+
+        -> Text
+        -> Int
+        -> BigInt
+        -> Float
+        -> Double
+        -> Boolean
+        -> UUID
+        -> TimeUUID
+        -> Timestamp
+        -> Date
+        -> Blob
+        -> Counter
+
+    -> Phase 4 : Collections & User Defined Types ⏳
+
+        -> List
+        -> Set
+        -> Map
+        -> Frozen Collection
+        -> Tuple
+        -> User Defined Type (UDT)
+
+    -> Phase 5 : Data Modeling ⏳
+
+        -> Query First Design
+        -> Partition Key
+        -> Clustering Key
+        -> Composite Partition Key
+        -> Composite Primary Key
+        -> Wide Rows
+        -> Static Columns
+        -> Denormalization
+        -> Bucketing
+
+    -> Phase 6 : Partitioning & Replication ⏳
+
+        -> Partitioning
+        -> Token
+        -> Murmur3 Partitioner
+        -> Virtual Nodes (VNodes)
+        -> Replication Factor
+        -> SimpleStrategy
+        -> NetworkTopologyStrategy
+
+    -> Phase 7 : Consistency & Availability ⏳
+
+        -> Consistency Level
+        -> ONE
+        -> TWO
+        -> THREE
+        -> QUORUM
+        -> LOCAL_QUORUM
+        -> EACH_QUORUM
+        -> ALL
+        -> ANY
+        -> Tunable Consistency
+
+    -> Phase 8 : Indexes & Materialized Views ⏳
+
+        -> Secondary Index
+        -> Storage Attached Index (SAI)
+        -> Materialized View
+        -> Best Practices
+        -> Performance Considerations
+
+    -> Phase 9 : Batch & Lightweight Transactions ⏳
+
+        -> BATCH
+        -> Logged Batch
+        -> Unlogged Batch
+        -> Lightweight Transaction (LWT)
+        -> IF EXISTS
+        -> IF NOT EXISTS
+        -> Compare and Set (CAS)
+
+    -> Phase 10 : Performance Optimization ⏳
+
+        -> Data Modeling Best Practices
+        -> Avoid ALLOW FILTERING
+        -> Read Path
+        -> Write Path
+        -> Compaction
+        -> Compression
+        -> Bloom Filter
+        -> Memtable
+        -> SSTable
+        -> Commit Log
+        -> Tombstones
+
+    -> Phase 11 : Cluster Administration ⏳
+
+        -> nodetool
+        -> Cluster Status
+        -> Repair
+        -> Cleanup
+        -> Backup
+        -> Restore
+        -> Snapshot
+        -> Monitoring
+
+    -> Phase 12 : Spring Boot Integration ⏳
+
+        -> Spring Data Cassandra
+        -> CassandraTemplate
+        -> CassandraRepository
+        -> Entity Mapping
+        -> Primary Key Mapping
+        -> CRUD APIs
+        -> Custom Queries
+        -> Paging
+        -> Batch Operations
+        -> TTL
+        -> Spring Boot Best Practices
+
+    -> Phase 13 : Interview Preparation ⏳
+
+        -> Interview Questions
+        -> Performance Tips
+        -> SQL vs Cassandra
+        -> Cassandra vs MongoDB
+        -> Cassandra vs HBase
+        -> Cassandra vs DynamoDB
+        -> Real-world Design Scenarios

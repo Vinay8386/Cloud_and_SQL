@@ -1,0 +1,2002 @@
+=> Amazon S3 Fundamentals
+
+     -> What is Amazon S3?
+
+        S3 stands for Simple Storage Service.
+
+        Amazon S3 is an Object Storage service provided by AWS.
+
+        It is commonly used to store:
+
+        -> Images and videos
+        -> Documents and PDFs
+        -> Application logs
+        -> Backups
+        -> Static website files
+        -> Large datasets
+
+        Basic structure:
+
+        Amazon S3
+             |
+             v
+           Bucket
+             |
+             |-- Object
+             |-- Object
+             |-- Object
+
+
+     -> S3 Bucket
+
+        A bucket is a container used to store S3 objects.
+
+        Example:
+
+        Bucket: ecommerce-product-images
+             |
+             |-- shirt.jpg
+             |-- shoes.jpg
+             |-- watch.jpg
+
+        Here, ecommerce-product-images is the bucket and the uploaded files
+        are stored as S3 objects.
+
+
+     -> S3 Object
+
+        An object is the actual data stored inside an S3 bucket.
+
+        For example, when we upload product.jpg to S3, it is stored
+        as an S3 object.
+
+        An object contains the actual data along with information associated
+        with that object.
+
+        Conceptually:
+
+        Object
+           |
+           |-- Data
+           |-- Object Key
+           |-- Metadata
+           |-- Other object information
+
+        Data represents the actual content of the uploaded file.
+
+        Metadata contains information associated with the object,
+        such as its content type and other attributes.
+
+
+     -> S3 Object Key
+
+        An Object Key is the name or identifier of an object within a bucket.
+
+        Example:
+
+        Bucket:
+        ecommerce-assets
+
+        Object Key:
+        product.jpg
+
+        If the object appears inside folders such as:
+
+        images/products/product.jpg
+
+        then the complete Object Key is:
+
+        images/products/product.jpg
+
+        Therefore, Bucket + Object Key identifies an object within S3.
+
+
+     -> Folder Concept in S3
+
+        Amazon S3 is Object Storage and does not use traditional filesystem
+        directories in the same way as a normal disk.
+
+        The AWS Console provides a folder-like view using object key prefixes.
+
+        For example, the console may display:
+
+        images/
+             products/
+                  shirt.jpg
+
+        The object's key can actually be:
+
+        images/products/shirt.jpg
+
+        The "/" characters are part of the Object Key.
+
+        Therefore, the folder hierarchy we see in the S3 Console is mainly
+        represented through prefixes in Object Keys.
+
+
+     -> S3 Bucket Naming
+
+        General-purpose S3 bucket names must be globally unique across
+        AWS accounts within an AWS partition.
+
+        This means two users cannot create general-purpose buckets with
+        exactly the same bucket name in the same AWS partition.
+
+        Therefore, we normally create a sufficiently unique bucket name.
+
+        Example:
+
+        aws-storage-lab-<unique-suffix>
+
+
+     -> S3 Region
+
+        Amazon S3 provides a global service experience, but every S3 bucket
+        is created in a specific AWS Region.
+
+        Example:
+
+        Asia Pacific (Mumbai)
+        Region Code: ap-south-1
+
+        A bucket created in ap-south-1 has Mumbai as its home Region.
+
+        Region selection can depend on factors such as:
+
+        -> Latency
+        -> Cost
+        -> Compliance and data residency
+        -> Application architecture
+
+
+     -> S3 Object URL
+
+        S3 objects can have HTTP/HTTPS URLs.
+
+        Example:
+
+        Bucket:
+        my-storage-lab
+
+        Object Key:
+        images/photo.jpg
+
+        A common S3 object URL can look similar to:
+
+        https://my-storage-lab.s3.ap-south-1.amazonaws.com/images/photo.jpg
+
+        However, having the URL does not automatically make the object public.
+
+        S3 objects are private by default unless access is explicitly allowed.
+
+        Therefore:
+
+        Having Object URL
+                |
+                X
+        Does not automatically mean
+        Public Access
+
+
+     -> Maximum S3 Object Size
+
+        The maximum size of a single S3 object is 5 TB.
+
+        The 5 TB limit applies to each individual object and not to
+        the entire S3 bucket.
+
+        Example:
+
+        Bucket: company-backups
+
+        backup-1.zip -> 4 TB    Allowed
+        backup-2.zip -> 3 TB    Allowed
+        backup-3.zip -> 5 TB    Allowed
+        backup-4.zip -> 6 TB    Not allowed as one object
+
+        An S3 bucket can contain a very large number of objects and
+        enormous amounts of total data.
+
+        Therefore:
+
+        Maximum Single Object Size -> 5 TB
+
+        This does NOT mean:
+
+        Maximum Bucket Size -> 5 TB
+
+
+     -> Single PUT and Multipart Upload
+
+        A single PUT request can upload an object up to 5 GB.
+
+        Larger objects must use Multipart Upload.
+
+        Multipart Upload divides a large file into multiple parts
+        for the upload process.
+
+        Example:
+
+                  4 TB backup.zip
+                         |
+                  Multipart Upload
+                         |
+              +----------+----------+
+              |          |          |
+            Part 1     Part 2     Part 3 ...
+              |          |          |
+              +----------+----------+
+                         |
+                         v
+                        S3
+                         |
+                         v
+                  backup.zip
+                  4 TB Object
+
+        After Multipart Upload completes, the uploaded parts form
+        one S3 object.
+
+        Therefore:
+
+        5 TB -> Maximum size of one S3 object.
+
+        5 GB -> Maximum object size that can be uploaded using
+                one PUT request.
+
+
+     -> S3 Durability
+
+        Durability describes how safely data remains stored over time.
+
+        S3 Standard is designed for:
+
+        99.999999999% durability
+
+        This is commonly called 11 nines of durability.
+
+        AWS achieves high durability through redundant storage across
+        multiple devices and, for S3 Standard, multiple Availability Zones.
+
+        Conceptually:
+
+                    S3 Object
+                        |
+                +-------+-------+
+                |       |       |
+               AZ-A    AZ-B    AZ-C
+
+        AWS manages this redundancy automatically.
+
+
+     -> Durability vs Availability
+
+        Durability answers:
+
+        "Will my stored data remain safe and avoid being lost?"
+
+        Availability answers:
+
+        "Can I access my data when I need it?"
+
+        These are different concepts.
+
+        For S3 Standard:
+
+        Durability   -> 99.999999999%
+        Availability -> 99.99%
+
+        We will study availability differences between storage classes later.
+
+
+     -> S3 Strong Consistency
+
+        Amazon S3 provides strong read-after-write consistency for object
+        PUT and DELETE operations and operations that modify S3 metadata.
+
+        In simple terms, after a successful object write, subsequent
+        reads and listings reflect the latest state.
+
+        Example:
+
+        Upload product.jpg
+                |
+                v
+        Upload Successful
+                |
+                v
+        Read / List Object
+                |
+                v
+        Latest Object is Visible
+
+        The same idea applies when an existing object is overwritten.
+
+        Old:
+        product.jpg -> Version A
+
+                |
+                | Overwrite
+                v
+
+        New:
+        product.jpg -> Version B
+
+        After the successful write, subsequent reads see the updated object.
+
+
+     -> S3 Fundamentals Summary
+
+        S3 -> Simple Storage Service.
+
+        S3 -> Object Storage.
+
+        Bucket -> Container for objects.
+
+        Object -> Actual data stored in S3.
+
+        Object Key -> Identifier of an object inside a bucket.
+
+        Folder-like structure -> Created mainly using Object Key prefixes.
+
+        Bucket -> Created in a specific AWS Region.
+
+        General-purpose bucket name -> Globally unique within an AWS partition.
+
+        Object URL -> Does not automatically mean public access.
+
+        Maximum single object size -> 5 TB.
+
+        Maximum single PUT object size -> 5 GB.
+
+        S3 Standard durability -> 99.999999999%.
+
+        S3 Standard availability -> 99.99%.
+
+        S3 -> Provides strong consistency.
+
+=> Amazon S3 Storage Classes
+
+     -> What is an S3 Storage Class?
+
+        An S3 Storage Class determines how an S3 object is stored and priced
+        based mainly on its access pattern and resilience requirements.
+
+        Different data can have different access patterns.
+
+        Example:
+
+        product-image.jpg
+        -> Accessed frequently by customers.
+
+        old-backup.zip
+        -> Stored for a long time but rarely accessed.
+
+        AWS provides different S3 Storage Classes so that we can choose
+        appropriate storage based on how frequently the data is accessed.
+
+        In general, colder storage can reduce storage cost, but retrieval
+        may become more expensive or slower.
+
+
+     -> S3 Standard
+
+        S3 Standard is suitable for frequently accessed data and
+        general-purpose workloads.
+
+        It provides low-latency access and stores data redundantly
+        across multiple Availability Zones.
+
+        Common examples:
+
+        -> Product images
+        -> Website assets
+        -> Frequently used documents
+        -> Application data
+
+        Simple meaning:
+
+        S3 Standard
+        -> Frequently accessed data.
+
+
+     -> S3 Standard-IA
+
+        IA stands for Infrequent Access.
+
+        S3 Standard-IA is suitable for data that is accessed infrequently
+        but must be immediately available whenever required.
+
+        It stores data across multiple Availability Zones.
+
+        Standard-IA has lower storage cost than S3 Standard, but accessing
+        the stored data can incur retrieval charges.
+
+        It also has a 30-day minimum storage duration charge.
+
+        Example:
+
+        Monthly reports are stored for a long time but are opened only
+        occasionally.
+
+        Simple meaning:
+
+        Standard-IA
+        -> Infrequently accessed.
+        -> Immediate access when required.
+        -> Multi-AZ resilience.
+
+
+     -> S3 One Zone-IA
+
+        One Zone-IA is also designed for infrequently accessed data.
+
+        Unlike Standard-IA, One Zone-IA stores data in a single
+        Availability Zone.
+
+        Conceptually:
+
+        Standard-IA
+             |
+        Multiple AZs
+
+        One Zone-IA
+             |
+          Single AZ
+
+        Because the data is stored in one Availability Zone, it provides
+        less resilience against the loss of an entire Availability Zone.
+
+        It can be useful for secondary or re-creatable data where losing
+        that stored copy would not be critical.
+
+        Simple meaning:
+
+        One Zone-IA
+        -> Infrequently accessed.
+        -> Immediate access when required.
+        -> Single Availability Zone is acceptable.
+
+
+     -> S3 Intelligent-Tiering
+
+        Intelligent-Tiering is useful when the access pattern of data
+        is unknown or changes over time.
+
+        Example:
+
+        An object may be accessed frequently this month but may not be
+        accessed at all for the next several months.
+
+        Intelligent-Tiering monitors access patterns and automatically
+        moves eligible objects between appropriate access tiers.
+
+        Conceptually:
+
+        Frequently Accessed
+               |
+               v
+        Frequent Access Tier
+               |
+        Becomes less frequently accessed
+               |
+               v
+        Infrequent Access Tier
+               |
+        Becomes even colder
+               |
+               v
+        Archive Tiers
+
+        AWS automatically manages this tiering based on access patterns
+        and configuration.
+
+        There is a monitoring and automation charge per object.
+
+        Simple meaning:
+
+        Intelligent-Tiering
+        -> Access pattern is unknown or changing.
+        -> AWS automatically optimizes the object's access tier.
+
+
+     -> S3 Glacier Storage Classes
+
+        Glacier storage classes are designed mainly for archival data
+        that is accessed rarely.
+
+        Common examples:
+
+        -> Old backups
+        -> Audit records
+        -> Legal records
+        -> Compliance data
+        -> Long-term archives
+
+        Important Glacier storage classes are:
+
+        -> S3 Glacier Instant Retrieval
+        -> S3 Glacier Flexible Retrieval
+        -> S3 Glacier Deep Archive
+
+
+     -> S3 Glacier Instant Retrieval
+
+        Glacier Instant Retrieval is designed for archive data that is
+        rarely accessed but must be available immediately when requested.
+
+        Retrieval is available with millisecond access.
+
+        Example:
+
+        An old document may rarely be requested, but when a user requests
+        it, the application needs to provide it immediately.
+
+        Simple meaning:
+
+        Glacier Instant Retrieval
+        -> Archive data.
+        -> Rarely accessed.
+        -> Immediate retrieval required.
+
+
+     -> S3 Glacier Flexible Retrieval
+
+        Glacier Flexible Retrieval is designed for archive data where
+        immediate retrieval is not always required.
+
+        Retrieval options can range from minutes to hours.
+
+        Example:
+
+        Old system backups may normally never be accessed.
+
+        If a disaster occurs, the company can request the backup and
+        wait for it to be retrieved.
+
+        Simple meaning:
+
+        Glacier Flexible Retrieval
+        -> Archive data.
+        -> Rarely accessed.
+        -> Can wait minutes or hours for retrieval.
+
+
+     -> S3 Glacier Deep Archive
+
+        Glacier Deep Archive is designed for very long-term archival data
+        that is accessed extremely rarely.
+
+        It provides AWS's lowest-cost S3 storage for long-lived archive data.
+
+        Standard retrieval takes hours.
+
+        Common examples:
+
+        -> Long-term legal records
+        -> Compliance records
+        -> Historical backups
+        -> Data that must be retained for many years
+
+        Simple meaning:
+
+        Glacier Deep Archive
+        -> Very long-term archive.
+        -> Extremely rarely accessed.
+        -> Retrieval can wait for hours.
+
+
+     -> Storage Class Comparison
+
+        S3 Standard
+        -> Frequently accessed data.
+
+        Standard-IA
+        -> Infrequently accessed data.
+        -> Immediate access required.
+        -> Multi-AZ resilience.
+
+        One Zone-IA
+        -> Infrequently accessed data.
+        -> Immediate access required.
+        -> Single AZ is acceptable.
+
+        Intelligent-Tiering
+        -> Unknown or changing access pattern.
+        -> AWS automatically manages access tiers.
+
+        Glacier Instant Retrieval
+        -> Archive data.
+        -> Immediate retrieval required.
+
+        Glacier Flexible Retrieval
+        -> Archive data.
+        -> Retrieval can wait minutes or hours.
+
+        Glacier Deep Archive
+        -> Very long-term archive.
+        -> Extremely rarely accessed.
+        -> Retrieval can wait for hours.
+
+
+     -> Simple Storage Class Decision
+
+        Frequently accessed data
+        -> S3 Standard.
+
+        Infrequently accessed but immediate access required
+        -> Standard-IA.
+
+        Infrequently accessed and single AZ is acceptable
+        -> One Zone-IA.
+
+        Access pattern is unknown or changes over time
+        -> Intelligent-Tiering.
+
+        Archive data but immediate retrieval required
+        -> Glacier Instant Retrieval.
+
+        Archive data and retrieval can wait
+        -> Glacier Flexible Retrieval.
+
+        Very long-term archive with extremely rare access
+        -> Glacier Deep Archive.
+
+    -> How frequently is data accessed?
+
+                    How frequently is data accessed?
+                                    |
+                +------------------+------------------+
+                |                                     |
+            Frequent                             Infrequent
+                |                                     |
+        S3 Standard                         Need instant access?
+                                                    |
+                                        +----------+----------+
+                                        |                     |
+                                        YES                  Archive
+                                        |                     |
+                                Standard-IA /              +----+----+
+                                One Zone-IA                |         |
+                                                        |         |
+                                                        Instant    Can wait
+                                                        |         |
+                                                    Glacier       |
+                                                    Instant       |
+                                                                +--+--+
+                                                                |     |
+                                                            Flexible  Deep
+                                                            Retrieval Archive
+
+            Unknown or changing access pattern
+                            |
+                            v
+                    Intelligent-Tiering
+
+=> Amazon S3 — Lifecycle, Versioning, Security, Encryption and Static Website Hosting
+
+     -> S3 Lifecycle Rules
+
+        An S3 Lifecycle Rule automatically performs actions on objects based
+        on conditions that we configure, commonly as objects become older.
+
+        Without Lifecycle Rules, we may have to manually move old objects
+        between storage classes or delete them.
+
+        Example:
+
+                         Backup Created
+                              Day 0
+                                |
+                                v
+                           S3 Standard
+                                |
+                             30 Days
+                                |
+                                v
+                          Standard-IA
+                                |
+                             90 Days
+                                |
+                                v
+                     Glacier Flexible Retrieval
+                                |
+                              7 Years
+                                |
+                                v
+                              Expire
+
+        S3 automatically performs these actions after we configure
+        the Lifecycle Rule.
+
+
+     -> Lifecycle Transition
+
+        Transition means moving an object from one S3 Storage Class
+        to another.
+
+        Example:
+
+        S3 Standard
+             |
+          30 Days
+             |
+             v
+        Standard-IA
+             |
+          90 Days
+             |
+             v
+        Glacier
+
+        The object still exists.
+
+        Only its Storage Class changes.
+
+
+     -> Lifecycle Expiration
+
+        Expiration tells S3 when an object should expire so that it can
+        be automatically removed according to the Lifecycle configuration.
+
+        Example:
+
+        Object Created
+             |
+          365 Days
+             |
+             v
+           Expire
+             |
+             v
+        Object Removed
+
+        Therefore:
+
+        Transition
+        -> Change the Storage Class.
+
+        Expiration
+        -> Remove data when it is no longer required.
+
+
+     -> Applying Lifecycle Rules to Selected Objects
+
+        A Lifecycle Rule does not necessarily have to apply to every
+        object inside a bucket.
+
+        Rules can use filters such as Object Key prefixes or Object Tags.
+
+        Example:
+
+        company-data
+             |
+             |-- images/       No Lifecycle Rule
+             |
+             |-- logs/         Lifecycle Rule Applied
+             |
+             |-- backups/      No Lifecycle Rule
+
+        This allows different types of objects inside the same bucket
+        to have different lifecycle configurations.
+
+
+     -> S3 Versioning
+
+        S3 Versioning allows S3 to preserve multiple versions of an object
+        with the same Object Key.
+
+        Example:
+
+        Object Key: report.pdf
+
+                  report.pdf
+                       |
+             +---------+---------+
+             |         |         |
+            V1        V2        V3
+        Noncurrent Noncurrent  Current
+
+        Each version has its own Version ID.
+
+        A normal request for report.pdf returns the current version.
+
+
+     -> Overwriting an Object with Versioning Enabled
+
+        Without Versioning, uploading another object with the same key
+        replaces the previous content.
+
+        With Versioning enabled, S3 creates another version.
+
+        Example:
+
+        First Upload:
+
+        report.pdf
+             |
+             +-- V1
+
+        Upload report.pdf again:
+
+        report.pdf
+             |
+             |-- V1  -> Noncurrent
+             |
+             |-- V2  -> Current
+
+        Upload again:
+
+        report.pdf
+             |
+             |-- V1  -> Noncurrent
+             |-- V2  -> Noncurrent
+             |-- V3  -> Current
+
+        Therefore, Versioning helps protect against accidental overwrites.
+
+
+     -> Deleting an Object with Versioning Enabled
+
+        When a normal DELETE operation is performed on an object in a
+        versioning-enabled bucket without specifying a Version ID,
+        S3 generally creates a Delete Marker.
+
+        Example:
+
+                   report.pdf
+                        |
+             +----------+----------+
+             |          |          |
+            V1         V2         V3
+                                  |
+                             Previous Version
+
+                        +
+                        |
+                  Delete Marker
+                     Current
+
+        The object behaves as if it has been deleted when accessed normally.
+
+        However, previous versions can still exist.
+
+
+     -> Recovering an Accidentally Deleted Object
+
+        If an object was deleted using a normal DELETE operation and a
+        Delete Marker was created, we can remove the Delete Marker.
+
+        Example:
+
+        report.pdf
+             |
+             |-- V1
+             |-- V2
+             |-- V3
+             |
+             +-- Delete Marker  -> Current
+
+                    |
+                    | Remove Delete Marker
+                    v
+
+        report.pdf
+             |
+             +-- V3 -> Current again
+
+        This allows recovery from accidental deletion.
+
+
+     -> Permanently Deleting a Specific Version
+
+        Versioning does not prevent permanent deletion.
+
+        If a particular Version ID is explicitly deleted, that version
+        can be permanently removed.
+
+        Example:
+
+        report.pdf
+
+        V1
+        V2
+        V3
+
+        Delete Version ID = V2
+
+        Result:
+
+        report.pdf
+
+        V1
+        V3
+
+
+     -> S3 Versioning States
+
+        A new general-purpose bucket initially has Versioning disabled.
+
+        Versioning can then be enabled.
+
+        After Versioning has been enabled, it can later be suspended.
+
+        Flow:
+
+        New Bucket
+             |
+             v
+        Versioning Disabled
+             |
+          Enable
+             |
+             v
+        Versioning Enabled
+             |
+          Suspend
+             |
+             v
+        Versioning Suspended
+
+        Suspending Versioning does not delete versions that already exist.
+
+
+     -> Versioning and Storage Cost
+
+        Previous object versions continue consuming S3 storage.
+
+        Example:
+
+        report.zip V1 -> 1 GB
+        report.zip V2 -> 1 GB
+        report.zip V3 -> 1 GB
+
+        Approximate stored object data:
+
+        1 GB + 1 GB + 1 GB = 3 GB
+
+        Therefore, Versioning can increase storage consumption and cost.
+
+
+     -> Lifecycle Rules with Versioning
+
+        Lifecycle Rules can also manage noncurrent object versions.
+
+        Example:
+
+                           report.pdf
+                                |
+                 +--------------+--------------+
+                 |                             |
+           Current Version              Noncurrent Versions
+                                               |
+                                            30 Days
+                                               |
+                                               v
+                                         Glacier Class
+                                               |
+                                           365 Days
+                                               |
+                                               v
+                                             Expire
+
+        Lifecycle Rules and Versioning are commonly used together to
+        manage old versions and storage costs.
+
+
+     -> S3 Security
+
+        S3 buckets and objects are private by default.
+
+        Knowing the URL of an object does not automatically provide
+        permission to access it.
+
+        Therefore:
+
+        Object URL
+             |
+             X
+        Does not mean
+        Public Access
+
+        Important S3 access-control mechanisms include:
+
+        -> IAM Policies
+        -> Bucket Policies
+        -> S3 Block Public Access
+        -> Pre-Signed URLs
+
+
+     -> IAM Policy
+
+        An IAM Policy can grant permissions to IAM identities such as
+        users, groups and roles.
+
+        Example:
+
+                         IAM Role
+                            |
+                       IAM Policy
+                            |
+                     Allow GetObject
+                            |
+                            v
+        EC2 Application -----------> S3 Bucket
+                                         |
+                                         +-- report.pdf
+
+        An IAM Policy answers:
+
+        "What is this IAM identity allowed to do?"
+
+        For example, an EC2 instance can use an IAM Role that has
+        permission to read objects from a specific S3 bucket.
+
+
+     -> S3 Bucket Policy
+
+        A Bucket Policy is a Resource-Based Policy attached directly
+        to an S3 bucket.
+
+        Comparison:
+
+        IAM Policy
+
+        IAM User / Role
+             |
+             +-- IAM Policy
+
+
+        Bucket Policy
+
+        S3 Bucket
+             |
+             +-- Bucket Policy
+
+        A Bucket Policy can define who is allowed to perform specific
+        actions on the bucket or its objects.
+
+        Bucket Policies are also commonly used for cross-account access.
+
+        Example:
+
+        AWS Account A                           AWS Account B
+
+        +-------------------+                  +----------------+
+        | S3 Bucket         |                  | IAM Principal  |
+        |                   |                  |                |
+        | Bucket Policy     | <--------------- |                |
+        +-------------------+    GetObject     +----------------+
+
+        IAM Policy
+        -> Attached to an IAM identity.
+        -> Describes what that identity is allowed to do.
+
+        Bucket Policy
+        -> Attached to the S3 bucket.
+        -> Describes who can perform which actions on the resource.
+
+
+     -> S3 Block Public Access
+
+        S3 Block Public Access provides protective controls against
+        accidentally exposing S3 resources publicly.
+
+        Conceptually:
+
+                         Internet
+                            |
+                            v
+                    Public Permission
+                            |
+                            v
+                  +--------------------+
+                  | Block Public Access|
+                  +---------+----------+
+                            |
+                            X
+                            |
+                        S3 Bucket
+
+        For private application data, Block Public Access should normally
+        remain enabled.
+
+        We should not disable Block Public Access simply because we receive
+        an AccessDenied error.
+
+
+     -> Public Access vs Authenticated Access
+
+        Blocking public access does not prevent properly authorized
+        applications from accessing S3.
+
+        Example:
+
+        Random Internet User
+                |
+                X
+                |
+             S3 Bucket
+
+
+        EC2 Instance
+             |
+          IAM Role
+             |
+        Authorized Permission
+             |
+             v
+          S3 Bucket
+             |
+             ✓
+
+        Therefore, an S3 bucket can remain private while authorized
+        applications access it using IAM permissions.
+
+
+     -> S3 Pre-Signed URL
+
+        A Pre-Signed URL provides temporary access to a private S3 object
+        based on the permissions of the principal generating the URL.
+
+        Example:
+
+        Private S3 Bucket
+               |
+               +-- invoice.pdf
+                       |
+                       | Generate
+                       v
+                Pre-Signed URL
+                       |
+                       v
+                    Customer
+
+        The URL can be configured to expire after a limited period.
+
+        Example:
+
+        Pre-Signed URL
+             |
+        Valid for 15 minutes
+             |
+             v
+        Customer accesses object
+             |
+        URL expires
+             |
+             v
+        Temporary access no longer works
+
+        This allows us to share a private object temporarily without
+        making the entire bucket public.
+
+
+     -> Pre-Signed URL and Azure SAS
+
+        An AWS S3 Pre-Signed URL is conceptually similar to an
+        Azure Blob Storage SAS URL.
+
+        AWS                                  Azure
+
+        S3 Object                           Blob
+            |                                 |
+        Pre-Signed URL                     SAS URL
+            |                                 |
+            +---------------+-----------------+
+                            |
+                            v
+                   Temporary Access
+
+        The technologies are not identical, so AWS terminology should
+        remain Pre-Signed URL and Azure terminology should remain SAS.
+
+
+     -> S3 Encryption
+
+        Encryption protects the actual data stored in or transferred
+        to and from S3.
+
+        There are two important situations:
+
+                          Data
+                           |
+                 +---------+---------+
+                 |                   |
+                 v                   v
+             At Rest             In Transit
+                 |                   |
+          Stored inside S3      Moving between
+                               client and S3
+
+
+     -> Encryption at Rest
+
+        Encryption at Rest protects objects while they are stored
+        in S3.
+
+        Conceptually:
+
+        Application
+             |
+             | Upload
+             v
+            S3
+             |
+             | Encrypt
+             v
+        Encrypted Object
+
+        Important server-side encryption options include:
+
+        -> SSE-S3
+        -> SSE-KMS
+
+
+     -> SSE-S3
+
+        SSE stands for Server-Side Encryption.
+
+        With SSE-S3, Amazon S3 manages the encryption keys.
+
+        Architecture:
+
+                       Upload Object
+                            |
+                            v
+                           S3
+                            |
+                       Encryption
+                            |
+                    S3-Managed Keys
+                            |
+                            v
+                    Encrypted Object
+
+        We do not have to create or directly manage the encryption key.
+
+        S3 automatically encrypts new object uploads with server-side
+        encryption by default.
+
+        SSE-S3 is the basic/default encryption option unless another
+        supported default encryption configuration is selected.
+
+
+     -> SSE-KMS
+
+        KMS stands for Key Management Service.
+
+        With SSE-KMS, S3 uses AWS KMS keys as part of server-side
+        encryption.
+
+        Architecture:
+
+                         Application
+                              |
+                           Upload
+                              |
+                              v
+                             S3
+                              |
+                              | Uses
+                              v
+                       +-------------+
+                       |   AWS KMS   |
+                       |     Key     |
+                       +-------------+
+                              |
+                              v
+                       Encrypted Object
+
+        AWS KMS provides greater control over encryption keys,
+        permissions and auditing.
+
+        We can control which IAM principals are allowed to use
+        a particular KMS key.
+
+        Conceptually:
+
+        Developer A
+             |
+             +---- Allowed to use KMS Key ----> ✓
+
+        Developer B
+             |
+             +---- Not Allowed ----------------> X
+
+
+     -> SSE-S3 vs SSE-KMS
+
+        SSE-S3
+        -> Server-side encryption.
+        -> S3 manages the encryption keys.
+        -> Simpler configuration.
+        -> Suitable when advanced key control is not required.
+
+        SSE-KMS
+        -> Server-side encryption.
+        -> Uses AWS KMS.
+        -> Provides greater control over keys.
+        -> Provides stronger key usage permissions and auditing.
+
+        Simple decision:
+
+        Need simple S3-managed encryption?
+                |
+                v
+              SSE-S3
+
+        Need greater key control and auditing?
+                |
+                v
+              SSE-KMS
+
+
+     -> AWS KMS and Azure Key Vault
+
+        AWS KMS is conceptually similar to the key-management functionality
+        of Azure Key Vault.
+
+        AWS KMS
+        -> Primarily manages cryptographic keys and cryptographic operations.
+
+        Azure Key Vault
+        -> Can manage keys, secrets and certificates.
+
+        Therefore:
+
+        AWS KMS ≈ Azure Key Vault Keys
+
+        AWS Secrets Manager is closer to the secrets-management functionality
+        provided by Azure Key Vault.
+
+
+     -> Encryption in Transit
+
+        Encryption in Transit protects data while it travels between
+        the client/application and Amazon S3.
+
+        HTTPS using TLS is normally used for this protection.
+
+        Example:
+
+        Application
+             |
+             | HTTPS / TLS
+             | Encrypted Communication
+             v
+            S3
+
+
+     -> Encryption at Rest vs Encryption in Transit
+
+                           Application
+                                |
+                                | HTTPS / TLS
+                                | Encryption in Transit
+                                v
+                         +-------------+
+                         |     S3      |
+                         +------+------+
+                                |
+                         SSE-S3 / SSE-KMS
+                                |
+                                | Encryption at Rest
+                                v
+                         +-------------+
+                         |  Encrypted  |
+                         |   Object    |
+                         +-------------+
+
+        HTTPS / TLS
+        -> Protects data while travelling.
+
+        SSE-S3 / SSE-KMS
+        -> Protects data while stored.
+
+
+     -> Encryption vs Authorization
+
+        Encryption and Authorization solve different security problems.
+
+        Encryption
+             |
+             +-- Protects the data.
+
+        IAM / Bucket Policy
+             |
+             +-- Controls who can access the data.
+
+        Therefore:
+
+                         S3 Security
+                             |
+                  +----------+----------+
+                  |                     |
+             Authorization          Encryption
+                  |                     |
+             Who can access?       Protect the data
+
+
+     -> S3 Static Website Hosting
+
+        Amazon S3 can host static website content.
+
+        Static website files can include:
+
+        -> HTML
+        -> CSS
+        -> JavaScript
+        -> Images
+
+        Example:
+
+        website/
+             |
+             |-- index.html
+             |-- about.html
+             |-- style.css
+             |-- script.js
+             |
+             +-- images/
+
+        S3 can serve these files directly to a browser after Static Website
+        Hosting is configured.
+
+
+     -> Static Website Architecture
+
+                           Internet User
+                                |
+                                | HTTP Request
+                                v
+                       S3 Website Endpoint
+                                |
+                                v
+                           S3 Bucket
+                                |
+                     +----------+----------+
+                     |          |          |
+                 index.html  style.css  script.js
+                                |
+                                v
+                             Browser
+
+
+     -> Why S3 Cannot Run Backend Applications
+
+        Amazon S3 is a storage service and not an application server.
+
+        Therefore:
+
+        HTML / CSS / JavaScript / Images
+                     |
+                     v
+                    S3                 ✓
+
+        Spring Boot / Node.js / PHP /
+        Python Backend Application
+                     |
+                     v
+                    S3                 ✗
+
+        Backend applications require compute services such as EC2,
+        containers, Lambda or other suitable AWS compute services.
+
+
+     -> Frontend and Backend Architecture
+
+        A frontend framework such as React can generate static build files
+        that can be stored in S3.
+
+        Example:
+
+        React Source Code
+              |
+              | Build
+              v
+        Static Build Files
+              |
+              v
+             S3
+
+        The backend application runs separately.
+
+        Architecture:
+
+                              User
+                               |
+                    +----------+----------+
+                    |                     |
+                    v                     v
+              Static Frontend          API Calls
+                    |                     |
+                    v                     v
+                   S3              Spring Boot Backend
+                                          |
+                                   EC2 / Container
+                                          |
+                                          v
+                                       Database
+
+
+     -> Amazon CloudFront with S3
+
+        Amazon CloudFront is AWS's Content Delivery Network (CDN).
+
+        CloudFront is commonly placed in front of S3 to deliver static
+        content efficiently to users.
+
+        Architecture:
+
+                              Users
+                                |
+                                v
+                         +-------------+
+                         | CloudFront  |
+                         |     CDN     |
+                         +------+------+
+                                |
+                                v
+                         +-------------+
+                         |     S3      |
+                         |   Origin    |
+                         +-------------+
+                                |
+                         Static Content
+
+        CloudFront can cache content at edge locations closer to users,
+        which can reduce latency and improve content delivery performance.
+
+
+     -> CloudFront with Private S3 Bucket
+
+        A common production architecture keeps the S3 bucket private
+        and allows users to access content through CloudFront.
+
+        Architecture:
+
+                             Internet
+                                |
+                                v
+                           CloudFront
+                                |
+                         Controlled Access
+                                |
+                                v
+                       Private S3 Bucket
+                                |
+                         Static Content
+
+        CloudFront Origin Access Control (OAC) can be used so that
+        CloudFront can access the private S3 origin.
+
+        This avoids unnecessarily exposing the S3 bucket directly
+        to the public.
+
+        This private bucket architecture uses S3 as a CloudFront origin
+        rather than using the S3 Website Endpoint directly.
+
+
+     -> S3 Security and Hosting Architecture Summary
+
+                                  Users
+                                    |
+                          +---------+---------+
+                          |                   |
+                          v                   v
+                    CloudFront          Application
+                          |                   |
+                          v              IAM Role
+                  Private S3 Bucket           |
+                          ^                   |
+                          |                   |
+                          +-------------------+
+                                    |
+                              Authorized Access
+
+        S3 Security:
+        -> IAM Policy controls identity permissions.
+        -> Bucket Policy controls resource-based permissions.
+        -> Block Public Access helps prevent unwanted public exposure.
+        -> Pre-Signed URL provides temporary private-object access.
+        -> SSE-S3 or SSE-KMS protects data at rest.
+        -> HTTPS/TLS protects data in transit.
+
+        S3 Hosting:
+        -> S3 can serve static files.
+        -> S3 cannot execute backend application code.
+        -> CloudFront is commonly placed in front of S3.
+        -> Private S3 + CloudFront is a common production architecture.
+
+=> AWS Storage Services vs Azure Storage Services
+
+     -> Main Difference Between Azure and AWS Storage Organization
+
+        Azure groups multiple storage services under an Azure Storage Account.
+
+        Azure Storage Account
+                 |
+        +--------+--------+--------+--------+
+        |                 |                 |
+      Blobs             Files             Queues
+                                            |
+                                          Tables
+
+        AWS organizes comparable storage capabilities as separate services.
+
+        AWS
+         |
+         +-- Amazon S3
+         +-- Amazon EFS
+         +-- Amazon EBS
+         +-- Amazon DynamoDB
+         +-- Amazon SQS
+
+        Therefore, AWS does not have an exact equivalent of an Azure Storage
+        Account that contains S3, EFS and EBS together.
+
+
+     -> Overall Azure to AWS Mapping
+
+        Azure Blob Storage      <---->  Amazon S3
+        Azure Files             <---->  Amazon EFS
+        Azure Managed Disks     <---->  Amazon EBS
+        Azure Table Storage /
+        Azure Cosmos DB         <---->  Amazon DynamoDB
+        Azure Queue Storage     <---->  Amazon SQS
+
+        These mappings are conceptual.
+
+        The services solve similar types of problems, but their features
+        and architecture are not necessarily identical.
+
+
+     -> Azure Blob Storage vs Amazon S3
+
+        Azure Blob Storage and Amazon S3 provide Object Storage.
+
+        Azure:
+
+        Azure Storage Account
+                 |
+                 v
+            Blob Service
+                 |
+                 v
+             Container
+                 |
+                 +-- image.jpg
+                 +-- video.mp4
+
+
+        AWS:
+
+               Amazon S3
+                   |
+                   v
+                 Bucket
+                   |
+                   +-- image.jpg
+                   +-- video.mp4
+
+        Conceptual mapping:
+
+        Azure Blob Storage  <---->  Amazon S3
+
+        Azure Container     <---->  S3 Bucket
+
+        Azure Blob          <---->  S3 Object
+
+        Blob Name           <---->  S3 Object Key
+
+        Both are commonly used for data such as:
+
+        -> Images
+        -> Videos
+        -> Documents
+        -> Backups
+        -> Logs
+        -> Static content
+
+
+     -> Azure SAS URL vs S3 Pre-Signed URL
+
+        Azure Blob Storage can provide temporary access to private
+        resources using a SAS URL.
+
+        Amazon S3 can provide temporary access to private objects using
+        a Pre-Signed URL.
+
+        Azure                              AWS
+
+        Private Blob                  Private S3 Object
+             |                               |
+          SAS URL                      Pre-Signed URL
+             |                               |
+             +---------------+---------------+
+                             |
+                             v
+                     Temporary Access
+
+        Therefore:
+
+        Azure SAS URL  ≈  AWS S3 Pre-Signed URL
+
+        They solve similar problems, but they are different technologies
+        and their respective terminology should be used.
+
+
+     -> Azure Files vs Amazon EFS
+
+        Azure Files and Amazon EFS represent the Shared File Storage concept.
+
+        Azure:
+
+        VM-1 ─────┐
+                  |
+        VM-2 ─────┼──── Azure Files
+                  |
+        VM-3 ─────┘
+
+
+        AWS:
+
+        EC2-1 ────┐
+                  |
+        EC2-2 ────┼──── Amazon EFS
+                  |
+        EC2-3 ────┘
+
+        Multiple compute instances can access a shared filesystem.
+
+        Therefore:
+
+        Azure Files  ≈  Amazon EFS
+
+        Azure Files supports file-sharing scenarios using protocols such
+        as SMB and NFS.
+
+        Amazon EFS primarily provides NFS-based shared file storage
+        for Linux workloads.
+
+
+     -> Azure Managed Disks vs Amazon EBS
+
+        Amazon EBS should be compared with Azure Managed Disks rather
+        than Azure Blob Storage.
+
+        Both provide Block Storage for virtual machines.
+
+        Azure:
+
+        +----------------+
+        |    Azure VM    |
+        +-------+--------+
+                |
+                v
+        +----------------+
+        |  Managed Disk  |
+        +----------------+
+
+
+        AWS:
+
+        +----------------+
+        |      EC2       |
+        +-------+--------+
+                |
+                v
+        +----------------+
+        |   EBS Volume   |
+        +----------------+
+
+        Therefore:
+
+        Azure Managed Disk  ≈  Amazon EBS
+
+        Azure Managed Disk
+        -> Virtual block disk for Azure VM.
+
+        Amazon EBS
+        -> Virtual block disk for Amazon EC2.
+
+
+     -> Azure Table Storage vs Amazon DynamoDB
+
+        Azure Table Storage provides NoSQL structured data storage.
+
+        Amazon DynamoDB is also a managed NoSQL database service.
+
+        Conceptually:
+
+        Azure Table Storage
+                |
+                +-------------> Amazon DynamoDB
+
+
+        Example application data:
+
+        UserID      Name       Status
+
+        101         Vinay      ACTIVE
+        102         Rahul      ACTIVE
+
+        Both can be used for NoSQL application-data scenarios.
+
+        However, DynamoDB and Azure Table Storage are not exact
+        feature-by-feature equivalents.
+
+
+     -> Azure Cosmos DB vs Amazon DynamoDB
+
+        Azure Cosmos DB is another Azure NoSQL database service that
+        overlaps conceptually with DynamoDB for highly scalable
+        application workloads.
+
+        Therefore:
+
+        Azure Table Storage ─────┐
+                                 |
+                                 +── Conceptually ──> DynamoDB
+                                 |
+        Azure Cosmos DB ─────────┘
+
+        Which Azure service is closest to DynamoDB depends on the
+        application's requirements and required features.
+
+
+     -> Azure Queue Storage vs Amazon SQS
+
+        Azure Queue Storage provides message-queue functionality.
+
+        AWS provides a separate messaging service called Amazon SQS.
+
+        SQS stands for Simple Queue Service.
+
+        Therefore:
+
+        Azure Queue Storage  ≈  Amazon SQS
+
+        Queue services are used when applications need asynchronous
+        message communication between components.
+
+
+     -> AWS KMS vs Azure Key Vault
+
+        AWS KMS is conceptually similar to the key-management functionality
+        provided by Azure Key Vault.
+
+        AWS KMS
+        -> Primarily manages cryptographic keys and cryptographic operations.
+
+        Azure Key Vault
+        -> Can manage keys, secrets and certificates.
+
+        Therefore:
+
+        AWS KMS  ≈  Azure Key Vault Keys
+
+        AWS Secrets Manager is closer to the secrets-management functionality
+        provided by Azure Key Vault.
+
+
+     -> Complete Azure and AWS Storage Architecture
+
+                              AZURE
+                                |
+                       Azure Storage Account
+                                |
+              +-----------------+-----------------+
+              |                 |                 |
+            Blobs             Files             Queues
+              |                 |                 |
+              |               Tables              |
+              |                 |                 |
+              v                 v                 v
+
+        =======================================================
+
+                               AWS
+                                |
+              +-----------------+-----------------+
+              |                 |                 |
+              v                 v                 v
+             S3                EFS               SQS
+        Object Storage    Shared File Storage   Message Queue
+                                |
+                                v
+                            DynamoDB
+                         NoSQL Database
+
+
+        Block Storage is mapped separately:
+
+        Azure VM                              Amazon EC2
+            |                                     |
+            v                                     v
+        Managed Disk                           EBS Volume
+            |                                     |
+            +---------------+---------------------+
+                            |
+                            v
+                       Block Storage
+
+
+     -> Final Azure to AWS Mental Mapping
+
+        Object Storage:
+
+        Azure Blob Storage
+                |
+                ≈
+                |
+             Amazon S3
+
+
+        Shared File Storage:
+
+        Azure Files
+             |
+             ≈
+             |
+        Amazon EFS
+
+
+        VM Block Storage:
+
+        Azure Managed Disks
+                |
+                ≈
+                |
+          Amazon EBS
+
+
+        NoSQL Database:
+
+        Azure Table Storage / Cosmos DB
+                     |
+                     ≈
+                     |
+               Amazon DynamoDB
+
+
+        Message Queue:
+
+        Azure Queue Storage
+                 |
+                 ≈
+                 |
+              Amazon SQS
+
+
+     -> Simple Way to Remember
+
+        Need to store objects?
+
+        Azure -> Blob Storage
+        AWS   -> S3
+
+
+        Need a shared filesystem?
+
+        Azure -> Azure Files
+        AWS   -> EFS
+
+
+        Need a disk for a virtual machine?
+
+        Azure -> Managed Disk
+        AWS   -> EBS
+
+
+        Need scalable NoSQL application data?
+
+        Azure -> Table Storage / Cosmos DB depending on requirements
+        AWS   -> DynamoDB
+
+
+        Need a message queue?
+
+        Azure -> Queue Storage
+        AWS   -> SQS
