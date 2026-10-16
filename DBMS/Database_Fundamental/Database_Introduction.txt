@@ -1,0 +1,181 @@
+=> Data and Information
+
+    -> Data
+        -> Data refers to raw facts, figures, values, or observations.
+        -> Data may not convey complete meaning without proper context.
+        -> Data can be numbers, text, dates, images, audio, or video.
+        -> Example: 25000, 15000, 10000.
+        -> Without context, we cannot determine what these numbers represent.
+
+    -> Information
+        -> Information is data that has been processed, organized, or given meaningful context.
+        -> Information helps us understand facts and make decisions.
+        -> Example: The total amount deposited by the customer is ₹50,000.
+        -> This statement clearly explains what the amount represents.
+
+    -> Conversion of Data into Information
+        -> Data + Processing / Context = Information.
+        -> Example: Banking Application.
+            -> Raw Data: 25000, 15000, 10000.
+            -> Processing: Add the three deposit amounts.
+            -> Information: Total deposited amount is ₹50,000.
+
+    -> Difference Between Data and Information
+        -> Data represents raw facts and values.
+        -> Information represents meaningful and contextualized data.
+        -> Data is commonly used as input for processing.
+        -> Information is commonly obtained as output after processing.
+        -> Data Example: 50000.
+        -> Information Example: Customer Amit has an account balance of ₹50,000.
+
+    -> Important Points for Interviews and Exams
+        -> Data does not always require complex processing to become information.
+        -> Adding context can make data meaningful.
+        -> Information is useful for decision-making.
+        -> Information is derived from data.
+        -> Data and information are related but not identical.
+
+=> Database
+
+    -> Meaning of Database
+        -> Database can be remembered as Data + Base.
+        -> Data refers to facts, figures, and values.
+        -> Base can be understood as a place or foundation for storing data.
+
+    -> Definition of Database
+        -> A database is an organized collection of logically related data.
+        -> It allows data to be stored, accessed, retrieved, and updated efficiently.
+        -> Data is organized according to a particular purpose or requirement.
+
+    -> Important Characteristics
+        -> Data is organized and logically related.
+        -> Data can be stored and retrieved.
+        -> Existing data can be updated.
+        -> New data can be inserted.
+        -> Unnecessary data can be deleted.
+        -> A database can contain different types of data.
+        -> A database does not necessarily store data only in tables.
+
+    -> Practical Example: Banking Database
+        -> Consider a customer with the following information.
+            -> Customer ID: 101
+            -> Name: Amit
+            -> Account Balance: ₹5,000
+            -> Account Type: Savings
+
+        -> Customer deposits ₹10,000.
+        -> Updated Account Balance = ₹5,000 + ₹10,000 = ₹15,000.
+        -> The account balance is updated in the database.
+        -> A separate transaction record is maintained for the deposit.
+        -> This helps preserve the financial transaction history.
+
+    -> Database vs Random Collection of Data
+        -> A random collection may not have a defined organization.
+        -> A database organizes related data for a particular purpose.
+        -> Data can be searched, retrieved, and maintained efficiently.
+        -> Databases support systematic data management.
+        -> A database may contain raw data as well as meaningful information.
+
+    -> Database and Tables
+        -> A table contains data arranged in rows and columns.
+        -> Relational databases organize data using tables.
+        -> A database can contain multiple related tables.
+        -> Example: Customers, Accounts, Transactions, and Loans.
+        -> Not all databases use tables; some use documents, graphs, or other models.
+
+    -> Important Interview and Exam Points
+        -> Database = Organized collection of logically related data.
+        -> A database is not necessarily a single table.
+        -> A database is not the same as a DBMS.
+        -> A database can store structured, semi-structured, or unstructured data.
+        -> Database organization helps in efficient retrieval and management.
+        -> Maintaining correct and consistent data is important.
+        -> Banking systems preserve transaction history rather than simply overwriting financial records.
+
+    -> Interview-Ready Definition
+        -> A database is an organized collection of logically related data that can be stored, retrieved, updated, and managed efficiently.
+
+=> Types of Data Based on Structure
+
+    -> Introduction
+        -> Data can be classified based on how it is organized.
+        -> Three common categories are Structured, Semi-Structured, and Unstructured Data.
+        -> These are classifications of data, not necessarily types of databases.
+
+    -> Structured Data
+        -> Data organized according to a predefined schema.
+        -> Commonly stored in rows and columns.
+        -> Each column has a defined meaning and data type.
+        -> Example: MySQL customer table.
+
+            Customer_ID | Name  | Balance
+            101         | Amit  | 50000
+            102         | Rahul | 30000
+
+        -> Advantages
+            -> Easy to organize, search, and query using SQL.
+            -> Supports well-defined validation and integrity constraints.
+
+        -> Examples
+            -> Employee Records
+            -> Banking Account Details
+            -> Student Records
+            -> Relational Database Tables
+
+    -> Semi-Structured Data
+        -> Semi-structured data contains organizational elements such as keys, tags, and nested structures, but does not necessarily follow a fixed relational schema.
+        -> Different records may contain different fields.
+        -> Supports nested objects and flexible data organization.
+        -> Common examples include JSON and XML.
+
+        -> JSON Example
+
+            {
+              "customerId": 101,
+              "name": "Amit",
+              "balance": 50000,
+              "address": {
+                "city": "Jaipur"
+              }
+            }
+
+        -> Another record may contain additional or fewer fields.
+        -> JSON objects use curly braces { }.
+        -> JSON arrays use square brackets [ ].
+        -> Semi-structured does not mean mixing structured and unstructured data.
+
+    -> Unstructured Data
+        -> Data whose main content does not follow a predefined tabular schema.
+        -> Usually requires specialized processing to extract particular information.
+        -> Unstructured data can still contain metadata and internal organization.
+
+        -> Examples
+            -> Images and Photographs
+            -> Audio Recordings
+            -> Videos
+            -> Scanned Documents
+            -> Free-Form Text Documents
+
+    -> Differences Between Data Categories
+        -> Structured Data: Predefined schema, commonly rows and columns.
+        -> Semi-Structured Data: Flexible organization using keys, tags, or nested elements.
+        -> Unstructured Data: No uniform predefined schema for its main content.
+
+    -> Practical Banking Example
+        -> Structured: Customer account table in MySQL.
+        -> Semi-Structured: Customer details received through a JSON API.
+        -> Unstructured: Scanned customer documents or recorded calls.
+
+    -> Important Interview and Exam Points
+        -> Structured data commonly follows a predefined schema.
+        -> JSON and XML are common semi-structured formats.
+        -> Images, audio, and video are common unstructured data examples.
+        -> JSON is not automatically unstructured simply because its fields are flexible.
+        -> A relational database can also store JSON and binary content.
+        -> Data classification and database classification are different concepts.
+
+    -> Interview-Ready Definitions
+        -> Structured Data: Data organized according to a predefined schema.
+        -> Semi-Structured Data: Data containing structural markers without necessarily requiring a fixed relational schema.
+        -> Unstructured Data: Data whose main content does not follow a uniform predefined record or tabular schema.
+
