@@ -1,0 +1,181 @@
+=> B-Tree Operations
+
+    -> Searching in a B-Tree
+        -> Start searching from the root node.
+        -> Compare the search key with the sorted keys inside the current node.
+        -> If the key matches, searching is complete.
+        -> Otherwise, follow the child pointer for the correct key range.
+        -> Repeat until the key is found or a leaf is reached.
+
+        -> Example: Search 50
+
+                    [20 | 40]
+                   /    |     \
+                [10]  [30]  [50 | 60]
+
+        -> Start at [20 | 40].
+        -> Since 50 > 40, follow the right child.
+        -> Search inside [50 | 60].
+        -> Key 50 is found.
+
+    -> Inserting Keys in a B-Tree
+        -> Find the correct leaf node for the new key.
+        -> Insert the key while maintaining sorted order.
+        -> If the node has space, no structural change is required.
+        -> If the node is full, splitting may be required.
+        -> Different insertion algorithms may split before or after descending into a full node.
+
+    -> Insertion Without Splitting
+        -> Example: Order 4 (Maximum 3 keys per node).
+        -> Current Node: [10 | 20].
+        -> Insert Key: 15.
+        -> Result: [10 | 15 | 20].
+        -> The node now contains 3 keys, which is allowed.
+        -> No splitting is required.
+
+    -> Node Overflow
+        -> Overflow means inserting a key would exceed the node's maximum capacity.
+        -> Example: Order 4 allows maximum 3 keys.
+        -> A node cannot permanently contain 4 keys.
+        -> A B-Tree handles capacity problems using node splitting.
+
+    -> Node Splitting
+        -> Splitting divides a full node into smaller nodes.
+        -> A middle key is promoted to the parent.
+        -> Keys smaller than the promoted key remain in the left node.
+        -> Keys greater than the promoted key remain in the right node.
+        -> The operation maintains the B-Tree's key-capacity rules.
+
+    -> Example: Root Splitting (Top-Down Insertion)
+        -> Order 4, Maximum Keys = 3.
+        -> Current Root: [10 | 20 | 30].
+        -> Insert Key: 40.
+        -> The full root is split before inserting 40.
+        -> Middle key 20 becomes the new root.
+
+        -> Before:
+
+                    [10 | 20 | 30]
+
+        -> After inserting 40:
+
+                         [20]
+                        /    \
+                      [10]  [30 | 40]
+
+        -> The new root contains 20.
+        -> Left child contains 10.
+        -> Right child contains 30 and 40.
+        -> Tree height increases by 1.
+
+    -> Key Promotion
+        -> Promotion means moving a selected middle key from a split node into its parent.
+        -> This key separates the newly created left and right nodes.
+        -> In a traditional B-Tree, the promoted key is moved out of the split child.
+        -> If the parent is full, additional splitting may be necessary.
+
+    -> Internal Node Splitting
+        -> Internal nodes can also become full.
+        -> A full internal node is split using the same general middle-key promotion principle.
+        -> Its keys and child pointers are divided between two nodes.
+        -> If splitting reaches a full root, a new root is created.
+        -> This may increase tree height.
+
+    -> Deleting Keys from a B-Tree
+        -> First, locate the key to be deleted.
+        -> If it is in a leaf, remove it if minimum occupancy remains satisfied.
+        -> If deletion would violate minimum occupancy, rebalancing is required.
+        -> If the key is in an internal node, its position must be handled while preserving search order.
+        -> Rebalancing may involve borrowing or merging.
+
+    -> Deletion Without Rebalancing
+        -> Example: Order 4 (Minimum 1 key per non-root node).
+
+        -> Before:
+
+                         [20]
+                        /    \
+                      [10]  [30 | 40]
+
+        -> Delete Key: 40.
+
+        -> After:
+
+                         [20]
+                        /    \
+                      [10]   [30]
+
+        -> Right leaf still contains 1 key.
+        -> Minimum-key requirement is satisfied.
+        -> No borrowing or merging is required.
+
+    -> Node Underflow
+        -> Underflow means a non-root node contains fewer keys than the minimum allowed.
+        -> Example: Order 4 requires at least 1 key per non-root node.
+        -> A non-root leaf becoming empty violates this rule.
+        -> Underflow can be corrected through borrowing or merging.
+
+    -> Borrowing / Redistribution
+        -> Borrowing is used when a sibling has more than the minimum required keys.
+        -> A key is redistributed through the parent.
+        -> Both nodes must remain within their allowed key limits.
+        -> The parent separator key is updated as required.
+        -> This maintains the tree structure without merging nodes.
+
+    -> Merging Nodes
+        -> Merging is used when borrowing is not possible.
+        -> Two neighboring nodes combine with their separating parent key.
+        -> The merged node must not exceed maximum key capacity.
+        -> The parent loses one key and one child pointer.
+        -> If the parent becomes underfull, rebalancing may continue upward.
+
+    -> Example: Deletion With Merging
+        -> Order 4, Minimum Keys = 1.
+        -> Delete Key: 10.
+
+        -> Before:
+
+                         [20]
+                        /    \
+                      [10]   [30]
+
+        -> Removing 10 would leave the left leaf empty.
+        -> The right leaf [30] cannot lend a key.
+        -> Merge the two leaves with the parent key 20.
+
+        -> After:
+
+                      [20 | 30]
+
+        -> The merged node becomes the new root.
+        -> The B-Tree height decreases by 1.
+
+    -> Internal Node Deletion
+        -> Deleting a key from an internal node requires special handling.
+        -> The key may be replaced using its inorder predecessor or successor.
+        -> Inorder predecessor = Largest key in the left subtree.
+        -> Inorder successor = Smallest key in the right subtree.
+        -> If the relevant child has only minimum keys, merging may be required.
+        -> The final tree must preserve sorted order and occupancy rules.
+
+    -> Maintaining Tree Balance
+        -> B-Tree operations must preserve sorted keys.
+        -> Non-root nodes must satisfy minimum and maximum key limits.
+        -> Every internal node with K keys must have K + 1 children.
+        -> All leaf nodes must remain at the same depth.
+        -> Splitting can increase tree height.
+        -> Merging at the root can decrease tree height.
+
+    -> Time Complexity
+        -> Searching = O(log N).
+        -> Insertion = O(log N).
+        -> Deletion = O(log N).
+        -> N represents the total number of stored keys.
+        -> Balanced height keeps these operations efficient.
+
+    -> Practical MySQL Connection
+        -> MySQL InnoDB primarily uses B+ Tree indexes.
+        -> B+ Trees use similar searching and balancing principles.
+        -> Inserting indexed records may cause page splitting.
+        -> Deleting indexed records may require structural adjustments.
+        -> Exact B+ Tree split, promotion, and deletion rules differ from traditional B-Trees.

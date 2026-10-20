@@ -1,0 +1,29 @@
+﻿=> Indexing Fundamentals
+    -> What an index is, why it exists, and how it helps
+
+=> Index Creation
+    -> Who creates indexes, when, where, and how
+
+=> Index Storage
+    -> Whether an index is a table, where it is stored, and what it contains
+
+=> Index Types
+    -> Primary, secondary, clustered, nonclustered, dense, sparse
+
+=> Index Data Structures
+    -> B-tree, B+ tree, hashing, and their differences
+
+=> MySQL InnoDB Indexing
+    -> Primary Key indexes, clustered storage, secondary indexes
+
+=> Index Execution Flow
+    -> How MySQL executes a SELECT query using an index
+
+=> Index Design
+    -> Single-column, composite, unique, and covering indexes
+
+=> Index Performance
+    -> Advantages, limitations, storage costs, and query optimization
+
+=> Practical MySQL Lab
+    -> CREATE INDEX, SHOW INDEX, EXPLAIN, and real SQL queries

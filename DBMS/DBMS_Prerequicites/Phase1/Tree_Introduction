@@ -1,0 +1,88 @@
+=> Introduction to Trees
+    -> Tree
+        -> A non-linear data structure that organizes nodes in a hierarchical parent-child relationship.
+        -> A rooted tree has one root; every other node has exactly one parent.
+        -> A tree contains no cycles.
+
+    -> Node
+        -> An individual element of a tree.
+
+    -> Edge
+        -> A connection between two nodes.
+        -> For N nodes, a tree has N - 1 edges.
+
+    -> Root Node
+        -> The topmost node, which has no parent.
+
+    -> Parent and Child
+        -> Parent: A node directly above and connected to another node.
+        -> Child: A node directly below and connected to its parent.
+
+    -> Internal Node
+        -> A node with at least one child.
+        -> The root can also be an internal node.
+
+    -> Leaf Node
+        -> A node with no children.
+        -> Its height is 0.
+
+    -> Siblings
+        -> Nodes sharing the same immediate parent.
+
+    -> Ancestors
+        -> All nodes on the path from the root to a node, excluding the node itself.
+        -> Includes the immediate parent.
+
+    -> Descendants
+        -> All nodes reachable below a node by following child connections.
+        -> Includes children, grandchildren, etc.
+
+    -> Depth
+        -> Number of edges from the root to a given node.
+        -> Root depth = 0.
+
+    -> Level
+        -> Indicates the layer of a node.
+        -> When root level = 1, Level = Depth + 1.
+        -> Some books use root level = 0.
+
+    -> Height
+        -> Number of edges on the longest downward path from a node to a leaf.
+        -> Leaf height = 0.
+        -> Tree height = height of its root.
+
+    -> Breadth-First Search (BFS)
+        -> Visits nodes level by level, from left to right.
+        -> Also called Level-Order Traversal.
+
+    -> Depth-First Search (DFS)
+        -> Explores one branch before moving to another.
+        -> Preorder visits the current node before its children.
+        -> For ordered children, preorder visits children from left to right.
+        -> Other DFS variations include inorder and postorder.
+
+    -> Example Tree
+        ->             A
+        ->           /   \
+        ->          B     C
+        ->         / \     \
+        ->        D   E     F
+        ->           /
+        ->          G
+        -> Root = A
+        -> Internal nodes = A, B, C, E
+        -> Leaf nodes = D, F, G
+        -> Siblings = B and C; D and E
+        -> Ancestors of G = A, B, E
+        -> Descendants of B = D, E, G
+        -> Depth of E = 2
+        -> Height of B = 2
+        -> Tree height = 3
+        -> BFS = A, B, C, D, E, F, G
+        -> DFS preorder = A, B, D, E, G, C, F
+
+    -> Practical Java Backend Example
+        -> Company departments can form a parent-child hierarchy.
+        -> Each Department object represents a tree node.
+        -> A List<Department> can store references to child departments.
+        -> A department without subdepartments is a leaf node.

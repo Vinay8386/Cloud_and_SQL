@@ -1,0 +1,81 @@
+=> Binary Trees
+
+    -> Binary Tree
+        -> A tree data structure in which each node can have at most two children.
+        -> The two child positions are called Left Child and Right Child.
+        -> A node may have 0, 1, or 2 children.
+
+    -> Left and Right Children
+        -> Left Child: A node connected to the left child position of its parent.
+        -> Right Child: A node connected to the right child position of its parent.
+        -> An ordinary Binary Tree does not require left values to be smaller than right values.
+
+    -> Binary Search Tree (BST)
+        -> A Binary Tree that follows a specific ordering rule.
+        -> All values in the left subtree must be smaller than the current node's value.
+        -> All values in the right subtree must be greater than the current node's value.
+        -> The same ordering rule applies recursively to every subtree.
+        -> This example assumes unique keys.
+
+    -> Example BST
+        ->           40
+        ->          /  \
+        ->         20   60
+        ->        / \   / \
+        ->       10 30 50 70
+        -> Root = 40
+        -> Left subtree values = 10, 20, 30
+        -> Right subtree values = 50, 60, 70
+
+    -> Searching in BST
+        -> Start searching from the root.
+        -> If search value equals the current node, the key is found.
+        -> If search value is smaller, move to the left child.
+        -> If search value is greater, move to the right child.
+        -> Repeat until found or a null child is reached.
+        -> Example: Search 50 => 40 -> 60 -> 50.
+
+    -> Insertion in BST
+        -> Start from the root and compare the new value.
+        -> Smaller value => move left; Greater value => move right.
+        -> Insert the new node at the first suitable empty child position.
+        -> Example: Insert 25 => 40 -> 20 -> 30 -> Left of 30.
+        -> This example uses unique values; duplicate-key handling depends on implementation.
+
+    -> Deletion in BST
+        -> Case 1: Leaf node => Remove the node directly.
+        -> Case 2: Node with one child => Replace the node with its child.
+        -> Case 3: Node with two children => Replace its key with the inorder successor or predecessor, then remove that replacement key from its original position.
+        -> Inorder successor = Smallest key in the right subtree.
+        -> Inorder predecessor = Largest key in the left subtree.
+        -> All operations must preserve the BST ordering property.
+
+    -> Balanced vs Unbalanced BST
+        -> Balanced BST: Tree height remains O(log N).
+        -> Unbalanced BST: Height can grow to O(N).
+        -> Example: Inserting 10, 20, 30, 40 into a basic BST produces a right-skewed chain.
+        -> Self-balancing BST examples include AVL Tree and Red-Black Tree.
+
+    -> Time Complexity
+        -> Search = O(h).
+        -> Insertion = O(h).
+        -> Deletion = O(h).
+        -> h = Height of the tree.
+        -> Balanced BST => O(log N) for all three operations.
+        -> Worst-case unbalanced BST => O(N) for all three operations.
+
+    -> Limitations of BST for Disk-Based Databases
+        -> Each BST node normally contains one search key.
+        -> A binary node has at most two child pointers.
+        -> Large datasets can require many node visits.
+        -> If nodes occupy separate disk pages, many visits can require costly page reads.
+        -> Database systems favor wider trees that store many keys per node or page.
+        -> B-Trees and B+ Trees can achieve large fan-out and smaller height.
+        -> InnoDB commonly uses B+ Tree indexes to efficiently locate records and process ranges.
+
+    -> Practical Java and MySQL Connection
+        -> A Java BST can hold searchable values in memory.
+        -> Java TreeMap and TreeSet are implemented using Red-Black Trees, not ordinary BSTs.
+        -> MySQL InnoDB normally uses B+ Trees for clustered and secondary indexes.
+        -> A B+ Tree node can correspond conceptually to a database page containing many keys.
+        -> This reduces the number of page levels visited during database searches.

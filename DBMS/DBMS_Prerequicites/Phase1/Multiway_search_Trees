@@ -1,0 +1,123 @@
+=> Multiway Search Trees
+    -> Multiway Tree
+        -> A tree in which a node can have more than two children.
+        -> Unlike a Binary Tree, it is not limited to two children.
+
+    -> Multiway Search Tree
+        -> A Multiway Tree that stores multiple sorted keys within a node.
+        -> Keys divide data into different search ranges.
+        -> Child pointers help navigate to the correct subtree.
+
+    -> Multiple Keys Within One Node
+        -> One node can store multiple keys in sorted order.
+        -> Example: [20 | 40 | 60] represents one node containing 3 keys.
+        -> Keys are search values, whereas nodes are containers holding keys.
+
+    -> Multiple Child Pointers
+        -> A child pointer refers to another node.
+        -> An internal node with K keys can have up to K + 1 children.
+        -> Example: 3 keys can divide searching into 4 ranges.
+        -> Leaf nodes do not have children.
+
+    -> Search Example
+                         [20 | 40 | 60]
+                        /     |    |     \
+                       P1    P2   P3     P4
+        -> Root Node: [20 | 40 | 60]
+        -> P1: Values less than 20.
+        -> P2: Values between 20 and 40.
+        -> P3: Values between 40 and 60.
+        -> P4: Values greater than 60.
+        -> Searching for 35 means following P2.
+
+    -> Node Capacity
+        -> Maximum number of keys allowed inside a node.
+        -> Example: Capacity = 3, Node = [10 | 20 | 30].
+        -> Inserting 40 into this full node would cause overflow.
+        -> B-Trees and B+ Trees handle overflow using structural adjustments such as splitting.
+
+    -> Fan-Out
+        -> Fan-out means the number of children connected to a node.
+        -> Actual fan-out = Number of existing children.
+        -> Maximum fan-out = Maximum number of children allowed.
+        -> A node with maximum key capacity K can have up to K + 1 children.
+
+        -> Example: Maximum Key Capacity = 3
+            -> Consider a parent node containing 3 keys: [20 | 40 | 60].
+            -> Maximum possible child pointers = 3 + 1 = 4.
+            -> We will gradually increase the number of children.
+
+        -> Case 1: Only 1 Child (Actual Fan-Out = 1)
+
+                        [20 | 40 | 60]
+                        |
+                        [10]
+
+            -> Only one child exists.
+            -> Actual fan-out = 1.
+            -> Maximum possible fan-out = 4.
+            -> The other 3 child positions are empty.
+
+        -> Case 2: Two Children (Actual Fan-Out = 2)
+
+                        [20 | 40 | 60]
+                        /           \
+                    [10]          [70]
+
+            -> Two children exist.
+            -> Actual fan-out = 2.
+            -> Maximum possible fan-out = 4.
+            -> Two child positions are empty.
+
+        -> Case 3: Three Children (Actual Fan-Out = 3)
+
+                        [20 | 40 | 60]
+                    /     |       \
+                    [10]   [30]     [70]
+
+            -> Three children exist.
+            -> Actual fan-out = 3.
+            -> Maximum possible fan-out = 4.
+            -> One child position is empty.
+
+        -> Case 4: Four Children (Actual Fan-Out = 4)
+
+                        [20 | 40 | 60]
+                    /     |    |    \
+                    [10]  [30] [50]  [70]
+
+            -> All four child positions are occupied.
+            -> Actual fan-out = 4.
+            -> Maximum possible fan-out = 4.
+            -> This node has reached its maximum fan-out.
+
+        -> Key Observation
+            -> The parent node contains 3 keys in every case.
+            -> Its maximum fan-out remains 4.
+            -> Its actual fan-out increases from 1 to 2 to 3 to 4.
+            -> Having more keys does not automatically mean all child positions are occupied.
+            -> These examples represent a general Multiway Search Tree, not a standard B-Tree or B+ Tree internal node.
+
+        -> Importance of Fan-Out
+            -> Higher fan-out allows a node to connect to more subtrees.
+            -> More child branches help divide searching into more ranges.
+            -> Higher fan-out generally reduces tree height when nodes are well populated.
+            -> A shorter tree can reduce database page reads during searching.
+
+    -> Tree Height
+        -> Height is the longest downward path from the root to a leaf, measured in edges.
+        -> Higher fan-out generally reduces tree height when nodes are well populated.
+        -> A smaller height means fewer node levels need to be visited.
+        -> This can reduce database page reads during searching.
+
+    -> Binary Search Tree vs Multiway Search Tree
+        -> BST: Usually one key per node and maximum 2 children.
+        -> Multiway Search Tree: Multiple keys per node and potentially more than 2 children.
+        -> BST uses one key to divide searching into two ranges.
+        -> Multiway Search Tree uses multiple keys to divide searching into several ranges.
+
+    -> Practical Java and MySQL Connection
+        -> Java object references help illustrate child pointers conceptually.
+        -> MySQL InnoDB uses B+ Tree indexes based on multiway searching.
+        -> Internal index pages contain search information and child page references.
+        -> Large fan-out helps databases search records using fewer tree levels.

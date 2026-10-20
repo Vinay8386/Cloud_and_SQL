@@ -1,0 +1,448 @@
+=> Introduction to B-Trees
+
+    -> What is a B-Tree?
+        -> A B-Tree is a self-balancing Multiway Search Tree.
+        -> It stores multiple sorted keys inside a single node.
+        -> It maintains minimum and maximum key limits for nodes.
+        -> All leaf nodes remain at the same depth.
+        -> B-Trees are designed for efficient searching, insertion, and deletion.
+
+    -> Why Were B-Trees Developed?
+        -> Binary Search Trees have at most 2 children per node.
+        -> B-Trees can store multiple keys and have many children per node.
+        -> This allows B-Trees to store large amounts of data using fewer levels.
+        -> Fewer levels can reduce disk page reads during searching.
+        -> B-Trees are useful for disk-based storage and indexing.
+
+    -> B-Tree Structure
+        -> Root Node: The topmost node of the B-Tree.
+        -> Internal Node: A node containing keys and child pointers.
+        -> Leaf Node: A node containing keys but no children.
+        -> Keys inside every node are maintained in sorted order.
+        -> In a traditional B-Tree, searchable keys may exist in both internal and leaf nodes.
+        -> All leaf nodes must remain at the same depth.
+
+    -> Example: B-Tree Structure
+
+                       [40]
+                     /      \
+                  [20]      [60 | 80]
+                 /    \      /   |    \
+               [10]  [30]  [50] [70] [90]
+
+        -> Root Node = [40].
+        -> Other Internal Nodes = [20] and [60 | 80].
+        -> Leaf Nodes = [10], [30], [50], [70], [90].
+        -> All leaf nodes are at depth 2.
+        -> Therefore, tree height = 2 edges.
+        -> This is a valid B-Tree with minimum degree 2.
+
+    -> Keys and Child Pointers
+        -> Keys are sorted values used to search or identify records.
+        -> Child pointers connect internal nodes to their child nodes.
+        -> An internal node with K keys has exactly K + 1 children.
+        -> Example: [20 | 40 | 60] has 3 keys and 4 children.
+        -> Leaf nodes have 0 children regardless of their key count.
+        -> This relationship was covered in Multiway Search Trees.
+
+    -> What is B-Tree Order?
+        -> Order is represented by m.
+        -> In these notes, order means the maximum number of children an internal node can have.
+        -> Example: Order 5 means maximum 5 children.
+        -> Since Children = Keys + 1, maximum keys = m - 1.
+        -> Therefore, an order-5 B-Tree permits at most 4 keys per node.
+        -> Important: Some textbooks define order differently, so check the convention.
+
+    -> Why Do B-Trees Need Minimum and Maximum Limits?
+        -> Maximum limit prevents nodes from exceeding their key capacity.
+        -> Minimum limit prevents non-root nodes from becoming too empty.
+        -> Standard B-Tree rules require non-root internal nodes to have at least half their maximum child capacity, rounded up.
+        -> Example: Order 5 allows maximum 5 children.
+        -> Half of 5 = 2.5, rounded up to 3 children.
+        -> Therefore, non-root internal nodes require at least 3 children and 2 keys.
+        -> Non-root leaf nodes also require at least 2 keys.
+        -> These rules help keep nodes sufficiently populated and the tree height small.
+
+    -> Maximum Number of Children
+        -> Formula: Maximum children = m.
+        -> Example: Order 4 permits maximum 4 children.
+        -> Example: Order 5 permits maximum 5 children.
+        -> This limit applies to internal nodes.
+
+    -> Maximum Number of Keys
+        -> Formula: Maximum keys = m - 1.
+        -> Example: Order 4 permits maximum 3 keys.
+        -> Example: Order 5 permits maximum 4 keys.
+        -> Maximum-key capacity applies to root, internal, and leaf nodes.
+
+    -> Minimum Number of Children
+        -> Formula: Minimum children = ceil(m / 2).
+        -> ceil() means rounding upward to the nearest whole integer.
+        -> This minimum applies only to non-root internal nodes.
+        -> Example: Order 4 => ceil(4 / 2) = 2 children.
+        -> Example: Order 5 => ceil(5 / 2) = ceil(2.5) = 3 children.
+        -> Example: Order 6 => ceil(6 / 2) = 3 children.
+
+    -> Minimum Number of Keys
+        -> Formula: Minimum keys = ceil(m / 2) - 1.
+        -> This minimum applies to all non-root nodes, including leaves.
+        -> Example: Order 4 => 2 - 1 = 1 key.
+        -> Example: Order 5 => 3 - 1 = 2 keys.
+        -> Example: Order 6 => 3 - 1 = 2 keys.
+
+    -> Complete Example: Order 4
+        -> Order m = 4.
+        -> Maximum children = 4.
+        -> Minimum children = 2 (non-root internal nodes).
+        -> Maximum keys = 3.
+        -> Minimum keys = 1 (non-root nodes).
+        -> A non-root node may contain 1, 2, or 3 keys.
+        -> A node containing 3 keys is full.
+        -> A non-root node containing 0 keys violates the minimum limit.
+
+        -> Example:
+
+                    [20 | 40 | 60]
+                   /     |    |    \
+                 [10]  [30] [50]  [70]
+
+        -> Root contains 3 keys and 4 children.
+        -> Every leaf contains 1 key and has no children.
+        -> All leaves are at the same depth.
+        -> Therefore, this is a valid order-4 B-Tree.
+
+    -> Complete Example: Order 5
+        -> Order m = 5.
+        -> Maximum children = 5.
+        -> Minimum children = 3 (non-root internal nodes).
+        -> Maximum keys = 4.
+        -> Minimum keys = 2 (non-root nodes).
+        -> A non-root node may contain 2, 3, or 4 keys.
+        -> A node containing 4 keys is full.
+        -> A non-root node containing only 1 key is below minimum capacity.
+
+        -> Example:
+
+                         [30 | 60]
+                        /    |     \
+                 [10 | 20] [40 | 50] [70 | 80]
+
+        -> Root contains 2 keys and 3 children.
+        -> Each leaf contains 2 keys.
+        -> All leaves are at the same depth.
+        -> Therefore, this is a valid order-5 B-Tree.
+
+    -> Root Node Exception
+        -> The root follows special minimum-occupancy rules.
+        -> A non-empty root must contain at least 1 key.
+        -> If the root is an internal node, it must have at least 2 children.
+        -> If the root is also a leaf, it has 0 children.
+        -> The root follows the same maximum-key limit as other nodes.
+        -> Example: In an order-5 B-Tree, a root with 1 key and 2 children is valid.
+        -> Non-root internal nodes in the same tree require at least 2 keys and 3 children.
+
+    -> Root as a Leaf Node
+        -> A B-Tree containing only one node has a root that is also a leaf.
+        -> Example: [10 | 20].
+        -> The root contains 2 keys and 0 children.
+        -> A single root [10] is also a valid non-empty B-Tree.
+        -> An empty B-Tree can contain no keys.
+
+    -> Minimum Degree
+        -> Minimum degree is represented by t.
+        -> It is another way of defining B-Tree node-capacity rules.
+        -> Minimum degree t must be an integer >= 2.
+        -> Minimum keys (non-root) = t - 1.
+        -> Maximum keys = 2t - 1.
+        -> Minimum children (non-root internal) = t.
+        -> Maximum children = 2t.
+
+    -> Example: Minimum Degree t = 2
+        -> Minimum keys = 2 - 1 = 1.
+        -> Maximum keys = (2 × 2) - 1 = 3.
+        -> Minimum children = 2.
+        -> Maximum children = 2 × 2 = 4.
+        -> These limits match our order-4 B-Tree.
+
+    -> Example: Minimum Degree t = 3
+        -> Minimum keys = 3 - 1 = 2.
+        -> Maximum keys = (2 × 3) - 1 = 5.
+        -> Minimum children = 3.
+        -> Maximum children = 2 × 3 = 6.
+        -> These limits match our order-6 B-Tree.
+
+    -> Difference Between Order and Minimum Degree
+        -> Order m specifies the maximum number of children.
+        -> Minimum degree t defines minimum and maximum occupancy.
+        -> When m = 2t, both conventions have matching capacity limits.
+        -> Order 4 matches minimum degree 2.
+        -> Order 6 matches minimum degree 3.
+        -> Order 5 is not identical to minimum degree 3 because their maximum capacities differ.
+
+    -> Balanced Tree Properties
+        -> Every B-Tree node maintains sorted keys.
+        -> Every internal node with K keys has K + 1 children.
+        -> Non-root nodes follow minimum and maximum key limits.
+        -> All leaf nodes remain at the same depth.
+        -> B-Tree balance does not mean every node contains the same number of keys.
+        -> It means all root-to-leaf paths have equal length.
+        -> Insertion and deletion maintain these rules through structural adjustments.
+
+    -> B-Tree vs Binary Search Tree
+        -> BST: Typically one key per node; B-Tree: Multiple keys per node.
+        -> BST: Maximum 2 children; B-Tree: Can have more than 2 children.
+        -> Ordinary BST: May become unbalanced; B-Tree: Always height-balanced.
+        -> BST: Leaves may be at different depths; B-Tree: All leaves have equal depth.
+        -> B-Tree's higher fan-out makes it suitable for disk-based data access.
+
+    -> Practical Java and MySQL Connection
+        -> A Java backend may query records using indexed columns.
+        -> B-Trees illustrate how multiple keys and child pointers reduce search depth.
+        -> MySQL InnoDB uses B+ Tree indexes rather than traditional B-Tree layouts.
+        -> B-Trees and B+ Trees share sorted keys, multiway branching, and balanced height.
+        -> We will study their storage differences in Phase 3 and Phase 5.
+
+    -> Important Formulas for Revision
+        -> B-Tree Order (m):
+            -> Maximum children = m.
+            -> Maximum keys = m - 1.
+            -> Minimum children = ceil(m / 2).
+            -> Minimum keys = ceil(m / 2) - 1.
+
+        -> Minimum Degree (t):
+            -> Maximum children = 2t.
+            -> Maximum keys = 2t - 1.
+            -> Minimum children = t.
+            -> Minimum keys = t - 1.
+
+        -> Minimum-child formulas apply to non-root internal nodes.
+        -> Minimum-key formulas apply to all non-root nodes.
+        -> The root follows special minimum-occupancy rules.
+
+=> B-Tree Order and Minimum Degree
+
+    -> What is the Order of a B-Tree?
+        -> Order is represented by m.
+        -> In our convention, order defines the maximum number of children an internal node can have.
+        -> Example: Order 4 means an internal node can have at most 4 children.
+        -> A node does not need to have the maximum number of children.
+        -> B-Trees follow minimum and maximum capacity rules.
+
+    -> Why Do We Need Minimum and Maximum Limits?
+        -> Maximum Limit
+            -> Defines the maximum number of keys a node can store.
+            -> Example: Order 5 allows a maximum of 4 keys per node.
+            -> A node cannot permanently store more than 4 keys.
+            -> This prevents nodes from exceeding their allowed capacity.
+
+        -> Minimum Limit
+            -> Defines the minimum number of keys a non-root node must contain.
+            -> A B-Tree requires non-root internal nodes to have at least half of their maximum child capacity, rounded up.
+            -> Example: Order 5 allows a maximum of 5 children.
+            -> Half of 5 = 2.5, rounded up to 3 children.
+            -> Therefore, a non-root internal node needs at least 3 children and 2 keys.
+            -> Non-root leaf nodes also need at least 2 keys, even though they have no children.
+            -> A non-root node containing fewer than 2 keys is considered too empty (underflow).
+
+        -> Why Are These Limits Important?
+            -> Maximum limit controls how many keys a node can hold.
+            -> Minimum limit keeps non-root nodes sufficiently populated.
+            -> These rules help keep the tree height small and searching efficient.
+            -> A B-Tree also maintains all leaf nodes at the same depth.
+
+    -> Relationship Between Keys and Children
+        -> A key is a value stored inside a node.
+        -> A child pointer connects an internal node to a child node.
+        -> Internal node with K keys = K + 1 children.
+        -> Leaf nodes have zero children.
+
+        -> Example 1: Internal Node with 1 Key
+
+                         [40]
+                        /    \
+                      [20]  [60]
+
+            -> Keys in root = 1.
+            -> Children of root = 2.
+
+        -> Example 2: Internal Node with 2 Keys
+
+                       [30 | 60]
+                      /    |    \
+                    [10] [40]  [80]
+
+            -> Keys in root = 2.
+            -> Children of root = 3.
+
+        -> Example 3: Internal Node with 3 Keys
+
+                      [20 | 40 | 60]
+                     /     |    |    \
+                   [10]  [30] [50]  [70]
+
+            -> Keys in root = 3.
+            -> Children of root = 4.
+
+        -> Important
+            -> The K + 1 rule applies to internal nodes.
+            -> Leaf nodes can contain multiple keys without having children.
+            -> In a B-Tree, internal nodes cannot have missing child positions.
+
+    -> Maximum Number of Children
+        -> Maximum children = m.
+        -> Example: Order 5 means maximum 5 children per internal node.
+        -> A node with 5 children needs 4 keys to separate the five ranges.
+
+    -> Maximum Number of Keys
+        -> Formula: Maximum keys = m - 1.
+        -> Example: Order 5.
+            -> Maximum keys = 5 - 1 = 4.
+        -> Therefore, no node can contain more than 4 keys.
+
+    -> Minimum Number of Children
+        -> Formula: Minimum children = ceil(m / 2).
+        -> ceil means round upward to the nearest integer.
+        -> This rule applies to non-root internal nodes.
+
+        -> Example: Order 4
+            -> 4 / 2 = 2.
+            -> Minimum children = 2.
+
+        -> Example: Order 5
+            -> 5 / 2 = 2.5.
+            -> Round upward: ceil(2.5) = 3.
+            -> Minimum children = 3.
+
+        -> Example: Order 6
+            -> 6 / 2 = 3.
+            -> Minimum children = 3.
+
+    -> Minimum Number of Keys
+        -> Formula: Minimum keys = ceil(m / 2) - 1.
+        -> This rule applies to every non-root node, including leaf nodes.
+        -> We subtract 1 because K + 1 children require K separator keys.
+
+        -> Example: Order 4
+            -> Minimum children = ceil(4 / 2) = 2.
+            -> Minimum keys = 2 - 1 = 1.
+
+        -> Example: Order 5
+            -> Minimum children = ceil(5 / 2) = 3.
+            -> Minimum keys = 3 - 1 = 2.
+
+        -> Example: Order 6
+            -> Minimum children = ceil(6 / 2) = 3.
+            -> Minimum keys = 3 - 1 = 2.
+
+    -> Complete Example: B-Tree of Order 4
+        -> Order m = 4.
+        -> Maximum children = 4.
+        -> Minimum children = ceil(4 / 2) = 2.
+        -> Maximum keys = 4 - 1 = 3.
+        -> Minimum keys = 2 - 1 = 1.
+
+        -> Valid number of keys in a non-root node: 1, 2, or 3.
+        -> A node with 3 keys is full.
+        -> A non-root node with 0 keys is invalid.
+        -> A node with 4 keys exceeds capacity.
+
+        -> Example:
+
+                      [20 | 40 | 60]
+                     /     |    |    \
+                   [10]  [30] [50]  [70]
+
+        -> Root has 3 keys and 4 children.
+        -> Each leaf has 1 key and 0 children.
+        -> All leaves are at the same depth.
+        -> This is a valid order-4 B-Tree.
+
+    -> Complete Example: B-Tree of Order 5
+        -> Order m = 5.
+        -> Maximum children = 5.
+        -> Minimum children = ceil(5 / 2) = 3.
+        -> Maximum keys = 5 - 1 = 4.
+        -> Minimum keys = 3 - 1 = 2.
+
+        -> Valid number of keys in a non-root node: 2, 3, or 4.
+        -> A non-root node containing only 1 key is invalid.
+        -> A non-root node containing 4 keys is full.
+
+        -> Example:
+
+                         [30 | 60]
+                        /    |     \
+                 [10 | 20] [40 | 50] [70 | 80]
+
+        -> Root has 2 keys and 3 children.
+        -> Each leaf contains 2 keys.
+        -> All leaves have the same depth.
+        -> This is a valid order-5 B-Tree.
+
+    -> Root Node Exception
+        -> The root follows different minimum-occupancy rules.
+        -> A non-empty root must have at least 1 key.
+        -> If the root is an internal node, it must have at least 2 children.
+        -> If the root is a leaf, it has 0 children.
+        -> The root follows the same maximum-key limit as other nodes.
+        -> Example: A single root [10 | 20] can represent an entire B-Tree.
+
+    -> Leaf Node Exception
+        -> Leaf nodes never have children.
+        -> Leaf nodes still follow the minimum and maximum key limits.
+        -> Example: In an order-5 B-Tree, a non-root leaf must contain 2 to 4 keys.
+        -> The minimum-child formula does not apply to leaf nodes.
+
+    -> What is Minimum Degree?
+        -> Minimum degree is represented by t.
+        -> It is another convention for defining B-Tree capacity.
+        -> Minimum keys in a non-root node = t - 1.
+        -> Maximum keys in any node = 2t - 1.
+        -> Minimum children of a non-root internal node = t.
+        -> Maximum children of an internal node = 2t.
+        -> Minimum degree t is an integer greater than or equal to 2.
+
+    -> Example: Minimum Degree t = 2
+        -> Minimum keys = 2 - 1 = 1.
+        -> Maximum keys = (2 × 2) - 1 = 3.
+        -> Minimum children = 2.
+        -> Maximum children = 2 × 2 = 4.
+        -> These limits match our order-4 B-Tree.
+
+    -> Example: Minimum Degree t = 3
+        -> Minimum keys = 3 - 1 = 2.
+        -> Maximum keys = (2 × 3) - 1 = 5.
+        -> Minimum children = 3.
+        -> Maximum children = 2 × 3 = 6.
+        -> These limits match our order-6 B-Tree.
+
+    -> Order vs Minimum Degree
+        -> Order m uses maximum children as its defining parameter.
+        -> Minimum degree t defines both minimum and maximum occupancy.
+        -> When m = 2t, the two conventions have matching capacity limits.
+        -> For odd m, do not automatically assume t = m / 2.
+        -> Example: Order 5 has maximum 5 children and maximum 4 keys.
+        -> Minimum degree t = 3 has maximum 6 children and maximum 5 keys.
+        -> Therefore, order 5 and minimum degree 3 are not identical.
+
+    -> Quick Revision Formulas
+        -> Order m:
+            -> Maximum children = m.
+            -> Minimum children = ceil(m / 2).
+            -> Maximum keys = m - 1.
+            -> Minimum keys = ceil(m / 2) - 1.
+
+        -> Minimum Degree t:
+            -> Maximum children = 2t.
+            -> Minimum children = t.
+            -> Maximum keys = 2t - 1.
+            -> Minimum keys = t - 1.
+
+    -> Exam Tips
+        -> Always check how the question defines B-Tree order.
+        -> Some textbooks use a different definition of order.
+        -> Apply minimum-child limits only to non-root internal nodes.
+        -> Apply minimum-key limits to non-root internal nodes and leaves.
+        -> Remember that the root has special minimum rules.
+        -> Never confuse the number of keys with the number of nodes.
+        -> Always count children using K + 1 for internal nodes.
